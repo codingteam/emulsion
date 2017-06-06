@@ -6,12 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="SharpXmppHelper.fs" />
+    <Compile Include="Robot.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="4.1.*" />
     <PackageReference Include="FSharp.NET.Sdk" Version="1.0.*" PrivateAssets="All" />
+    <PackageReference Include="SharpXMPP.Shared" Version="0.0.1-pre01" />
   </ItemGroup>
 
 </Project>
