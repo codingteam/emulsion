@@ -8,10 +8,13 @@
   <ItemGroup>
     <Compile Include="SharpXmppHelper.fs" />
     <Compile Include="Robot.fs" />
+    <Compile Include="Router.fs" />
+    <Compile Include="Telegram.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="Funogram/Funogram/Funogram.fsproj" />
     <PackageReference Include="FSharp.Core" Version="4.1.*" />
     <PackageReference Include="FSharp.NET.Sdk" Version="1.0.*" PrivateAssets="All" />
     <PackageReference Include="SharpXMPP.Shared" Version="0.0.1-pre01" />
