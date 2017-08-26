@@ -5,6 +5,8 @@ open Funogram.Bot
 open Funogram.Api
 open Funogram.Types
 
+open Emulsion.Settings
+
 let private processResultWithValue (result: Result<'a, ApiResponseError>) =
     match result with
     | Ok v -> Some v
@@ -87,6 +89,6 @@ let private updateArrived (ctx : UpdateContext) =
     if result then ()
     else bot (sendMessage (fromId()) defaultText)
 
-let run (token : string) : unit =
-    let config = { defaultConfig with Token = token }
+let run (settings : TelegramSettings) : unit =
+    let config = { defaultConfig with Token = settings.token }
     Bot.startBot config updateArrived None

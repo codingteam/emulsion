@@ -1,0 +1,11 @@
+{
+    "xmpp": {
+        "login": "hortomatic@example.org",
+        "password": "my-super-password",
+        "room": "xxxxx@conference.example.org",
+        "nickname": "хортолёт"
+    },
+    "telegram": {
+        "token": "999999999:aaaaaaaaaaaaaaaaaaaaaaaaa_777777777"
+    }
+}

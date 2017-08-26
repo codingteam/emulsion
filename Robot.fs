@@ -1,4 +1,4 @@
-namespace Ctor.Xmpp
+namespace Emulsion.Xmpp
 
 open System
 open System.Threading
@@ -7,13 +7,16 @@ open System.Xml.Linq
 open SharpXMPP
 open SharpXMPP.XMPP
 
+open Emulsion.Settings
+
 type Robot(logger: string -> unit,
-           login: string,
-           password: string,
-           roomJid: string,
-           nickname: string) =
+           settings : XmppSettings) =
+    let { login = login
+          room = roomJid
+          password = password
+          nickname = nickname } = settings
     do logger <| sprintf "Bot name: %s; connecting to: %s"  login roomJid
-    let connection = new XmppClient(JID(login), password)
+    let connection = XmppClient(JID(login), password)
 
     let connectionFailedHandler = XmppConnection.ConnectionFailedHandler(fun s e ->
         logger <| e.Message

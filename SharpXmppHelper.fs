@@ -1,4 +1,4 @@
-module Ctor.Xmpp.SharpXmppHelper
+module Emulsion.Xmpp.SharpXmppHelper
 
 open System.Xml.Linq
 
