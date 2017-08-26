@@ -1,10 +1,8 @@
 ﻿<Project Sdk="FSharp.NET.Sdk;Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp1.1</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="SharpXmppHelper.fs" />
     <Compile Include="Robot.fs" />
@@ -12,12 +10,11 @@
     <Compile Include="Telegram.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="Funogram/Funogram/Funogram.fsproj" />
-    <PackageReference Include="FSharp.Core" Version="4.1.*" />
+    <PackageReference Include="FunHttp" Version="1.0.0" />
+    <PackageReference Include="Funogram" Version="1.1.3-alpha" />
+    <PackageReference Include="FSharp.Core" Version="4.2.1" />
     <PackageReference Include="FSharp.NET.Sdk" Version="1.0.*" PrivateAssets="All" />
     <PackageReference Include="SharpXMPP.Shared" Version="0.0.1-pre01" />
   </ItemGroup>
-
 </Project>
