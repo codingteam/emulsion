@@ -20,11 +20,8 @@ let private getConfiguration directory fileName =
     Settings.read config
 
 let private startApp config =
-    printfn "Loaded settings: %A" config
-    Console.ReadKey()
     use xmpp = startXmpp config.xmpp
     startTelegram config.telegram
-
     0
 
 let private defaultConfigFileName = "emulsion.json"
