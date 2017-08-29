@@ -16,6 +16,6 @@
     <PackageReference Include="FSharp.NET.Sdk" Version="1.0.*" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.1.2" />
-    <PackageReference Include="SharpXMPP.Shared" Version="0.0.1-pre01" />
+    <PackageReference Include="SharpXMPP.Shared" Version="0.0.1-pre02" />
   </ItemGroup>
 </Project>
