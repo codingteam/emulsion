@@ -8,8 +8,7 @@ Build
 
 Install [.NET Core SDK][dotnet-core-sdk] for your platform, then run:
 
-```
-$ dotnet restore
+```console
 $ dotnet build
 ```
 
@@ -21,9 +20,9 @@ Copy `emulsion.example.json` to `emulsion.json` and set the settings.
 Run
 ---
 
-Requires [.NET Core Runtime][dotnet-core-runtime] version 1.1+.
+Requires [.NET Core Runtime][dotnet-core-runtime] version 2.0+.
 
-```
+```console
 $ dotnet run [optional-path-to-json-config-file]
 ```
 
