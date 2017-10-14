@@ -10,7 +10,8 @@ type XmppSettings =
       nickname : string }
 
 type TelegramSettings =
-    { token : string }
+    { token : string
+      groupId : string }
 
 type EmulsionSettings =
     { xmpp : XmppSettings
@@ -23,7 +24,8 @@ let read (config : IConfiguration) : EmulsionSettings =
           room = section.["room"]
           nickname = section.["nickname"] }
     let readTelegram (section : IConfigurationSection) =
-        { token = section.["token"] }
+        { token = section.["token"]
+          groupId = section.["groupId"] }
 
     { xmpp = readXmpp <| config.GetSection("xmpp")
       telegram = readTelegram <| config.GetSection("telegram") }
