@@ -1,4 +1,7 @@
-/bin/
-/obj/
+/.idea/
+/.vscode/
+
+bin/
+obj/
 
 emulsion.json
