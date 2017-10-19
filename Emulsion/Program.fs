@@ -9,14 +9,13 @@ open Microsoft.Extensions.Configuration
 open Emulsion.Settings
 open Emulsion.Xmpp
 
-let private startXmpp settings = async {
-    printfn "Starting XMPP"
-    ignore (new Robot(Console.WriteLine, settings))
+let private startXmpp (robot : Robot) = async {
+    robot.Run()
 }
 
-let private startTelegram settings = async {
+let private startTelegram config handler = async {
     printfn "Starting Telegram"
-    Telegram.run settings
+    Telegram.run config handler
 }
 
 let private getConfiguration directory fileName =
@@ -27,19 +26,29 @@ let private getConfiguration directory fileName =
             .Build()
     Settings.read config
 
-let private xmppActor system config =
-    let robot = startXmpp config |> Async.Start
-    actorOf (fun msg -> ())
+let private coreActor system =
+    let xmpp = select "akka://emulsion/user/xmpp" system
+    let telegram = select "akka://emulsion/user/telegram" system
+    actorOf (function | XmppMessage _ as msg -> telegram <! msg
+                      | TelegramMessage _ as msg -> xmpp <! msg)
 
-let private telegramActor system config =
-    let robot = startTelegram config |> Async.Start
-    actorOf (fun msg -> ())
+let private xmppActor core settings =
+    let robot = new Robot(Console.WriteLine, settings, fun msg -> core <! XmppMessage msg)
+    startXmpp robot |> Async.Start
+    actorOf (function | TelegramMessage x -> robot.PublishMessage x
+                      | _ -> ())
+
+let private telegramActor core config =
+    startTelegram config (fun msg -> core <! TelegramMessage msg) |> Async.Start
+    actorOf (function | XmppMessage x -> Telegram.send config x
+                      | _ -> ())
 
 let private startApp config =
     async {
         use system = System.create "emulsion" (Configuration.defaultConfig())
-        let xmpp = spawn system "xmpp" (xmppActor system config.xmpp)
-        let telegram = spawn system "telegram" (telegramActor system config.telegram)
+        let core = spawn system "core" (coreActor system)
+        let xmpp = spawn system "xmpp" (xmppActor core config.xmpp)
+        let telegram = spawn system "telegram" (telegramActor core config.telegram)
         do! Async.AwaitTask system.WhenTerminated
     }
 

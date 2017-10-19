@@ -4,13 +4,15 @@ open System
 open System.Threading
 open System.Xml.Linq
 
+open Akka.FSharp
 open SharpXMPP
 open SharpXMPP.XMPP
 
 open Emulsion.Settings
 
-type Robot(logger: string -> unit,
-           settings : XmppSettings) =
+type Robot(logger : string -> unit,
+           settings : XmppSettings,
+           onMessage : string -> unit) =
     let { login = login
           room = roomJid
           password = password
@@ -33,7 +35,8 @@ type Robot(logger: string -> unit,
         if not (isNull x) then
             logger <| "!!! Room"
             let msg = SharpXmppHelper.message roomJid "хнарл"
-            connection.Send msg)
+            connection.Send msg
+        onMessage(e.ToString()))
 
     let elementHandler = XmppConnection.ElementHandler(fun s e ->
         let arrow = if e.IsInput then "<-" else "->"
@@ -42,13 +45,17 @@ type Robot(logger: string -> unit,
     let presenceHandler = XmppConnection.PresenceHandler(fun s e ->
         logger <| "[P]:" + e.ToString())
 
-    do
+    member __.Run() : unit =
         connection.add_ConnectionFailed(connectionFailedHandler)
         connection.add_SignedIn(signedInHandler)
         connection.add_Message(messageHandler)
         connection.add_Element(elementHandler)
         connection.add_Presence(presenceHandler)
         connection.Connect()
+
+    member __.PublishMessage(text : string) : unit =
+        let msg = SharpXmppHelper.message roomJid text
+        connection.Send msg
 
     interface IDisposable with
         member __.Dispose() = connection.Close()

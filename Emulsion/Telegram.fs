@@ -28,7 +28,7 @@ let private defaultText = """⭐️Available test commands:
 let private processResult (result: Result<'a, ApiResponseError>) =
     processResultWithValue result |> ignore
 
-let private updateArrived (ctx : UpdateContext) =
+let private updateArrived onMessage (ctx : UpdateContext) =
     let bot data = api ctx.Config.Token data |> Async.RunSynchronously |> processResult
     let botResult data = api ctx.Config.Token data |> Async.RunSynchronously
 
@@ -84,11 +84,17 @@ let private updateArrived (ctx : UpdateContext) =
                     bot (sendMessage (fromId()) text)
             ))
             cmd "/get_chat_info" (fun _ -> getChatInfo ctx.Update.Message.Value)
+            fun (msg, user) -> onMessage msg.Text.Value; true
         ]
 
     if result then ()
     else bot (sendMessage (fromId()) defaultText)
 
-let run (settings : TelegramSettings) : unit =
+let send (settings : TelegramSettings) (message : string) : unit =
+    api settings.token (sendMessage (int64 settings.groupId) message)
+    |> Async.RunSynchronously
+    |> processResult
+
+let run (settings : TelegramSettings) (onMessage : string -> unit) : unit =
     let config = { defaultConfig with Token = settings.token }
-    Bot.startBot config updateArrived None
+    Bot.startBot config (updateArrived onMessage) None

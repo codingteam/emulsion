@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="EmulsionSettings.fs" />
+    <Compile Include="Message.fs" />
     <Compile Include="SharpXmppHelper.fs" />
     <Compile Include="Robot.fs" />
     <Compile Include="Telegram.fs" />
