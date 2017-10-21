@@ -26,12 +26,6 @@ let private getConfiguration directory fileName =
             .Build()
     Settings.read config
 
-let private coreActor system =
-    let xmpp = select "akka://emulsion/user/xmpp" system
-    let telegram = select "akka://emulsion/user/telegram" system
-    actorOf (function | XmppMessage _ as msg -> telegram <! msg
-                      | TelegramMessage _ as msg -> xmpp <! msg)
-
 let private xmppActor core settings =
     let robot = new Robot(Console.WriteLine, settings, fun msg -> core <! XmppMessage msg)
     startXmpp robot |> Async.Start
@@ -46,7 +40,7 @@ let private telegramActor core config =
 let private startApp config =
     async {
         use system = System.create "emulsion" (Configuration.defaultConfig())
-        let core = spawn system "core" (coreActor system)
+        let core = Core.spawn system
         let xmpp = spawn system "xmpp" (xmppActor core config.xmpp)
         let telegram = spawn system "telegram" (telegramActor core config.telegram)
         do! Async.AwaitTask system.WhenTerminated

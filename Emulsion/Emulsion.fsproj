@@ -9,6 +9,7 @@
     <Compile Include="SharpXmppHelper.fs" />
     <Compile Include="Robot.fs" />
     <Compile Include="Telegram.fs" />
+    <Compile Include="Core.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
