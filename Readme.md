@@ -17,13 +17,20 @@ Configure
 
 Copy `emulsion.example.json` to `emulsion.json` and set the settings.
 
+Test
+----
+
+```console
+$ dotnet test ./Emulsion.Tests
+```
+
 Run
 ---
 
 Requires [.NET Core Runtime][dotnet-core-runtime] version 2.0+.
 
 ```console
-$ dotnet run [optional-path-to-json-config-file]
+$ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
 ```
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-umbra-
