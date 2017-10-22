@@ -98,3 +98,11 @@ let send (settings : TelegramSettings) (message : string) : unit =
 let run (settings : TelegramSettings) (onMessage : string -> unit) : unit =
     let config = { defaultConfig with Token = settings.token }
     Bot.startBot config (updateArrived onMessage) None
+
+type TelegramModule =
+    { run : TelegramSettings -> (string -> unit) -> unit
+      send : TelegramSettings -> string -> unit }
+
+let telegramModule : TelegramModule =
+    { run = run
+      send = send }

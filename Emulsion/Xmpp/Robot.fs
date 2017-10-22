@@ -7,6 +7,7 @@ open System.Xml.Linq
 open SharpXMPP
 open SharpXMPP.XMPP
 
+open Emulsion
 open Emulsion.Settings
 
 type Robot(logger : string -> unit,

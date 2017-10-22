@@ -4,10 +4,7 @@ open Akka.Actor
 
 open Emulsion
 open Emulsion.Settings
-
-type TelegramModule =
-    { run : TelegramSettings -> (string -> unit) -> unit
-      send : TelegramSettings -> string -> unit }
+open Emulsion.Telegram
 
 type TelegramActor(core : IActorRef, settings : TelegramSettings, telegram : TelegramModule) as this =
     inherit SyncTaskWatcher()
