@@ -20,8 +20,17 @@ Copy `emulsion.example.json` to `emulsion.json` and set the settings.
 Test
 ----
 
+To execute the tests once:
+
 ```console
 $ dotnet test ./Emulsion.Tests
+```
+
+For continuous testing (useful for development):
+
+```console
+$ cd ./Emulsion.Tests
+$ dotnet watch test
 ```
 
 Run
