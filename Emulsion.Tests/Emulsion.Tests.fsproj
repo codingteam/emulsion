@@ -4,8 +4,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Core.fs" />
     <Compile Include="Settings.fs" />
+    <Compile Include="Actors/Core.fs" />
+    <Compile Include="Actors/SyncTaskWatcher.fs" />
+    <Compile Include="Actors/Telegram.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

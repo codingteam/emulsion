@@ -1,4 +1,4 @@
-module Tests
+module Emulsion.Tests.Settings
 
 open System
 open System.IO
@@ -23,7 +23,7 @@ let private testConfigText = @"{
    }
 }"
 
-let private testConfig =
+let testConfiguration =
     { xmpp =
         { login = "login"
           password = "password"
@@ -45,5 +45,5 @@ let private mockConfiguration() =
 let ``Settings read properly`` () =
     task {
         let! configuration = mockConfiguration()
-        Assert.Equal(testConfig, Settings.read configuration)
+        Assert.Equal(testConfiguration, Settings.read configuration)
     }

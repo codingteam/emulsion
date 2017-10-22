@@ -18,13 +18,17 @@ let private getConfiguration directory fileName =
             .Build()
     Settings.read config
 
+let private telegram : Telegram.TelegramModule =
+    { run = Telegram.run
+      send = Telegram.send }
+
 let private startApp config =
     async {
         printfn "Prepare system..."
         use system = ActorSystem.Create("emulsion")
         printfn "Prepare factories..."
         let factories = { xmppFactory = Xmpp.spawn config.xmpp
-                          telegramFactory = Telegram.spawn config.telegram }
+                          telegramFactory = Telegram.spawn config.telegram telegram }
         printfn "Prepare Core..."
         ignore <| Core.spawn factories system "core"
         printfn "Ready. Wait for termination..."

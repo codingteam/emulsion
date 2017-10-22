@@ -1,4 +1,4 @@
-﻿namespace Emulsion.Tests
+﻿namespace Emulsion.Tests.Actors
 
 open Akka.Actor
 open Akka.TestKit.Xunit2

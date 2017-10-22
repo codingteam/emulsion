@@ -21,5 +21,5 @@ type SyncTaskWatcher() =
         let self = this.Self
         Task.Factory
             .StartNew(this.RunInTask, TaskCreationOptions.LongRunning)
-            .ContinueWith(Action<Task>(onTaskFinished (this.GetType()) this.Self))
+            .ContinueWith(Action<Task>(onTaskFinished (this.GetType()) self))
         |> ignore
