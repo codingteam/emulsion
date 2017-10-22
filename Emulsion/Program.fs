@@ -3,20 +3,12 @@
 open System
 open System.IO
 
-open Akka.FSharp
+open Akka.Actor
 open Microsoft.Extensions.Configuration
 
+open Emulsion.Actors
 open Emulsion.Settings
 open Emulsion.Xmpp
-
-let private startXmpp (robot : Robot) = async {
-    robot.Run()
-}
-
-let private startTelegram config handler = async {
-    printfn "Starting Telegram"
-    Telegram.run config handler
-}
 
 let private getConfiguration directory fileName =
     let config =
@@ -26,23 +18,16 @@ let private getConfiguration directory fileName =
             .Build()
     Settings.read config
 
-let private xmppActor core settings =
-    let robot = new Robot(Console.WriteLine, settings, fun msg -> core <! XmppMessage msg)
-    startXmpp robot |> Async.Start
-    actorOf (function | TelegramMessage x -> robot.PublishMessage x
-                      | _ -> ())
-
-let private telegramActor core config =
-    startTelegram config (fun msg -> core <! TelegramMessage msg) |> Async.Start
-    actorOf (function | XmppMessage x -> Telegram.send config x
-                      | _ -> ())
-
 let private startApp config =
     async {
-        use system = System.create "emulsion" (Configuration.defaultConfig())
-        let core = Core.spawn system
-        let xmpp = spawn system "xmpp" (xmppActor core config.xmpp)
-        let telegram = spawn system "telegram" (telegramActor core config.telegram)
+        printfn "Prepare system..."
+        use system = ActorSystem.Create("emulsion")
+        printfn "Prepare factories..."
+        let factories = { xmppFactory = Xmpp.spawn config.xmpp
+                          telegramFactory = Telegram.spawn config.telegram }
+        printfn "Prepare Core..."
+        ignore <| Core.spawn factories system "core"
+        printfn "Ready. Wait for termination..."
         do! Async.AwaitTask system.WhenTerminated
     }
 

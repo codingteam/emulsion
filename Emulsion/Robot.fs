@@ -4,7 +4,6 @@ open System
 open System.Threading
 open System.Xml.Linq
 
-open Akka.FSharp
 open SharpXMPP
 open SharpXMPP.XMPP
 
