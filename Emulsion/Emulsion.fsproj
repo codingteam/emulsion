@@ -8,7 +8,7 @@
     <Compile Include="Message.fs" />
     <Compile Include="Telegram.fs" />
     <Compile Include="Xmpp/SharpXmppHelper.fs" />
-    <Compile Include="Xmpp/Robot.fs" />
+    <Compile Include="Xmpp\XmppClient.fs" />
     <Compile Include="Xmpp/Module.fs" />
     <Compile Include="Actors/Factories.fs" />
     <Compile Include="Actors/SyncTaskWatcher.fs" />

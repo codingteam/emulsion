@@ -2,20 +2,22 @@
 module Emulsion.Xmpp.Module
 
 open System
+
 open Akka.Actor
+open SharpXMPP
 
 open Emulsion
 open Emulsion.Settings
 
 type XmppModule =
-    { construct : XmppSettings -> IActorRef -> Robot
-      run : Robot -> unit
-      send : Robot -> string -> unit }
+    { construct : IActorRef -> XmppClient
+      run : XmppClient -> unit
+      send : XmppClient -> string -> unit }
 
 let private construct settings (core : IActorRef) =
-    new Robot(Console.WriteLine, settings, fun message -> core.Tell(XmppMessage message))
+    XmppClient.create settings (fun message -> core.Tell(XmppMessage message))
 
-let xmppModule : XmppModule =
-    { construct = construct
-      run = fun r -> r.Run()
-      send = fun r m -> r.PublishMessage(m) }
+let xmppModule (settings : XmppSettings) : XmppModule =
+    { construct = construct settings
+      run = XmppClient.run
+      send = XmppClient.send settings }

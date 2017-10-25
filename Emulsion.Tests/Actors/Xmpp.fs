@@ -14,11 +14,12 @@ type XmppTest() =
     [<Fact>]
     member this.``XMPP should send incoming string message to the Core actor``() =
         let sentMessage = ref ""
+        let xmppSettings = Settings.testConfiguration.xmpp
         let xmpp : XmppModule =
-            { construct = xmppModule.construct
+            { construct = (xmppModule xmppSettings).construct
               run = fun _ -> ()
               send = fun _ msg -> sentMessage := msg }
-        let actor = Xmpp.spawn Settings.testConfiguration.xmpp xmpp this.Sys this.TestActor "xmpp"
+        let actor = Xmpp.spawn xmpp this.Sys this.TestActor "xmpp"
         actor.Tell("message", this.TestActor)
         this.ExpectNoMsg()
         Assert.Equal("message", !sentMessage)

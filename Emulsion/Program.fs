@@ -24,7 +24,8 @@ let private startApp config =
         printfn "Prepare system..."
         use system = ActorSystem.Create("emulsion")
         printfn "Prepare factories..."
-        let factories = { xmppFactory = Xmpp.spawn config.xmpp xmppModule
+        let xmpp = xmppModule config.xmpp
+        let factories = { xmppFactory = Xmpp.spawn xmpp
                           telegramFactory = Telegram.spawn config.telegram telegramModule }
         printfn "Prepare Core..."
         ignore <| Core.spawn factories system "core"
