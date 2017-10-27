@@ -90,7 +90,8 @@ let private updateArrived onMessage (ctx : UpdateContext) =
     if result then ()
     else bot (sendMessage (fromId()) defaultText)
 
-let send (settings : TelegramSettings) (message : string) : unit =
+let send (settings : TelegramSettings) (OutgoingMessage(author, text)) : unit =
+    let message = sprintf "<%s> %s" author text
     api settings.token (sendMessage (int64 settings.groupId) message)
     |> Async.RunSynchronously
     |> processResult
@@ -101,7 +102,7 @@ let run (settings : TelegramSettings) (onMessage : string -> unit) : unit =
 
 type TelegramModule =
     { run : TelegramSettings -> (string -> unit) -> unit
-      send : TelegramSettings -> string -> unit }
+      send : TelegramSettings -> OutgoingMessage -> unit }
 
 let telegramModule : TelegramModule =
     { run = run

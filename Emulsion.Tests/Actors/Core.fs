@@ -38,7 +38,7 @@ type CoreTests() as this =
     [<Fact>]
     member this.``Core sends XMPP message to Telegram actor``() =
         let core = spawnCore()
-        core.Tell(XmppMessage "x")
+        core.Tell(XmppMessage("xxx", "x"))
         telegramActor.ExpectMsg "x"
 
     [<Fact>]

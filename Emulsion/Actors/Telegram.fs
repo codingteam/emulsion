@@ -9,13 +9,13 @@ open Emulsion.Telegram
 type TelegramActor(core : IActorRef, settings : TelegramSettings, telegram : TelegramModule) as this =
     inherit SyncTaskWatcher()
     do printfn "Starting Telegram actor..."
-    do this.Receive<string>(this.OnMessage)
+    do this.Receive<OutgoingMessage>(this.OnMessage)
 
     override this.RunInTask() =
         printfn "Starting Telegram connection..."
         telegram.run settings (fun message -> core.Tell(TelegramMessage message))
 
-    member private __.OnMessage(message : string) : unit =
+    member private __.OnMessage message : unit =
         telegram.send settings message
 
 let spawn (settings : TelegramSettings)

@@ -7,7 +7,7 @@ open Emulsion
 type CoreActor(factories : ActorFactories) as this =
     inherit ReceiveActor()
 
-    do this.Receive<Message>(this.OnMessage)
+    do this.Receive<IncomingMessage>(this.OnMessage)
     let mutable xmpp = Unchecked.defaultof<IActorRef>
     let mutable telegram = Unchecked.defaultof<IActorRef>
 
@@ -19,10 +19,10 @@ type CoreActor(factories : ActorFactories) as this =
         xmpp <- this.spawn factories.xmppFactory "xmpp"
         telegram <- this.spawn factories.telegramFactory "telegram"
 
-    member this.OnMessage(message : Message) : unit =
+    member this.OnMessage(message : IncomingMessage) : unit =
         match message with
         | TelegramMessage text -> xmpp.Tell(text, this.Self)
-        | XmppMessage text -> telegram.Tell(text, this.Self)
+        | XmppMessage _ as msg -> telegram.Tell(msg, this.Self)
 
 let spawn (factories : ActorFactories) (system : IActorRefFactory) (name : string) : IActorRef =
     printfn "Spawning Core..."

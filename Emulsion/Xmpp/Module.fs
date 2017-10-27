@@ -15,7 +15,7 @@ type XmppModule =
       send : XmppClient -> string -> unit }
 
 let private construct settings (core : IActorRef) =
-    XmppClient.create settings (fun message -> core.Tell(XmppMessage message))
+    XmppClient.create settings core.Tell
 
 let xmppModule (settings : XmppSettings) : XmppModule =
     { construct = construct settings

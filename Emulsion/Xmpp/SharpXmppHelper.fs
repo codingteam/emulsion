@@ -1,10 +1,12 @@
-module Emulsion.SharpXmppHelper
+module Emulsion.Xmpp.SharpXmppHelper
 
 open System.Xml.Linq
 
 open SharpXMPP
 open SharpXMPP.XMPP.Client.MUC.Bookmarks.Elements
 open SharpXMPP.XMPP.Client.Elements
+
+open Emulsion
 
 let private bookmark (roomJid: string) (nickname: string): BookmarkedConference =
     let room = BookmarkedConference()
@@ -25,3 +27,6 @@ let message (toAddr : string) (text : string) =
     body.Value <- text
     m.Add(body)
     m
+
+let parseMessage (message : XMPPMessage) : IncomingMessage =
+    failwithf "Not implemented"
