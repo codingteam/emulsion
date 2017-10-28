@@ -20,6 +20,6 @@ type XmppTest() =
               run = fun _ -> ()
               send = fun _ msg -> sentMessage := msg }
         let actor = Xmpp.spawn xmpp this.Sys this.TestActor "xmpp"
-        actor.Tell("message", this.TestActor)
+        actor.Tell(OutgoingMessage("nickname", "message"), this.TestActor)
         this.ExpectNoMsg()
-        Assert.Equal("message", !sentMessage)
+        Assert.Equal("<@nickname> message", !sentMessage)
