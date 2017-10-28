@@ -11,7 +11,7 @@ type TelegramTest() =
     inherit TestKit()
 
     [<Fact>]
-    member this.``Telegram should send incoming string message to the core actor``() =
+    member this.``Telegram actor should pass an outgoing message to the Telegram module``() =
         let sentMessage = ref None
         let telegram : Telegram.TelegramModule =
             { run = fun _ _ -> ()

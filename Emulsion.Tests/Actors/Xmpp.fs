@@ -12,7 +12,7 @@ type XmppTest() =
     inherit TestKit()
 
     [<Fact>]
-    member this.``XMPP should send incoming string message to the Core actor``() =
+    member this.``XMPP actor should pass an outgoing message to the XMPP module``() =
         let sentMessage = ref ""
         let xmppSettings = Settings.testConfiguration.xmpp
         let xmpp : XmppModule =
