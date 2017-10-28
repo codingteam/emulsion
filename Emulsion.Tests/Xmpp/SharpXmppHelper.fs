@@ -14,6 +14,13 @@ let ``parseMessage should extract message text and author``() =
     let author = "author"
     let text = "text test"
     let element = XMPPMessage(Text = text)
-    element.Attribute(XName.Get "from").Value <- author
+    element.SetAttributeValue(XName.Get "from", author)
     let message = SharpXmppHelper.parseMessage element
-    Assert.Equal(XmppMessage(author, text), message)
+    let expected = Some(XmppMessage(author, text))
+    Assert.Equal(expected, message)
+
+[<Fact>]
+let ``Message without author parses to None``() =
+    let element = XMPPMessage(Text = "xxx")
+    let message = SharpXmppHelper.parseMessage element
+    Assert.Equal(None, message)

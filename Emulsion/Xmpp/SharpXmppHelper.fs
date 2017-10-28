@@ -28,5 +28,12 @@ let message (toAddr : string) (text : string) =
     m.Add(body)
     m
 
-let parseMessage (message : XMPPMessage) : IncomingMessage =
-    failwithf "Not implemented"
+let private getAttributeValue (element : XElement) attributeName =
+    let attribute = element.Attribute(XName.Get attributeName)
+    if isNull attribute
+    then None
+    else Some attribute.Value
+
+let parseMessage (message : XMPPMessage) : IncomingMessage option =
+    getAttributeValue message "from"
+    |> Option.map (fun author -> XmppMessage(author, message.Text))
