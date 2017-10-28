@@ -3,6 +3,7 @@ module Emulsion.Xmpp.SharpXmppHelper
 open System.Xml.Linq
 
 open SharpXMPP
+open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.MUC.Bookmarks.Elements
 open SharpXMPP.XMPP.Client.Elements
 
@@ -34,6 +35,9 @@ let private getAttributeValue (element : XElement) attributeName =
     then None
     else Some attribute.Value
 
+let private getResource jidText = JID(jidText).Resource
+
 let parseMessage (message : XMPPMessage) : IncomingMessage option =
     getAttributeValue message "from"
-    |> Option.map (fun author -> XmppMessage(author, message.Text))
+    |> Option.map getResource
+    |> Option.map (fun nickname -> XmppMessage(nickname, message.Text))

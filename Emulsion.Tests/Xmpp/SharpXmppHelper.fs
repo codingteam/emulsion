@@ -11,12 +11,11 @@ open Emulsion.Xmpp
 
 [<Fact>]
 let ``parseMessage should extract message text and author``() =
-    let author = "author"
     let text = "text test"
     let element = XMPPMessage(Text = text)
-    element.SetAttributeValue(XName.Get "from", author)
+    element.SetAttributeValue(XName.Get "from", "x@y/author")
     let message = SharpXmppHelper.parseMessage element
-    let expected = Some(XmppMessage(author, text))
+    let expected = Some(XmppMessage("author", text))
     Assert.Equal(expected, message)
 
 [<Fact>]
