@@ -11,10 +11,6 @@ type CoreActor(factories : ActorFactories) as this =
     let mutable xmpp = Unchecked.defaultof<IActorRef>
     let mutable telegram = Unchecked.defaultof<IActorRef>
 
-    let toOutgoing = function
-    | XmppMessage(author, text) -> OutgoingMessage(author, text)
-    | TelegramMessage text ->  OutgoingMessage("Telegram user", text)
-
     member private this.spawn (factory : ActorFactory) name =
         factory ActorBase.Context this.Self name
 
@@ -25,8 +21,8 @@ type CoreActor(factories : ActorFactories) as this =
 
     member this.OnMessage(message : IncomingMessage) : unit =
         match message with
-        | TelegramMessage _ as msg -> xmpp.Tell(toOutgoing msg, this.Self)
-        | XmppMessage _ as msg -> telegram.Tell(toOutgoing msg, this.Self)
+        | TelegramMessage _ as msg -> xmpp.Tell(msg.ToOutgoing(), this.Self)
+        | XmppMessage _ as msg -> telegram.Tell(msg.ToOutgoing(), this.Self)
 
 let spawn (factories : ActorFactories) (system : IActorRefFactory) (name : string) : IActorRef =
     printfn "Spawning Core..."

@@ -7,7 +7,7 @@ type IncomingMessage =
 | XmppMessage of author : string * text : string
 | TelegramMessage of string
 with
-    member this.toOutgoing() =
+    member this.ToOutgoing() =
         match this with
         | XmppMessage(author, text) -> OutgoingMessage(author, text)
         | TelegramMessage text -> OutgoingMessage("Telegram user", text)
