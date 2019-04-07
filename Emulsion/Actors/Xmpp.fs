@@ -10,7 +10,7 @@ open Emulsion.Xmpp
 
 type XmppActor(core : IActorRef, xmpp : XmppModule) as this =
     inherit SyncTaskWatcher()
-    do printfn "Starting XMPP actor..."
+    do printfn "Starting XMPP actor (%A)..." this.Self.Path
     do this.Receive<OutgoingMessage>(this.OnMessage)
     let robot = xmpp.construct core
 

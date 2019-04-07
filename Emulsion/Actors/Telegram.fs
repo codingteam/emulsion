@@ -8,7 +8,7 @@ open Emulsion.Telegram
 
 type TelegramActor(core : IActorRef, settings : TelegramSettings, telegram : TelegramModule) as this =
     inherit SyncTaskWatcher()
-    do printfn "Starting Telegram actor..."
+    do printfn "Starting Telegram actor (%A)..." this.Self.Path
     do this.Receive<OutgoingMessage>(this.OnMessage)
 
     override this.RunInTask() =
