@@ -5,3 +5,5 @@ bin/
 obj/
 
 emulsion.json
+
+*.user
