@@ -7,7 +7,9 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="EmulsionSettings.fs" />
     <Compile Include="Message.fs" />
-    <Compile Include="Telegram.fs" />
+    <Compile Include="Telegram\Html.fs" />
+    <Compile Include="Telegram\TelegramClient.fs" />
+    <Compile Include="Telegram\Module.fs" />
     <Compile Include="Xmpp/SharpXmppHelper.fs" />
     <Compile Include="Xmpp/XmppClient.fs" />
     <Compile Include="Xmpp/Module.fs" />
