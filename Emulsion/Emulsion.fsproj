@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="EmulsionSettings.fs" />
     <Compile Include="Message.fs" />
     <Compile Include="Telegram.fs" />

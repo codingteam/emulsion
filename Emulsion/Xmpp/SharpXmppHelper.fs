@@ -40,4 +40,4 @@ let private getResource jidText = JID(jidText).Resource
 let parseMessage (message : XMPPMessage) : IncomingMessage option =
     getAttributeValue message "from"
     |> Option.map getResource
-    |> Option.map (fun nickname -> XmppMessage(nickname, message.Text))
+    |> Option.map (fun nickname -> XmppMessage { author = nickname; text = message.Text })

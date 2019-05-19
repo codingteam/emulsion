@@ -21,8 +21,8 @@ type CoreActor(factories : ActorFactories) as this =
 
     member this.OnMessage(message : IncomingMessage) : unit =
         match message with
-        | TelegramMessage _ as msg -> xmpp.Tell(msg.ToOutgoing(), this.Self)
-        | XmppMessage _ as msg -> telegram.Tell(msg.ToOutgoing(), this.Self)
+        | TelegramMessage msg -> xmpp.Tell(OutgoingMessage msg, this.Self)
+        | XmppMessage msg -> telegram.Tell(OutgoingMessage msg, this.Self)
 
 let spawn (factories : ActorFactories) (system : IActorRefFactory) (name : string) : IActorRef =
     printfn "Spawning Core..."

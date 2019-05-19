@@ -15,7 +15,7 @@ let ``parseMessage should extract message text and author``() =
     let element = XMPPMessage(Text = text)
     element.SetAttributeValue(XName.Get "from", "x@y/author")
     let message = SharpXmppHelper.parseMessage element
-    let expected = Some(XmppMessage("author", text))
+    let expected = Some(XmppMessage { author = "author"; text = text })
     Assert.Equal(expected, message)
 
 [<Fact>]

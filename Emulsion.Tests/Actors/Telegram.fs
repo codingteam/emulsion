@@ -17,7 +17,7 @@ type TelegramTest() =
             { run = fun _ _ -> ()
               send = fun _ msg -> sentMessage := Some msg }
         let actor = Telegram.spawn Settings.testConfiguration.telegram telegram this.Sys this.TestActor "telegram"
-        let msg = OutgoingMessage("x", "message")
+        let msg = OutgoingMessage { author = "x"; text = "message" }
         actor.Tell(msg, this.TestActor)
         this.ExpectNoMsg()
         Assert.Equal(Some msg, !sentMessage)

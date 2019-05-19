@@ -9,6 +9,7 @@
     <Compile Include="Actors/SyncTaskWatcher.fs" />
     <Compile Include="Actors/Telegram.fs" />
     <Compile Include="Actors/Xmpp.fs" />
+    <Compile Include="Telegram.fs" />
     <Compile Include="Xmpp/SharpXmppHelper.fs" />
   </ItemGroup>
   <ItemGroup>

@@ -18,8 +18,8 @@ type XmppActor(core : IActorRef, xmpp : XmppModule) as this =
         printfn "Starting XMPP connection..."
         xmpp.run robot
 
-    member private __.OnMessage(OutgoingMessage(author, text)) : unit =
-        let msg = sprintf "<@%s> %s" author text
+    member private __.OnMessage(OutgoingMessage { author = author; text = text }) : unit =
+        let msg = sprintf "<%s> %s" author text
         xmpp.send robot msg
 
 let spawn (xmpp : XmppModule)
