@@ -1,6 +1,5 @@
 ﻿module Emulsion.Program
 
-open System
 open System.IO
 
 open Akka.Actor
