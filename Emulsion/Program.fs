@@ -7,7 +7,7 @@ open Microsoft.Extensions.Configuration
 
 open Emulsion.Actors
 open Emulsion.Settings
-open Emulsion.Telegram
+open Emulsion.Telegram.Module
 open Emulsion.Xmpp
 
 let private getConfiguration directory fileName =

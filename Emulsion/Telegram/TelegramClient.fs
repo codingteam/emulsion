@@ -1,10 +1,11 @@
-module Emulsion.Telegram
+module Emulsion.Telegram.TelegramClient
 
 open Funogram
 open Funogram.Bot
 open Funogram.Api
 open Funogram.Types
 
+open Emulsion
 open Emulsion.Settings
 
 let private processResultWithValue (result: Result<'a, ApiResponseError>) =
@@ -17,7 +18,7 @@ let private processResultWithValue (result: Result<'a, ApiResponseError>) =
 let private processResult (result: Result<'a, ApiResponseError>) =
     processResultWithValue result |> ignore
 
-let internal convertMessage (message : Message) =
+let internal convertMessage (message : Funogram.Types.Message) =
     let authorName =
         match message.From with
         | None -> "[UNKNOWN USER]"
@@ -36,20 +37,19 @@ let private updateArrived onMessage (ctx : UpdateContext) =
         fun (msg, _) -> onMessage (convertMessage msg); true
     ] |> ignore
 
-let send (settings : TelegramSettings) (OutgoingMessage { author = author; text = text }) : unit =
-    let message = sprintf "<%s> %s" author text
-    api settings.token (sendMessage (int64 settings.groupId) message)
+let internal prepareHtmlMessage { author = author; text = text } : string =
+    sprintf "<b>%s</b>\n%s" (Html.escape author) (Html.escape text)
+
+let send (settings : TelegramSettings) (OutgoingMessage content) : unit =
+    let sendHtmlMessage groupId text =
+        sendMessageBase groupId text (Some ParseMode.HTML) None None None None
+
+    let groupId = Int (int64 settings.groupId)
+    let message = prepareHtmlMessage content
+    api settings.token (sendHtmlMessage groupId message)
     |> Async.RunSynchronously
     |> processResult
 
 let run (settings : TelegramSettings) (onMessage : Emulsion.Message -> unit) : unit =
     let config = { defaultConfig with Token = settings.token }
     Bot.startBot config (updateArrived onMessage) None
-
-type TelegramModule =
-    { run : TelegramSettings -> (Emulsion.Message -> unit) -> unit
-      send : TelegramSettings -> OutgoingMessage -> unit }
-
-let telegramModule : TelegramModule =
-    { run = run
-      send = send }

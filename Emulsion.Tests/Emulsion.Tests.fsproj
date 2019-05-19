@@ -9,8 +9,9 @@
     <Compile Include="Actors/SyncTaskWatcher.fs" />
     <Compile Include="Actors/Telegram.fs" />
     <Compile Include="Actors/Xmpp.fs" />
-    <Compile Include="Telegram.fs" />
     <Compile Include="Xmpp/SharpXmppHelper.fs" />
+    <Compile Include="Telegram\Html.fs" />
+    <Compile Include="Telegram\TelegramClient.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.TestKit" Version="1.3.12" />
