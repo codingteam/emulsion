@@ -43,7 +43,9 @@ let isOwnMessage (nickname : string) (message : XMPPMessage) : bool =
     |> Option.map(fun resource -> resource = nickname)
     |> Option.defaultValue false
 
-let parseMessage (message : XMPPMessage) : IncomingMessage option =
-    getAttributeValue message "from"
-    |> Option.map getResource
-    |> Option.map (fun nickname -> XmppMessage { author = nickname; text = message.Text })
+let parseMessage (message : XMPPMessage) : IncomingMessage =
+    let nickname =
+        getAttributeValue message "from"
+        |> Option.map getResource
+        |> Option.defaultValue "[UNKNOWN USER]"
+    XmppMessage { author = nickname; text = message.Text }
