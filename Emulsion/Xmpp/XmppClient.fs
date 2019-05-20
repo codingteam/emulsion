@@ -19,10 +19,11 @@ let private signedInHandler (settings : XmppSettings) (client : XmppClient) = Xm
     printfn "Connecting to %s" settings.room
     SharpXmppHelper.joinRoom client settings.room settings.nickname)
 
-let private messageHandler onMessage = XmppConnection.MessageHandler(fun _ element ->
+let private messageHandler settings onMessage = XmppConnection.MessageHandler(fun _ element ->
     printfn "<- %A" element
-    SharpXmppHelper.parseMessage element
-    |> Option.iter onMessage)
+    if not <| SharpXmppHelper.isOwnMessage (settings.nickname) element then
+        SharpXmppHelper.parseMessage element
+        |> Option.iter onMessage)
 
 let private elementHandler = XmppConnection.ElementHandler(fun s e ->
     let arrow = if e.IsInput then "<-" else "->"
@@ -35,7 +36,7 @@ let create (settings : XmppSettings) (onMessage : IncomingMessage -> unit) : Xmp
     let client = XmppClient(JID(settings.login), settings.password)
     client.add_ConnectionFailed(connectionFailedHandler)
     client.add_SignedIn(signedInHandler settings client)
-    client.add_Message(messageHandler onMessage)
+    client.add_Message(messageHandler settings onMessage)
     client.add_Element(elementHandler)
     client.add_Presence(presenceHandler)
     client

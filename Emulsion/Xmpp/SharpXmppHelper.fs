@@ -37,6 +37,12 @@ let private getAttributeValue (element : XElement) attributeName =
 
 let private getResource jidText = JID(jidText).Resource
 
+let isOwnMessage (nickname : string) (message : XMPPMessage) : bool =
+    getAttributeValue message "from"
+    |> Option.map getResource
+    |> Option.map(fun resource -> resource = nickname)
+    |> Option.defaultValue false
+
 let parseMessage (message : XMPPMessage) : IncomingMessage option =
     getAttributeValue message "from"
     |> Option.map getResource
