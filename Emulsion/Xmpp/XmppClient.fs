@@ -22,8 +22,8 @@ let private signedInHandler (settings : XmppSettings) (client : XmppClient) = Xm
 let private messageHandler settings onMessage = XmppConnection.MessageHandler(fun _ element ->
     printfn "<- %A" element
     if not <| SharpXmppHelper.isOwnMessage (settings.nickname) element then
-        SharpXmppHelper.parseMessage element
-        |> Option.iter onMessage)
+        onMessage(SharpXmppHelper.parseMessage element)
+)
 
 let private elementHandler = XmppConnection.ElementHandler(fun s e ->
     let arrow = if e.IsInput then "<-" else "->"
