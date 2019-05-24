@@ -14,9 +14,10 @@ module Namespaces =
 
 module Elements =
     let Body = XName.Get "body"
-    let Delay = XName.Get "delay"
+    let Delay = XName.Get("delay", "urn:xmpp:delay")
     let From = XName.Get "from"
     let Jid = XName.Get "jid"
+    let Stamp = XName.Get "stamp"
     let Type = XName.Get "type"
     let To = XName.Get "to"
 
@@ -56,6 +57,12 @@ let isOwnMessage (nickname : string) (message : XMPPMessage) : bool =
     |> Option.map getResource
     |> Option.map(fun resource -> resource = nickname)
     |> Option.defaultValue false
+
+let isHistoricalMessage (message : XMPPMessage) : bool =
+    not (
+        message.Elements Delay
+        |> Seq.isEmpty
+    )
 
 let parseMessage (message : XMPPMessage) : IncomingMessage =
     let nickname =

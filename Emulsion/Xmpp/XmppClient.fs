@@ -19,9 +19,13 @@ let private signedInHandler (settings : XmppSettings) (client : XmppClient) = Xm
     printfn "Connecting to %s" settings.room
     SharpXmppHelper.joinRoom client settings.room settings.nickname)
 
+let private shouldSkipMessage settings message =
+    SharpXmppHelper.isOwnMessage (settings.nickname) message
+        || SharpXmppHelper.isHistoricalMessage message
+
 let private messageHandler settings onMessage = XmppConnection.MessageHandler(fun _ element ->
     printfn "<- %A" element
-    if not <| SharpXmppHelper.isOwnMessage (settings.nickname) element then
+    if not <| shouldSkipMessage settings element then
         onMessage(SharpXmppHelper.parseMessage element)
 )
 
