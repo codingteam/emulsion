@@ -22,8 +22,9 @@ let private startApp config =
         use system = ActorSystem.Create("emulsion")
         printfn "Prepare factories..."
         let xmpp = Xmpp.Client.sharpXmpp config.xmpp
+        let telegram = Telegram.Client.funogram config.telegram
         let factories = { xmppFactory = Xmpp.spawn xmpp
-                          telegramFactory = Telegram.spawn config.telegram Telegram.Client.funogram }
+                          telegramFactory = Telegram.spawn telegram }
         printfn "Prepare Core..."
         ignore <| Core.spawn factories system "core"
         printfn "Ready. Wait for termination..."

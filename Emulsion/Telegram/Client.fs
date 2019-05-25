@@ -4,10 +4,10 @@ open Emulsion
 open Emulsion.Settings
 
 type Client =
-    { run : TelegramSettings -> (Emulsion.Message -> unit) -> unit
-      send : TelegramSettings -> OutgoingMessage -> unit }
+    { run : (Emulsion.Message -> unit) -> unit
+      send : OutgoingMessage -> unit }
 
     with
-        static member funogram : Client =
-            { run = Funogram.run
-              send = Funogram.send }
+        static member funogram (settings : TelegramSettings) : Client =
+            { run = Funogram.run settings
+              send = Funogram.send settings }
