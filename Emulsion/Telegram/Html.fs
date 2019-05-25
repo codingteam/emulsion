@@ -6,4 +6,4 @@ let escape : string -> string =
                    | '<' -> "&lt;"
                    | '>' -> "&gt;"
                    | '&' -> "&amp;"
-                   | other -> other.ToString())
+                   | other -> string other)
