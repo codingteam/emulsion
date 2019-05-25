@@ -1,4 +1,4 @@
-namespace Emulsion.Tests.Telegram.TelegramClient
+namespace Emulsion.Tests.Telegram.Client
 
 open Funogram.Types
 open Xunit
@@ -24,7 +24,7 @@ module ConvertMessageTests =
     let convertMessageWithUnknownUser() =
         Assert.Equal(
             { author = "[UNKNOWN USER]"; text = "" },
-            TelegramClient.convertMessage (createMessage None (Some ""))
+            Funogram.convertMessage (createMessage None (Some ""))
         )
 
     [<Fact>]
@@ -32,7 +32,7 @@ module ConvertMessageTests =
         let user = createUser (Some "Username") "" None
         Assert.Equal(
             { author = "@Username"; text = "" },
-            TelegramClient.convertMessage (createMessage (Some user) (Some ""))
+            Funogram.convertMessage (createMessage (Some user) (Some ""))
         )
 
     [<Fact>]
@@ -40,7 +40,7 @@ module ConvertMessageTests =
         let user = createUser None "FirstName" (Some "LastName")
         Assert.Equal(
             { author = "FirstName LastName"; text = "" },
-            TelegramClient.convertMessage (createMessage (Some user) (Some ""))
+            Funogram.convertMessage (createMessage (Some user) (Some ""))
         )
 
     [<Fact>]
@@ -48,21 +48,21 @@ module ConvertMessageTests =
         let user = createUser None "FirstName" None
         Assert.Equal(
             { author = "FirstName"; text = "" },
-            TelegramClient.convertMessage (createMessage (Some user) (Some ""))
+            Funogram.convertMessage (createMessage (Some user) (Some ""))
         )
 
     [<Fact>]
     let convertMessageWithText() =
         Assert.Equal(
             { author = "[UNKNOWN USER]"; text = "text" },
-            TelegramClient.convertMessage (createMessage None (Some "text"))
+            Funogram.convertMessage (createMessage None (Some "text"))
         )
 
     [<Fact>]
     let convertMessageWithoutText() =
         Assert.Equal(
             { author = "[UNKNOWN USER]"; text = "[DATA UNRECOGNIZED]" },
-            TelegramClient.convertMessage (createMessage None None)
+            Funogram.convertMessage (createMessage None None)
         )
 
 module PrepareMessageTests =
@@ -70,5 +70,5 @@ module PrepareMessageTests =
     let prepareMessageEscapesHtml() =
         Assert.Equal(
             "<b>user &lt;3</b>\nmymessage &lt;&amp;&gt;",
-            TelegramClient.prepareHtmlMessage { author = "user <3"; text = "mymessage <&>" }
+            Funogram.prepareHtmlMessage { author = "user <3"; text = "mymessage <&>" }
         )

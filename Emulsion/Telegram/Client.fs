@@ -1,12 +1,13 @@
-module Emulsion.Telegram.Module
+namespace Emulsion.Telegram
 
 open Emulsion
 open Emulsion.Settings
 
-type TelegramModule =
+type Client =
     { run : TelegramSettings -> (Emulsion.Message -> unit) -> unit
       send : TelegramSettings -> OutgoingMessage -> unit }
 
-let telegramModule : TelegramModule =
-    { run = TelegramClient.run
-      send = TelegramClient.send }
+    with
+        static member funogram : Client =
+            { run = Funogram.run
+              send = Funogram.send }

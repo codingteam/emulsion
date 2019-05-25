@@ -5,8 +5,8 @@ open Xunit
 
 open Emulsion
 open Emulsion.Actors
+open Emulsion.Telegram
 open Emulsion.Tests
-open Emulsion.Telegram.Module
 
 type TelegramTest() =
     inherit TestKit()
@@ -14,7 +14,7 @@ type TelegramTest() =
     [<Fact>]
     member this.``Telegram actor should pass an outgoing message to the Telegram module``() =
         let sentMessage = ref None
-        let telegram : TelegramModule =
+        let telegram : Client =
             { run = fun _ _ -> ()
               send = fun _ msg -> sentMessage := Some msg }
         let actor = Telegram.spawn Settings.testConfiguration.telegram telegram this.Sys this.TestActor "telegram"

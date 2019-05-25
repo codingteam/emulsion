@@ -4,9 +4,9 @@ open Akka.Actor
 
 open Emulsion
 open Emulsion.Settings
-open Emulsion.Telegram.Module
+open Emulsion.Telegram
 
-type TelegramActor(core : IActorRef, settings : TelegramSettings, telegram : TelegramModule) as this =
+type TelegramActor(core : IActorRef, settings : TelegramSettings, telegram : Client) as this =
     inherit SyncTaskWatcher()
     do printfn "Starting Telegram actor (%A)..." this.Self.Path
     do this.Receive<OutgoingMessage>(this.OnMessage)
@@ -19,7 +19,7 @@ type TelegramActor(core : IActorRef, settings : TelegramSettings, telegram : Tel
         telegram.send settings message
 
 let spawn (settings : TelegramSettings)
-          (telegram : TelegramModule)
+          (telegram : Client)
           (factory : IActorRefFactory)
           (core : IActorRef)
           (name : string) : IActorRef =

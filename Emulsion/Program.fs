@@ -7,8 +7,6 @@ open Microsoft.Extensions.Configuration
 
 open Emulsion.Actors
 open Emulsion.Settings
-open Emulsion.Telegram.Module
-open Emulsion.Xmpp
 
 let private getConfiguration directory fileName =
     let config =
@@ -23,9 +21,9 @@ let private startApp config =
         printfn "Prepare system..."
         use system = ActorSystem.Create("emulsion")
         printfn "Prepare factories..."
-        let xmpp = xmppModule config.xmpp
+        let xmpp = Xmpp.Client.sharpXmpp config.xmpp
         let factories = { xmppFactory = Xmpp.spawn xmpp
-                          telegramFactory = Telegram.spawn config.telegram telegramModule }
+                          telegramFactory = Telegram.spawn config.telegram Telegram.Client.funogram }
         printfn "Prepare Core..."
         ignore <| Core.spawn factories system "core"
         printfn "Ready. Wait for termination..."

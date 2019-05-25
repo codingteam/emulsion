@@ -15,8 +15,8 @@ type XmppTest() =
     member this.``XMPP actor should pass an outgoing message to the XMPP module``() =
         let sentMessage = ref ""
         let xmppSettings = Settings.testConfiguration.xmpp
-        let xmpp : XmppModule =
-            { construct = (xmppModule xmppSettings).construct
+        let xmpp : Client =
+            { construct = (Client.sharpXmpp xmppSettings).construct
               run = fun _ -> ()
               send = fun _ msg -> sentMessage := msg }
         let actor = Xmpp.spawn xmpp this.Sys this.TestActor "xmpp"
