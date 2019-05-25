@@ -1,14 +1,11 @@
 module Emulsion.Actors.Xmpp
 
-open System
-
 open Akka.Actor
 
 open Emulsion
-open Emulsion.Settings
 open Emulsion.Xmpp
 
-type XmppActor(core : IActorRef, xmpp : XmppModule) as this =
+type XmppActor(core : IActorRef, xmpp : Client) as this =
     inherit SyncTaskWatcher()
     do printfn "Starting XMPP actor (%A)..." this.Self.Path
     do this.Receive<OutgoingMessage>(this.OnMessage)
@@ -22,7 +19,7 @@ type XmppActor(core : IActorRef, xmpp : XmppModule) as this =
         let msg = sprintf "<%s> %s" author text
         xmpp.send robot msg
 
-let spawn (xmpp : XmppModule)
+let spawn (xmpp : Client)
           (factory : IActorRefFactory)
           (core : IActorRef)
           (name : string) =

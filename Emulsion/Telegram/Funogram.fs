@@ -1,4 +1,4 @@
-module Emulsion.Telegram.TelegramClient
+module Emulsion.Telegram.Funogram
 
 open Funogram
 open Funogram.Bot
