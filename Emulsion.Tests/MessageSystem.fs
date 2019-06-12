@@ -1,10 +1,12 @@
 module Emulsion.Tests.MessageSystem
 
-open Xunit
-
 open System
 open System.Threading
+
+open Xunit
+
 open Emulsion
+open Emulsion.MessageSystem
 
 let private performTest expectedStage runBody =
     use cts = new CancellationTokenSource()
@@ -12,7 +14,13 @@ let private performTest expectedStage runBody =
     let run ct =
         stage <- stage + 1
         runBody cts ct stage
-    MessageSystem.wrapRun cts.Token run ignore
+    let context = {
+        token = cts.Token
+        cooldown = TimeSpan.Zero
+        logError = ignore
+        logMessage = ignore
+    }
+    MessageSystem.wrapRun context run
     Assert.Equal(expectedStage, stage)
 
 [<Fact>]
@@ -21,6 +29,7 @@ let ``wrapRun should restart the activity on error``() =
         match stage with
         | 1 -> raise <| Exception()
         | 2 -> cts.Cancel()
+        | _ -> failwith "Impossible"
     )
 
 [<Fact>]

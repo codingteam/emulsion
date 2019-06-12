@@ -15,10 +15,20 @@ type IMessageSystem =
     /// Queues the message to be sent to the IM system when possible.
     abstract member PutMessage : OutgoingMessage -> unit
 
-let internal wrapRun (token: CancellationToken) (run: CancellationToken -> unit) (log: Exception -> unit) : unit =
-    while not token.IsCancellationRequested do
+type RestartContext = {
+    token: CancellationToken
+    cooldown: TimeSpan
+    logError: Exception -> unit
+    logMessage: string -> unit
+}
+
+let wrapRun (ctx: RestartContext) (run: CancellationToken -> unit) : unit =
+    while not ctx.token.IsCancellationRequested do
         try
-            run token
+            run ctx.token
         with
         | :? OperationCanceledException -> ()
-        | ex -> log ex
+        | ex ->
+            ctx.logError ex
+            ctx.logMessage <| sprintf "Waiting for %A to restart" ctx.cooldown
+            Thread.Sleep ctx.cooldown
