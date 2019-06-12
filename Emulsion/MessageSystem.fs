@@ -1,6 +1,7 @@
 module Emulsion.MessageSystem
 
 open System
+open System.Collections.Concurrent
 open System.Threading
 
 type IncomingMessageReceiver = IncomingMessage -> unit
@@ -10,10 +11,20 @@ type IncomingMessageReceiver = IncomingMessage -> unit
 type IMessageSystem =
     /// Starts the IM connection, manages reconnects. On cancellation could either throw OperationCanceledException or
     /// return a unit.
-    abstract member Run : IncomingMessageReceiver -> CancellationToken -> unit
+    abstract member Run : CancellationToken -> IncomingMessageReceiver -> unit
 
     /// Queues the message to be sent to the IM system when possible.
     abstract member PutMessage : OutgoingMessage -> unit
+
+[<AbstractClass>]
+type MessageSystemBase() =
+    let queue = ConcurrentQueue<OutgoingMessage>()
+    abstract member Run : CancellationToken -> ConcurrentQueue<OutgoingMessage> -> IncomingMessageReceiver -> unit
+    interface IMessageSystem with
+        member this.Run token receiver =
+            this.Run token queue receiver
+        member __.PutMessage message =
+            queue.Enqueue message
 
 type RestartContext = {
     token: CancellationToken
