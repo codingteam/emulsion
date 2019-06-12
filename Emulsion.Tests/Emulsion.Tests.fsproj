@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Settings.fs" />
+    <Compile Include="MessageSystem.fs" />
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/SyncTaskWatcher.fs" />
     <Compile Include="Actors/Telegram.fs" />
