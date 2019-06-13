@@ -7,6 +7,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="EmulsionSettings.fs" />
     <Compile Include="Message.fs" />
+    <Compile Include="MessageSender.fs" />
     <Compile Include="MessageSystem.fs" />
     <Compile Include="Telegram\Html.fs" />
     <Compile Include="Telegram\Funogram.fs" />

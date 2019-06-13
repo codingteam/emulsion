@@ -15,12 +15,11 @@ let private performTest expectedStage runBody =
         stage <- stage + 1
         runBody cts ct stage
     let context = {
-        token = cts.Token
         cooldown = TimeSpan.Zero
         logError = ignore
         logMessage = ignore
     }
-    MessageSystem.wrapRun context run
+    MessageSystem.wrapRun context cts.Token run
     Assert.Equal(expectedStage, stage)
 
 [<Fact>]
