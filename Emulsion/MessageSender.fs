@@ -32,4 +32,3 @@ let startActivity(ctx: MessageSenderContext, token: CancellationToken): Sender =
     MailboxProcessor.Start(receiver ctx, token)
 
 let send(activity: Sender): OutgoingMessage -> unit = activity.Post
-// TODO[F]: Tests for this module.

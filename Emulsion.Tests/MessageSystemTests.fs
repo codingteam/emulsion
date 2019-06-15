@@ -1,4 +1,4 @@
-module Emulsion.Tests.MessageSystem
+module Emulsion.Tests.MessageSystemTests
 
 open System
 open System.Threading
