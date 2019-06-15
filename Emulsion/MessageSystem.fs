@@ -9,7 +9,7 @@ type IncomingMessageReceiver = Message -> unit
 /// a queue and sends them when possible. Redirects the incoming messages to a function passed when starting the queue.
 type IMessageSystem =
     /// Starts the IM connection, manages reconnects. Never terminates unless cancelled.
-    abstract member Run : IncomingMessageReceiver -> CancellationToken -> unit
+    abstract member Run : IncomingMessageReceiver -> unit
 
     /// Queues the message to be sent to the IM system when possible.
     abstract member PutMessage : OutgoingMessage -> unit
@@ -20,10 +20,10 @@ type RestartContext = {
     logMessage: string -> unit
 }
 
-let internal wrapRun (ctx: RestartContext) (token: CancellationToken) (run: CancellationToken -> unit) : unit =
+let internal wrapRun (ctx: RestartContext) (token: CancellationToken) (run: unit -> unit) : unit =
     while not token.IsCancellationRequested do
         try
-            run token
+            run()
         with
         | :? OperationCanceledException -> ()
         | ex ->
@@ -35,23 +35,23 @@ let putMessage (messageSystem: IMessageSystem) (message: OutgoingMessage) =
     messageSystem.PutMessage message
 
 [<AbstractClass>]
-type MessageSystemBase(restartContext: RestartContext) as this =
-    let sender = MessageSender.activity {
+type MessageSystemBase(restartContext: RestartContext, cancellationToken: CancellationToken) as this =
+    let sender = MessageSender.startActivity({
         send = this.Send
         logError = restartContext.logError
         cooldown = restartContext.cooldown
-    }
+    }, cancellationToken)
 
     /// Starts the IM connection, manages reconnects. On cancellation could either throw OperationCanceledException or
     /// return a unit.
-    abstract member Run : IncomingMessageReceiver -> CancellationToken -> unit
+    abstract member RunOnce : IncomingMessageReceiver -> unit
 
     /// Sends a message through the message system. Free-threaded. Could throw exceptions; if throws an exception, then
     /// will be restarted later.
     abstract member Send : OutgoingMessage -> Async<unit>
 
     interface IMessageSystem with
-        member ms.Run receiver token =
-            wrapRun restartContext token (this.Run receiver)
+        member ms.Run receiver =
+            wrapRun restartContext cancellationToken (fun () -> this.RunOnce receiver)
         member __.PutMessage message =
             MessageSender.send sender message

@@ -15,7 +15,7 @@ type TelegramTest() =
         let mutable sentMessage = None
         let telegram = {
             new IMessageSystem with
-                member __.Run _ _ = ()
+                member __.Run _ = ()
                 member __.PutMessage message =
                     sentMessage <- Some message
         }

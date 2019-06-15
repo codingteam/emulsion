@@ -6,6 +6,7 @@ open System.IO
 open Akka.Actor
 open Microsoft.Extensions.Configuration
 
+open System.Threading
 open Emulsion.Actors
 open Emulsion.MessageSystem
 open Emulsion.Settings
@@ -21,6 +22,15 @@ let private getConfiguration directory fileName =
 let private logError = printfn "ERROR: %A"
 let private logInfo = printfn "INFO : %s"
 
+let private startMessageSystem (system: IMessageSystem) receiver =
+    Async.StartChild <| async {
+        do! Async.SwitchToNewThread()
+        try
+            system.Run receiver
+        with
+        | ex -> logError ex
+    }
+
 let private startApp config =
     async {
         printfn "Prepare system..."
@@ -31,14 +41,19 @@ let private startApp config =
             logError = logError
             logMessage = logInfo
         }
+        let! cancellationToken = Async.CancellationToken
         let xmpp = Xmpp.Client.sharpXmpp config.xmpp
-        let telegram = Telegram.Client(restartContext, config.telegram)
+        let telegram = Telegram.Client(restartContext, cancellationToken, config.telegram)
         let factories = { xmppFactory = Xmpp.spawn xmpp
                           telegramFactory = fun factory _ name -> Telegram.spawn telegram factory name } // TODO[F]: Change the architecture here so we don't need to ignore the `core` parameter.
         printfn "Prepare Core..."
-        ignore <| Core.spawn factories system "core"
+        let core = Core.spawn factories system "core"
+        printfn "Starting message systems..."
+        let! telegram = startMessageSystem telegram (fun m -> core.Tell(TelegramMessage m))
         printfn "Ready. Wait for termination..."
         do! Async.AwaitTask system.WhenTerminated
+        printfn "Waiting for terminating of message systems..."
+        do! telegram
     }
 
 let private runApp app =

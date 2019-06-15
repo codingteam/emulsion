@@ -11,9 +11,9 @@ open Emulsion.MessageSystem
 let private performTest expectedStage runBody =
     use cts = new CancellationTokenSource()
     let mutable stage = 0
-    let run ct =
+    let run() =
         stage <- stage + 1
-        runBody cts ct stage
+        runBody cts stage
     let context = {
         cooldown = TimeSpan.Zero
         logError = ignore
@@ -24,7 +24,7 @@ let private performTest expectedStage runBody =
 
 [<Fact>]
 let ``wrapRun should restart the activity on error``() =
-    performTest 2 (fun cts _ stage ->
+    performTest 2 (fun cts stage ->
         match stage with
         | 1 -> raise <| Exception()
         | 2 -> cts.Cancel()
@@ -33,14 +33,14 @@ let ``wrapRun should restart the activity on error``() =
 
 [<Fact>]
 let ``wrapRun should not restart on OperationCanceledException``() =
-    performTest 1 (fun cts ct _ ->
+    performTest 1 (fun cts _ ->
         cts.Cancel()
-        ct.ThrowIfCancellationRequested()
+        cts.Token.ThrowIfCancellationRequested()
     )
 
 [<Fact>]
 let ``wrapRun should not restart on token.Cancel()``() =
-    performTest 4 (fun cts _ stage ->
+    performTest 4 (fun cts stage ->
         if stage > 3 then
             cts.Cancel()
     )

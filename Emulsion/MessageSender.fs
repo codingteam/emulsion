@@ -1,6 +1,7 @@
 module Emulsion.MessageSender
 
 open System
+open System.Threading
 
 type MessageSenderContext = {
     send: OutgoingMessage -> Async<unit>
@@ -18,13 +19,17 @@ let rec private sendRetryLoop ctx msg = async {
         return! sendRetryLoop ctx msg
 }
 
-let activity(ctx: MessageSenderContext): MailboxProcessor<OutgoingMessage> = MailboxProcessor.Start(fun inbox ->
+type Sender = MailboxProcessor<OutgoingMessage>
+let private receiver ctx (inbox: Sender) =
     let rec loop() = async {
         let! msg = inbox.Receive()
         do! sendRetryLoop ctx msg
         return! loop()
     }
     loop()
-)
 
-let send(activity: MailboxProcessor<OutgoingMessage>): OutgoingMessage -> unit = activity.Post
+let startActivity(ctx: MessageSenderContext, token: CancellationToken): Sender =
+    MailboxProcessor.Start(receiver ctx, token)
+
+let send(activity: Sender): OutgoingMessage -> unit = activity.Post
+// TODO[F]: Tests for this module.

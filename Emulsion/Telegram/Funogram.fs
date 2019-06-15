@@ -5,6 +5,7 @@ open Funogram.Bot
 open Funogram.Api
 open Funogram.Types
 
+open System.Threading
 open Emulsion
 open Emulsion.Settings
 
@@ -51,6 +52,9 @@ let send (settings : TelegramSettings) (OutgoingMessage content) : Async<unit> =
         return processResult result
     }
 
-let run (settings : TelegramSettings) (onMessage : Emulsion.Message -> unit) : unit =
+let run (settings: TelegramSettings)
+        (cancellationToken: CancellationToken)
+        (onMessage: Emulsion.Message -> unit) : unit =
+    // TODO[F]: Update Funogram and don't ignore the cancellation token here.
     let config = { defaultConfig with Token = settings.token }
     Bot.startBot config (updateArrived onMessage) None
