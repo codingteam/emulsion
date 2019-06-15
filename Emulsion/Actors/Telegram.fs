@@ -3,24 +3,14 @@
 open Akka.Actor
 
 open Emulsion
-open Emulsion.Telegram
+open Emulsion.MessageSystem
 
-type TelegramActor(core : IActorRef, telegram : Client) as this =
-    inherit SyncTaskWatcher()
+type TelegramActor(telegram: IMessageSystem) as this =
+    inherit ReceiveActor()
     do printfn "Starting Telegram actor (%A)..." this.Self.Path
-    do this.Receive<OutgoingMessage>(this.OnMessage)
+    do this.Receive<OutgoingMessage>(MessageSystem.putMessage telegram)
 
-    override this.RunInTask() =
-        printfn "Starting Telegram connection..."
-        telegram.run (fun message -> core.Tell(TelegramMessage message))
-
-    member private __.OnMessage message : unit =
-        telegram.send message
-
-let spawn (telegram : Client)
-          (factory : IActorRefFactory)
-          (core : IActorRef)
-          (name : string) : IActorRef =
+let spawn (telegram: IMessageSystem) (factory: IActorRefFactory) (name: string): IActorRef =
     printfn "Spawning Telegram..."
-    let props = Props.Create<TelegramActor>(core, telegram)
+    let props = Props.Create<TelegramActor>(telegram)
     factory.ActorOf(props, name)

@@ -40,15 +40,16 @@ let private updateArrived onMessage (ctx : UpdateContext) =
 let internal prepareHtmlMessage { author = author; text = text } : string =
     sprintf "<b>%s</b>\n%s" (Html.escape author) (Html.escape text)
 
-let send (settings : TelegramSettings) (OutgoingMessage content) : unit =
+let send (settings : TelegramSettings) (OutgoingMessage content) : Async<unit> =
     let sendHtmlMessage groupId text =
         sendMessageBase groupId text (Some ParseMode.HTML) None None None None
 
     let groupId = Int (int64 settings.groupId)
     let message = prepareHtmlMessage content
-    api settings.token (sendHtmlMessage groupId message)
-    |> Async.RunSynchronously
-    |> processResult
+    async {
+        let! result = api settings.token (sendHtmlMessage groupId message)
+        return processResult result
+    }
 
 let run (settings : TelegramSettings) (onMessage : Emulsion.Message -> unit) : unit =
     let config = { defaultConfig with Token = settings.token }

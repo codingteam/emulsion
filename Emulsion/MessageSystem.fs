@@ -3,7 +3,7 @@ module Emulsion.MessageSystem
 open System
 open System.Threading
 
-type IncomingMessageReceiver = IncomingMessage -> unit
+type IncomingMessageReceiver = Message -> unit
 
 /// The IM message queue. Manages the underlying connection, reconnects when necessary, stores the outgoing messages in
 /// a queue and sends them when possible. Redirects the incoming messages to a function passed when starting the queue.
@@ -20,7 +20,7 @@ type RestartContext = {
     logMessage: string -> unit
 }
 
-let wrapRun (ctx: RestartContext) (token: CancellationToken) (run: CancellationToken -> unit) : unit =
+let internal wrapRun (ctx: RestartContext) (token: CancellationToken) (run: CancellationToken -> unit) : unit =
     while not token.IsCancellationRequested do
         try
             run token
@@ -30,6 +30,9 @@ let wrapRun (ctx: RestartContext) (token: CancellationToken) (run: CancellationT
             ctx.logError ex
             ctx.logMessage <| sprintf "Waiting for %A to restart" ctx.cooldown
             Thread.Sleep ctx.cooldown
+
+let putMessage (messageSystem: IMessageSystem) (message: OutgoingMessage) =
+    messageSystem.PutMessage message
 
 [<AbstractClass>]
 type MessageSystemBase(restartContext: RestartContext) as this =
