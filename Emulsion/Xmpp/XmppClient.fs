@@ -36,19 +36,25 @@ let private elementHandler = XmppConnection.ElementHandler(fun s e ->
 let private presenceHandler = XmppConnection.PresenceHandler(fun s e ->
     printfn "[P]: %A" e)
 
-let create (settings : XmppSettings) (onMessage : IncomingMessage -> unit) : XmppClient =
+let create (settings: XmppSettings): XmppClient =
     let client = XmppClient(JID(settings.login), settings.password)
     client.add_ConnectionFailed(connectionFailedHandler)
     client.add_SignedIn(signedInHandler settings client)
-    client.add_Message(messageHandler settings onMessage)
     client.add_Element(elementHandler)
     client.add_Presence(presenceHandler)
     client
 
-let run (client : XmppClient) =
+let run (settings: XmppSettings) (client: XmppClient) (onMessage: Message -> unit): unit =
     printfn "Bot name: %s" client.Jid.FullJid
-    client.Connect()
+    let handler = messageHandler settings onMessage
 
-let send (settings : XmppSettings) (client : XmppClient) (message : string) : unit =
-    SharpXmppHelper.message settings.room message
+    try
+        client.Connect()
+        client.add_Message handler
+    finally
+        client.remove_Message handler
+
+let send (settings: XmppSettings) (client: XmppClient) (message: Message): unit =
+    let text = sprintf "<%s> %s" message.author message.text
+    SharpXmppHelper.message settings.room text
     |> client.Send

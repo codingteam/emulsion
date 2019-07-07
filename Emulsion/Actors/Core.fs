@@ -12,7 +12,7 @@ type CoreActor(factories : ActorFactories) as this =
     let mutable telegram = Unchecked.defaultof<IActorRef>
 
     member private this.spawn (factory : ActorFactory) name =
-        factory ActorBase.Context this.Self name
+        factory ActorBase.Context name
 
     override this.PreStart() =
         printfn "Starting Core actor..."

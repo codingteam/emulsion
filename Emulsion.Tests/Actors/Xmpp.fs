@@ -5,21 +5,22 @@ open Xunit
 
 open Emulsion
 open Emulsion.Actors
-open Emulsion.Xmpp
-open Emulsion.Tests
+open Emulsion.MessageSystem
 
 type XmppTest() =
     inherit TestKit()
 
     [<Fact>]
     member this.``XMPP actor should pass an outgoing message to the XMPP module``() =
-        let sentMessage = ref ""
-        let xmppSettings = Settings.testConfiguration.xmpp
-        let xmpp : Client =
-            { construct = (Client.sharpXmpp xmppSettings).construct
-              run = fun _ -> ()
-              send = fun _ msg -> sentMessage := msg }
-        let actor = Xmpp.spawn xmpp this.Sys this.TestActor "xmpp"
-        actor.Tell(OutgoingMessage { author = "@nickname"; text = "message" }, this.TestActor)
+        let mutable sentMessage = None
+        let xmpp : IMessageSystem = {
+            new IMessageSystem with
+                member __.Run _ = ()
+                member __.PutMessage message =
+                    sentMessage <- Some message
+        }
+        let actor = Xmpp.spawn xmpp this.Sys "xmpp"
+        let message = OutgoingMessage { author = "@nickname"; text = "message" }
+        actor.Tell(message, this.TestActor)
         this.ExpectNoMsg()
-        Assert.Equal("<@nickname> message", !sentMessage)
+        Assert.Equal(Some message, sentMessage)

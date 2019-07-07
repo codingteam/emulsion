@@ -61,9 +61,9 @@ let isHistoricalMessage (message : XMPPMessage) : bool =
         |> Seq.isEmpty
     )
 
-let parseMessage (message : XMPPMessage) : IncomingMessage =
+let parseMessage (message: XMPPMessage): Message =
     let nickname =
         getAttributeValue message From
         |> Option.map getResource
         |> Option.defaultValue "[UNKNOWN USER]"
-    XmppMessage { author = nickname; text = message.Text }
+    { author = nickname; text = message.Text }

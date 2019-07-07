@@ -35,16 +35,16 @@ let putMessage (messageSystem: IMessageSystem) (message: OutgoingMessage) =
     messageSystem.PutMessage message
 
 [<AbstractClass>]
-type MessageSystemBase(restartContext: RestartContext, cancellationToken: CancellationToken) as this =
+type MessageSystemBase(ctx: RestartContext, cancellationToken: CancellationToken) as this =
     let sender = MessageSender.startActivity({
         send = this.Send
-        logError = restartContext.logError
-        cooldown = restartContext.cooldown
+        logError = ctx.logError
+        cooldown = ctx.cooldown
     }, cancellationToken)
 
     /// Starts the IM connection, manages reconnects. On cancellation could either throw OperationCanceledException or
     /// return a unit.
-    abstract member RunOnce : IncomingMessageReceiver -> unit
+    abstract member RunUntilError : IncomingMessageReceiver -> unit
 
     /// Sends a message through the message system. Free-threaded. Could throw exceptions; if throws an exception, then
     /// will be restarted later.
@@ -52,6 +52,6 @@ type MessageSystemBase(restartContext: RestartContext, cancellationToken: Cancel
 
     interface IMessageSystem with
         member ms.Run receiver =
-            wrapRun restartContext cancellationToken (fun () -> this.RunOnce receiver)
+            wrapRun ctx cancellationToken (fun () -> this.RunUntilError receiver)
         member __.PutMessage message =
             MessageSender.send sender message

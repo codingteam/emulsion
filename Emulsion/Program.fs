@@ -42,18 +42,20 @@ let private startApp config =
             logMessage = logInfo
         }
         let! cancellationToken = Async.CancellationToken
-        let xmpp = Xmpp.Client.sharpXmpp config.xmpp
+        let xmpp = Xmpp.Client(restartContext, cancellationToken, config.xmpp)
         let telegram = Telegram.Client(restartContext, cancellationToken, config.telegram)
         let factories = { xmppFactory = Xmpp.spawn xmpp
-                          telegramFactory = fun factory _ name -> Telegram.spawn telegram factory name } // TODO[F]: Change the architecture here so we don't need to ignore the `core` parameter.
+                          telegramFactory = Telegram.spawn telegram }
         printfn "Prepare Core..."
         let core = Core.spawn factories system "core"
         printfn "Starting message systems..."
-        let! telegram = startMessageSystem telegram (fun m -> core.Tell(TelegramMessage m))
+        let! telegramSystem = startMessageSystem telegram (fun m -> core.Tell(TelegramMessage m))
+        let! xmppSystem = startMessageSystem xmpp (fun m -> core.Tell(XmppMessage m))
         printfn "Ready. Wait for termination..."
         do! Async.AwaitTask system.WhenTerminated
         printfn "Waiting for terminating of message systems..."
-        do! telegram
+        do! telegramSystem
+        do! xmppSystem
     }
 
 let private runApp app =

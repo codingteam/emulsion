@@ -1,20 +1,18 @@
 namespace Emulsion.Xmpp
 
-open Akka.Actor
-open SharpXMPP
+open System.Threading
 
+open Emulsion
+open Emulsion.MessageSystem
 open Emulsion.Settings
 
-type Client =
-    { construct : IActorRef -> XmppClient
-      run : XmppClient -> unit
-      send : XmppClient -> string -> unit }
+type Client(ctx: RestartContext, cancellationToken: CancellationToken, settings: XmppSettings) as this =
+    inherit MessageSystemBase(ctx, cancellationToken)
+    let client = XmppClient.create settings
 
-    with
-        static member private create settings (core : IActorRef) =
-            XmppClient.create settings core.Tell
+    override __.RunUntilError receiver =
+        XmppClient.run settings client receiver
 
-        static member sharpXmpp (settings : XmppSettings) : Client =
-            { construct = Client.create settings
-              run = XmppClient.run
-              send = XmppClient.send settings }
+    override __.Send (OutgoingMessage message) = async {
+         return XmppClient.send settings client message
+    }

@@ -13,7 +13,7 @@ type CoreTests() as this =
     let mutable actorsCreated = 0
     let xmppActor = this.CreateTestProbe "xmpp"
     let telegramActor = this.CreateTestProbe "telegram"
-    let testActorFactory _ _ name =
+    let testActorFactory _ name =
         actorsCreated <- actorsCreated + 1
         match name with
         | "xmpp" -> xmppActor.Ref

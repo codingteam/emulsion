@@ -19,7 +19,7 @@ let ``parseMessage should extract message text and author``() =
     let text = "text test"
     let element = XmppMessageFactory.create("x@y/author", text)
     let message = SharpXmppHelper.parseMessage element
-    let expected = XmppMessage { author = "author"; text = text }
+    let expected = { author = "author"; text = text }
     Assert.Equal(expected, message)
 
 [<Fact>]
@@ -27,7 +27,7 @@ let ``Message without author is attributed to [UNKNOWN USER]``() =
     let text = "xxx"
     let element = XmppMessageFactory.create(text = text)
     let message = SharpXmppHelper.parseMessage element
-    let expected = XmppMessage { author = "[UNKNOWN USER]"; text = text }
+    let expected = { author = "[UNKNOWN USER]"; text = text }
     Assert.Equal(expected, message)
 
 [<Fact>]
