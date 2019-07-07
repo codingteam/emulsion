@@ -1,9 +1,5 @@
 module Emulsion.Xmpp.XmppClient
 
-open System
-open System.Threading
-open System.Xml.Linq
-
 open SharpXMPP
 open SharpXMPP.XMPP
 
@@ -12,8 +8,7 @@ open Emulsion
 open Emulsion.Settings
 
 let private connectionFailedHandler = XmppConnection.ConnectionFailedHandler(fun s e ->
-    printfn "%s" e.Message
-    Thread.Sleep(TimeSpan.FromSeconds(30.0)) // TODO[Friedrich]: Configurable timeout.
+    printfn "XMPP Connection Failed: %s" e.Message
     ())
 
 let private signedInHandler (settings : XmppSettings) (client : XmppClient) = XmppConnection.SignedInHandler(fun s e ->
