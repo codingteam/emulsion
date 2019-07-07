@@ -29,10 +29,21 @@ $ dotnet test ./Emulsion.Tests
 Run
 ---
 
-Requires [.NET Core Runtime][dotnet-core-runtime] version 2.0+.
+Requires [.NET Core Runtime][dotnet-core-runtime] version 2.2+.
 
 ```console
 $ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
+```
+
+Docker
+------
+
+We also have a Dockerfile. To deploy it, first author a configuration file, and
+then:
+
+```console
+$ docker build -t emulsion .
+$ docker run -d emulsion
 ```
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-umbra-
