@@ -3,6 +3,7 @@
 
 bin/
 obj/
+out/
 
 emulsion.json
 
