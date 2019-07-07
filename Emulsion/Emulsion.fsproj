@@ -16,7 +16,6 @@
     <Compile Include="Xmpp/XmppClient.fs" />
     <Compile Include="Xmpp\Client.fs" />
     <Compile Include="Actors/Factories.fs" />
-    <Compile Include="Actors/SyncTaskWatcher.fs" />
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/Telegram.fs" />
     <Compile Include="Actors/Xmpp.fs" />

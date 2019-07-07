@@ -8,7 +8,6 @@
     <Compile Include="MessageSenderTests.fs" />
     <Compile Include="MessageSystemTests.fs" />
     <Compile Include="Actors/Core.fs" />
-    <Compile Include="Actors/SyncTaskWatcher.fs" />
     <Compile Include="Actors/Telegram.fs" />
     <Compile Include="Actors/Xmpp.fs" />
     <Compile Include="Xmpp\XmppMessageFactory.fs" />
