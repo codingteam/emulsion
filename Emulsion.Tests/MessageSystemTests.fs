@@ -11,15 +11,21 @@ open Emulsion.MessageSystem
 let private performTest expectedStage runBody =
     use cts = new CancellationTokenSource()
     let mutable stage = 0
-    let run() =
+    let run = async {
         stage <- stage + 1
         runBody cts stage
+    }
     let context = {
         cooldown = TimeSpan.Zero
         logError = ignore
         logMessage = ignore
     }
-    MessageSystem.wrapRun context cts.Token run
+
+    try
+        Async.RunSynchronously(MessageSystem.wrapRun context run, cancellationToken = cts.Token)
+    with
+    | :? OperationCanceledException -> ()
+
     Assert.Equal(expectedStage, stage)
 
 [<Fact>]

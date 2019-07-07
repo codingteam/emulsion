@@ -7,6 +7,7 @@ open System.Xml.Linq
 open SharpXMPP
 open SharpXMPP.XMPP
 
+open System.Threading.Tasks
 open Emulsion
 open Emulsion.Settings
 
@@ -44,15 +45,31 @@ let create (settings: XmppSettings): XmppClient =
     client.add_Presence(presenceHandler)
     client
 
-let run (settings: XmppSettings) (client: XmppClient) (onMessage: Message -> unit): unit =
+exception ConnectionFailedError of string
+
+let run (settings: XmppSettings) (client: XmppClient) (onMessage: Message -> unit): Async<unit> =
     printfn "Bot name: %s" client.Jid.FullJid
     let handler = messageHandler settings onMessage
+    let tcs = TaskCompletionSource()
+    let connectionFailedHandler =
+        XmppConnection.ConnectionFailedHandler(
+            fun _ error -> tcs.SetException(ConnectionFailedError error.Message)
+        )
 
-    try
-        client.Connect()
-        client.add_Message handler
-    finally
-        client.remove_Message handler
+    async {
+        try
+            let! token = Async.CancellationToken
+            use _ = token.Register(fun () -> client.Close())
+
+            client.add_Message handler
+            client.add_ConnectionFailed connectionFailedHandler
+            client.Connect()
+
+            do! Async.AwaitTask tcs.Task
+        finally
+            client.remove_ConnectionFailed connectionFailedHandler
+            client.remove_Message handler
+    }
 
 let send (settings: XmppSettings) (client: XmppClient) (message: Message): unit =
     let text = sprintf "<%s> %s" message.author message.text

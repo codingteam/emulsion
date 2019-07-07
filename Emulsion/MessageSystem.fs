@@ -20,16 +20,18 @@ type RestartContext = {
     logMessage: string -> unit
 }
 
-let internal wrapRun (ctx: RestartContext) (token: CancellationToken) (run: unit -> unit) : unit =
-    while not token.IsCancellationRequested do
-        try
-            run()
-        with
-        | :? OperationCanceledException -> ()
-        | ex ->
-            ctx.logError ex
-            ctx.logMessage <| sprintf "Waiting for %A to restart" ctx.cooldown
-            Thread.Sleep ctx.cooldown
+let internal wrapRun (ctx: RestartContext) (runAsync: Async<unit>) : Async<unit> =
+    async {
+        while true do
+            try
+                do! runAsync
+            with
+            | :? OperationCanceledException -> return ()
+            | ex ->
+                ctx.logError ex
+                ctx.logMessage <| sprintf "Waiting for %A to restart" ctx.cooldown
+                do! Async.Sleep(int ctx.cooldown.TotalMilliseconds)
+    }
 
 let putMessage (messageSystem: IMessageSystem) (message: OutgoingMessage) =
     messageSystem.PutMessage message
@@ -44,7 +46,7 @@ type MessageSystemBase(ctx: RestartContext, cancellationToken: CancellationToken
 
     /// Starts the IM connection, manages reconnects. On cancellation could either throw OperationCanceledException or
     /// return a unit.
-    abstract member RunUntilError : IncomingMessageReceiver -> unit
+    abstract member RunUntilError : IncomingMessageReceiver -> Async<unit>
 
     /// Sends a message through the message system. Free-threaded. Could throw exceptions; if throws an exception, then
     /// will be restarted later.
@@ -52,6 +54,7 @@ type MessageSystemBase(ctx: RestartContext, cancellationToken: CancellationToken
 
     interface IMessageSystem with
         member ms.Run receiver =
-            wrapRun ctx cancellationToken (fun () -> this.RunUntilError receiver)
+            Async.RunSynchronously (wrapRun ctx (this.RunUntilError receiver), cancellationToken = cancellationToken)
+
         member __.PutMessage message =
             MessageSender.send sender message
