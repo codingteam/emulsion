@@ -6,7 +6,7 @@ open Emulsion
 open Emulsion.MessageSystem
 open Emulsion.Settings
 
-type Client(ctx: RestartContext, cancellationToken: CancellationToken, settings: XmppSettings) as this =
+type Client(ctx: RestartContext, cancellationToken: CancellationToken, settings: XmppSettings) =
     inherit MessageSystemBase(ctx, cancellationToken)
     let client = XmppClient.create settings
 
