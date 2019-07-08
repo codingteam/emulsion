@@ -1,10 +1,18 @@
 module Emulsion.Tests.Xmpp.SharpXmppHelper
 
+open System.Xml.Linq
+
 open Xunit
 
 open Emulsion
 open Emulsion.Tests.Xmpp
 open Emulsion.Xmpp
+
+[<Fact>]
+let ``Message body has a proper namespace``() =
+    let message = SharpXmppHelper.message "cthulhu@test" "text"
+    let body = Seq.exactlyOne(message.Descendants())
+    Assert.Equal(XNamespace.Get "jabber:client", body.Name.Namespace)
 
 [<Fact>]
 let ``parseMessage should extract message text and author``() =

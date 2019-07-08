@@ -9,25 +9,22 @@ open SharpXMPP.XMPP.Client.Elements
 
 open Emulsion
 
-module Namespaces =
-    let StorageBookmarks = XNamespace.Get("storage:bookmarks")
-
 module Elements =
-    let Body = XName.Get "body"
+    let Body = XName.Get("body", Namespaces.JabberClient)
     let Delay = XName.Get("delay", "urn:xmpp:delay")
     let From = XName.Get "from"
     let Jid = XName.Get "jid"
+    let Nick = XName.Get("nick", Namespaces.StorageBookmarks)
     let Stamp = XName.Get "stamp"
-    let Type = XName.Get "type"
     let To = XName.Get "to"
+    let Type = XName.Get "type"
 
-open Namespaces
 open Elements
 
 let private bookmark (roomJid: string) (nickname: string): BookmarkedConference =
     let room = BookmarkedConference()
     room.SetAttributeValue(Jid, roomJid)
-    let nickElement = XElement(StorageBookmarks + "nick", Value = nickname)
+    let nickElement = XElement(Nick, Value = nickname)
     room.Add(nickElement)
     room
 
