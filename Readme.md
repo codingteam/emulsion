@@ -43,7 +43,7 @@ then:
 
 ```console
 $ docker build -t emulsion .
-$ docker run -d emulsion
+$ docker run -d --name emulsion -v $PWD/emulsion.json:/app/emulsion.json:ro emulsion
 ```
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-umbra-
