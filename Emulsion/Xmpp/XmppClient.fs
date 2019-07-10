@@ -1,9 +1,10 @@
 module Emulsion.Xmpp.XmppClient
 
+open System.Threading.Tasks
+
 open SharpXMPP
 open SharpXMPP.XMPP
 
-open System.Threading.Tasks
 open Emulsion
 open Emulsion.Settings
 

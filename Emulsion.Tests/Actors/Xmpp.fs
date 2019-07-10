@@ -13,7 +13,7 @@ type XmppTest() =
     [<Fact>]
     member this.``XMPP actor should pass an outgoing message to the XMPP module``() =
         let mutable sentMessage = None
-        let xmpp : IMessageSystem = {
+        let xmpp = {
             new IMessageSystem with
                 member __.Run _ = ()
                 member __.PutMessage message =

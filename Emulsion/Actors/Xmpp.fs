@@ -12,7 +12,7 @@ type XmppActor(xmpp: IMessageSystem) as this =
 
 let spawn (xmpp: IMessageSystem)
           (factory: IActorRefFactory)
-          (name: string) =
+          (name: string): IActorRef =
     printfn "Spawning XMPP..."
     let props = Props.Create<XmppActor>(xmpp)
     factory.ActorOf(props, name)
