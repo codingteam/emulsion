@@ -1,0 +1,7 @@
+version: '2'
+services:
+    emulsion:
+        build: .
+        restart: always
+        volumes:
+          - ./emulsion.json:/app/emulsion.json:ro

@@ -35,6 +35,16 @@ Requires [.NET Core Runtime][dotnet-core-runtime] version 2.2+.
 $ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
 ```
 
+Docker Compose
+--------------
+
+To deploy the application using the provided Docker Compose configuration file,
+execute this:
+
+```console
+$ docker-compose --project-name emulsion up --build --force-recreate -d
+```
+
 Docker
 ------
 
