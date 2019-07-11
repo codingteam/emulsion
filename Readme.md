@@ -56,7 +56,7 @@ $ docker build -t emulsion .
 $ docker run -d --name emulsion -v $PWD/emulsion.json:/app/emulsion.json:ro emulsion
 ```
 
-[andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier##status-enfer-
+[andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-enfer-
 [build-appveyor]: https://ci.appveyor.com/project/ForNeVeR/emulsion/branch/master
 [build-travis]: https://travis-ci.org/codingteam/emulsion
 [dotnet-core-runtime]: https://www.microsoft.com/net/download/core#/runtime
