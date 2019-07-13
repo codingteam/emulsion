@@ -33,12 +33,13 @@ let private elementHandler = XmppConnection.ElementHandler(fun s e ->
 let private presenceHandler = XmppConnection.PresenceHandler(fun s e ->
     printfn "[P]: %A" e)
 
-let create (settings: XmppSettings): XmppClient =
-    let client = XmppClient(JID(settings.login), settings.password)
+let create (settings: XmppSettings) (onMessage: IncomingMessage -> unit): XmppClient =
+    let client = new XmppClient(JID(settings.login), settings.password)
     client.add_ConnectionFailed(connectionFailedHandler)
     client.add_SignedIn(signedInHandler settings client)
     client.add_Element(elementHandler)
     client.add_Presence(presenceHandler)
+    client.add_Message(messageHandler settings onMessage)
     client
 
 exception ConnectionFailedError of string
@@ -46,13 +47,12 @@ exception ConnectionFailedError of string
         override this.ToString() =
             sprintf "%A" this
 
-let run (settings: XmppSettings) (client: XmppClient) (onMessage: IncomingMessage -> unit): Async<unit> =
+let run (client: XmppClient): Async<unit> =
     printfn "Bot name: %s" client.Jid.FullJid
-    let handler = messageHandler settings onMessage
-    let tcs = TaskCompletionSource()
+    let connectionFinished = TaskCompletionSource()
     let connectionFailedHandler =
         XmppConnection.ConnectionFailedHandler(
-            fun _ error -> tcs.SetException(ConnectionFailedError error.Message)
+            fun _ error -> connectionFinished.SetException(ConnectionFailedError error.Message)
         )
 
     async {
@@ -60,14 +60,12 @@ let run (settings: XmppSettings) (client: XmppClient) (onMessage: IncomingMessag
             let! token = Async.CancellationToken
             use _ = token.Register(fun () -> client.Close())
 
-            client.add_Message handler
             client.add_ConnectionFailed connectionFailedHandler
             do! Async.AwaitTask(client.ConnectAsync token)
 
-            do! Async.AwaitTask tcs.Task
+            do! Async.AwaitTask connectionFinished.Task
         finally
             client.remove_ConnectionFailed connectionFailedHandler
-            client.remove_Message handler
     }
 
 let send (settings: XmppSettings) (client: XmppClient) (message: Message): unit =

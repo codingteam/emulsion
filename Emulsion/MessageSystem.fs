@@ -46,6 +46,8 @@ type MessageSystemBase(ctx: RestartContext, cancellationToken: CancellationToken
 
     /// Starts the IM connection, manages reconnects. On cancellation could either throw OperationCanceledException or
     /// return a unit.
+    ///
+    /// This method will never be called multiple times in parallel on a single instance.
     abstract member RunUntilError : IncomingMessageReceiver -> Async<unit>
 
     /// Sends a message through the message system. Free-threaded. Could throw exceptions; if throws an exception, then
