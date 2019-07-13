@@ -42,6 +42,9 @@ let create (settings: XmppSettings): XmppClient =
     client
 
 exception ConnectionFailedError of string
+    with
+        override this.ToString() =
+            sprintf "%A" this
 
 let run (settings: XmppSettings) (client: XmppClient) (onMessage: IncomingMessage -> unit): Async<unit> =
     printfn "Bot name: %s" client.Jid.FullJid
