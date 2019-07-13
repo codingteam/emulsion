@@ -1,5 +1,6 @@
 module Emulsion.Xmpp.XmppClient
 
+open System
 open System.Threading.Tasks
 
 open SharpXMPP
@@ -42,17 +43,15 @@ let create (settings: XmppSettings) (onMessage: IncomingMessage -> unit): XmppCl
     client.add_Message(messageHandler settings onMessage)
     client
 
-exception ConnectionFailedError of string
-    with
-        override this.ToString() =
-            sprintf "%A" this
+type ConnectionFailedError(message: string, innerException: Exception) =
+    inherit Exception(message, innerException)
 
 let run (client: XmppClient): Async<unit> =
     printfn "Bot name: %s" client.Jid.FullJid
     let connectionFinished = TaskCompletionSource()
     let connectionFailedHandler =
         XmppConnection.ConnectionFailedHandler(
-            fun _ error -> connectionFinished.SetException(ConnectionFailedError error.Message)
+            fun _ error -> connectionFinished.SetException(ConnectionFailedError(error.Message, error.Exception))
         )
 
     async {
