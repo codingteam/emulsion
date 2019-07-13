@@ -59,7 +59,7 @@ let run (settings: XmppSettings) (client: XmppClient) (onMessage: IncomingMessag
 
             client.add_Message handler
             client.add_ConnectionFailed connectionFailedHandler
-            client.Connect()
+            do! Async.AwaitTask(client.ConnectAsync token)
 
             do! Async.AwaitTask tcs.Task
         finally
