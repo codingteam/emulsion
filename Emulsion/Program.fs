@@ -49,8 +49,8 @@ let private startApp config =
         printfn "Prepare Core..."
         let core = Core.spawn factories system "core"
         printfn "Starting message systems..."
-        let! telegramSystem = startMessageSystem telegram (fun m -> core.Tell(TelegramMessage m))
-        let! xmppSystem = startMessageSystem xmpp (fun m -> core.Tell(XmppMessage m))
+        let! telegramSystem = startMessageSystem telegram core.Tell
+        let! xmppSystem = startMessageSystem xmpp core.Tell
         printfn "Ready. Wait for termination..."
         do! Async.AwaitTask system.WhenTerminated
         printfn "Waiting for terminating of message systems..."

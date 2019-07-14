@@ -13,7 +13,7 @@
     <Compile Include="Xmpp\XmppMessageFactory.fs" />
     <Compile Include="Xmpp/SharpXmppHelper.fs" />
     <Compile Include="Telegram\Html.fs" />
-    <Compile Include="Telegram\Funogram.fs" />
+    <Compile Include="Telegram\FunogramTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.TestKit" Version="1.3.12" />

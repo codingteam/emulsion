@@ -3,6 +3,7 @@ module Emulsion.Actors.Core
 open Akka.Actor
 
 open Emulsion
+open Emulsion.Telegram
 
 type CoreActor(factories : ActorFactories) as this =
     inherit ReceiveActor()
@@ -21,7 +22,9 @@ type CoreActor(factories : ActorFactories) as this =
 
     member this.OnMessage(message : IncomingMessage) : unit =
         match message with
-        | TelegramMessage msg -> xmpp.Tell(OutgoingMessage msg, this.Self)
+        | TelegramMessage msg ->
+            let message = Funogram.MessageConverter.flatten Funogram.MessageConverter.DefaultQuoteSettings msg
+            xmpp.Tell(OutgoingMessage message, this.Self)
         | XmppMessage msg -> telegram.Tell(OutgoingMessage msg, this.Self)
 
 let spawn (factories : ActorFactories) (system : IActorRefFactory) (name : string) : IActorRef =

@@ -23,7 +23,7 @@ let private shouldSkipMessage settings message =
 let private messageHandler settings onMessage = XmppConnection.MessageHandler(fun _ element ->
     printfn "<- %A" element
     if not <| shouldSkipMessage settings element then
-        onMessage(SharpXmppHelper.parseMessage element)
+        onMessage(XmppMessage (SharpXmppHelper.parseMessage element))
 )
 
 let private elementHandler = XmppConnection.ElementHandler(fun s e ->
@@ -43,7 +43,7 @@ let create (settings: XmppSettings): XmppClient =
 
 exception ConnectionFailedError of string
 
-let run (settings: XmppSettings) (client: XmppClient) (onMessage: Message -> unit): Async<unit> =
+let run (settings: XmppSettings) (client: XmppClient) (onMessage: IncomingMessage -> unit): Async<unit> =
     printfn "Bot name: %s" client.Jid.FullJid
     let handler = messageHandler settings onMessage
     let tcs = TaskCompletionSource()

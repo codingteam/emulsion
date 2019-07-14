@@ -3,7 +3,7 @@ module Emulsion.MessageSystem
 open System
 open System.Threading
 
-type IncomingMessageReceiver = Message -> unit
+type IncomingMessageReceiver = IncomingMessage -> unit
 
 /// The IM message queue. Manages the underlying connection, reconnects when necessary, stores the outgoing messages in
 /// a queue and sends them when possible. Redirects the incoming messages to a function passed when starting the queue.
