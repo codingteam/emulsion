@@ -20,18 +20,27 @@ let private testConfigText = @"{
    ""telegram"": {
        ""token"": ""token"",
        ""groupId"": ""groupId""
+   },
+   ""log"": {
+       ""directory"": ""/tmp/""
    }
 }"
 
-let testConfiguration =
-    { Xmpp =
-        { Login = "login"
-          Password = "password"
-          Room = "room"
-          Nickname = "nickname" }
-      Telegram =
-        { Token = "token"
-          GroupId = "groupId" } }
+let testConfiguration = {
+    Xmpp = {
+        Login = "login"
+        Password = "password"
+        Room = "room"
+        Nickname = "nickname"
+    }
+    Telegram = {
+        Token = "token"
+        GroupId = "groupId"
+    }
+    Log = {
+        Directory = "/tmp/"
+    }
+}
 
 let private mockConfiguration() =
     let path = Path.GetTempFileName()
