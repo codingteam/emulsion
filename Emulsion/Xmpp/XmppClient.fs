@@ -14,11 +14,11 @@ let private connectionFailedHandler = XmppConnection.ConnectionFailedHandler(fun
     ())
 
 let private signedInHandler (settings : XmppSettings) (client : XmppClient) = XmppConnection.SignedInHandler(fun s e ->
-    printfn "Connecting to %s" settings.room
-    SharpXmppHelper.joinRoom client settings.room settings.nickname)
+    printfn "Connecting to %s" settings.Room
+    SharpXmppHelper.joinRoom client settings.Room settings.Nickname)
 
 let private shouldSkipMessage settings message =
-    SharpXmppHelper.isOwnMessage (settings.nickname) message
+    SharpXmppHelper.isOwnMessage (settings.Nickname) message
         || SharpXmppHelper.isHistoricalMessage message
 
 let private messageHandler settings onMessage = XmppConnection.MessageHandler(fun _ element ->
@@ -35,7 +35,7 @@ let private presenceHandler = XmppConnection.PresenceHandler(fun s e ->
     printfn "[P]: %A" e)
 
 let create (settings: XmppSettings) (onMessage: IncomingMessage -> unit): XmppClient =
-    let client = new XmppClient(JID(settings.login), settings.password)
+    let client = new XmppClient(JID(settings.Login), settings.Password)
     client.add_ConnectionFailed(connectionFailedHandler)
     client.add_SignedIn(signedInHandler settings client)
     client.add_Element(elementHandler)
@@ -69,5 +69,5 @@ let run (client: XmppClient): Async<unit> =
 
 let send (settings: XmppSettings) (client: XmppClient) (message: Message): unit =
     let text = sprintf "<%s> %s" message.author message.text
-    SharpXmppHelper.message settings.room text
+    SharpXmppHelper.message settings.Room text
     |> client.Send

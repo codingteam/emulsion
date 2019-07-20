@@ -42,8 +42,8 @@ let private startApp config =
             logMessage = logInfo
         }
         let! cancellationToken = Async.CancellationToken
-        let xmpp = Xmpp.Client(restartContext, cancellationToken, config.xmpp)
-        let telegram = Telegram.Client(restartContext, cancellationToken, config.telegram)
+        let xmpp = Xmpp.Client(restartContext, cancellationToken, config.Xmpp)
+        let telegram = Telegram.Client(restartContext, cancellationToken, config.Telegram)
         let factories = { xmppFactory = Xmpp.spawn xmpp
                           telegramFactory = Telegram.spawn telegram }
         printfn "Prepare Core..."

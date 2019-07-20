@@ -24,14 +24,14 @@ let private testConfigText = @"{
 }"
 
 let testConfiguration =
-    { xmpp =
-        { login = "login"
-          password = "password"
-          room = "room"
-          nickname = "nickname" }
-      telegram =
-        { token = "token"
-          groupId = "groupId" } }
+    { Xmpp =
+        { Login = "login"
+          Password = "password"
+          Room = "room"
+          Nickname = "nickname" }
+      Telegram =
+        { Token = "token"
+          GroupId = "groupId" } }
 
 let private mockConfiguration() =
     let path = Path.GetTempFileName()
