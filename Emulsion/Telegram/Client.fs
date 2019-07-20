@@ -5,7 +5,7 @@ open System.Threading
 open Emulsion.MessageSystem
 open Emulsion.Settings
 
-type Client(ctx: RestartContext, cancellationToken: CancellationToken, settings: TelegramSettings) =
+type Client(ctx: ServiceContext, cancellationToken: CancellationToken, settings: TelegramSettings) =
     inherit MessageSystemBase(ctx, cancellationToken)
 
     override __.RunUntilError receiver =

@@ -8,9 +8,9 @@ open Emulsion
 open Emulsion.MessageSender
 
 let private testContext = {
-    send = fun _ -> async { return () }
-    logError = ignore
-    cooldown = TimeSpan.Zero
+    Send = fun _ -> async { return () }
+    LogError = ignore
+    RestartCooldown = TimeSpan.Zero
 }
 
 [<Fact>]
@@ -19,7 +19,7 @@ let ``Message sender sends the messages sequentially``() =
     let messagesReceived = ResizeArray()
     let context = {
         testContext with
-            send = fun m -> async {
+            Send = fun m -> async {
                 lock messagesReceived (fun () ->
                     messagesReceived.Add m
                 )
@@ -46,8 +46,8 @@ let ``Message sender should be cancellable``() =
     let errors = ResizeArray()
     let context = {
         testContext with
-            send = fun _ -> failwith "Should not be called"
-            logError = fun e -> lock errors (fun () -> errors.Add e)
+            Send = fun _ -> failwith "Should not be called"
+            LogError = fun e -> lock errors (fun () -> errors.Add e)
     }
     let sender = MessageSender.startActivity(context, cts.Token)
     cts.Cancel()
