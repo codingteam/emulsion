@@ -4,18 +4,18 @@ open System
 open System.Threading
 
 type MessageSenderContext = {
-    send: OutgoingMessage -> Async<unit>
-    logError: Exception -> unit
-    cooldown: TimeSpan
+    Send: OutgoingMessage -> Async<unit>
+    LogError: Exception -> unit
+    RestartCooldown: TimeSpan
 }
 
 let rec private sendRetryLoop ctx msg = async {
     try
-        do! ctx.send msg
+        do! ctx.Send msg
     with
     | ex ->
-        ctx.logError ex
-        do! Async.Sleep(int ctx.cooldown.TotalMilliseconds)
+        ctx.LogError ex
+        do! Async.Sleep(int ctx.RestartCooldown.TotalMilliseconds)
         return! sendRetryLoop ctx msg
 }
 

@@ -16,9 +16,9 @@ let private performTest expectedStage runBody =
         runBody cts stage
     }
     let context = {
-        cooldown = TimeSpan.Zero
-        logError = ignore
-        logMessage = ignore
+        RestartCooldown = TimeSpan.Zero
+        LogError = ignore
+        LogMessage = ignore
     }
 
     try

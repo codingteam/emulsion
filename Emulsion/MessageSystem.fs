@@ -14,13 +14,13 @@ type IMessageSystem =
     /// Queues the message to be sent to the IM system when possible.
     abstract member PutMessage : OutgoingMessage -> unit
 
-type RestartContext = {
-    cooldown: TimeSpan
-    logError: Exception -> unit
-    logMessage: string -> unit
+type ServiceContext = {
+    RestartCooldown: TimeSpan
+    LogError: Exception -> unit
+    LogMessage: string -> unit
 }
 
-let internal wrapRun (ctx: RestartContext) (runAsync: Async<unit>) : Async<unit> =
+let internal wrapRun (ctx: ServiceContext) (runAsync: Async<unit>) : Async<unit> =
     async {
         while true do
             try
@@ -28,20 +28,20 @@ let internal wrapRun (ctx: RestartContext) (runAsync: Async<unit>) : Async<unit>
             with
             | :? OperationCanceledException -> return ()
             | ex ->
-                ctx.logError ex
-                ctx.logMessage <| sprintf "Waiting for %A to restart" ctx.cooldown
-                do! Async.Sleep(int ctx.cooldown.TotalMilliseconds)
+                ctx.LogError ex
+                ctx.LogMessage <| sprintf "Waiting for %A to restart" ctx.RestartCooldown
+                do! Async.Sleep(int ctx.RestartCooldown.TotalMilliseconds)
     }
 
 let putMessage (messageSystem: IMessageSystem) (message: OutgoingMessage) =
     messageSystem.PutMessage message
 
 [<AbstractClass>]
-type MessageSystemBase(ctx: RestartContext, cancellationToken: CancellationToken) as this =
+type MessageSystemBase(ctx: ServiceContext, cancellationToken: CancellationToken) as this =
     let sender = MessageSender.startActivity({
-        send = this.Send
-        logError = ctx.logError
-        cooldown = ctx.cooldown
+        Send = this.Send
+        LogError = ctx.LogError
+        RestartCooldown = ctx.RestartCooldown
     }, cancellationToken)
 
     /// Starts the IM connection, manages reconnects. On cancellation could either throw OperationCanceledException or

@@ -38,14 +38,14 @@ let private startApp config =
             logger.Information "Actor system preparation…"
             use system = ActorSystem.Create("emulsion")
             logger.Information "Clients preparation…"
-            let restartContext = {
-                cooldown = TimeSpan.FromSeconds(30.0) // TODO[F]: Customize through the config.
-                logError = logError
-                logMessage = logInfo
+            let serviceContext = {
+                RestartCooldown = TimeSpan.FromSeconds(30.0) // TODO[F]: Customize through the config.
+                LogError = logError
+                LogMessage = logInfo
             }
             let! cancellationToken = Async.CancellationToken
-            let xmpp = Xmpp.Client(restartContext, cancellationToken, config.Xmpp)
-            let telegram = Telegram.Client(restartContext, cancellationToken, config.Telegram)
+            let xmpp = Xmpp.Client(serviceContext, cancellationToken, config.Xmpp)
+            let telegram = Telegram.Client(serviceContext, cancellationToken, config.Telegram)
             let factories = { xmppFactory = Xmpp.spawn xmpp
                               telegramFactory = Telegram.spawn telegram }
             logger.Information "Core preparation…"
