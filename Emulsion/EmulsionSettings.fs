@@ -1,31 +1,30 @@
 module Emulsion.Settings
 
 open Microsoft.Extensions.Configuration
-open System.Security
 
 type XmppSettings =
-    { login : string
-      password : string
-      room : string
-      nickname : string }
+    { Login : string
+      Password : string
+      Room : string
+      Nickname : string }
 
 type TelegramSettings =
-    { token : string
-      groupId : string }
+    { Token : string
+      GroupId : string }
 
 type EmulsionSettings =
-    { xmpp : XmppSettings
-      telegram : TelegramSettings }
+    { Xmpp : XmppSettings
+      Telegram : TelegramSettings }
 
 let read (config : IConfiguration) : EmulsionSettings =
     let readXmpp (section : IConfigurationSection) =
-        { login = section.["login"]
-          password = section.["password"]
-          room = section.["room"]
-          nickname = section.["nickname"] }
+        { Login = section.["login"]
+          Password = section.["password"]
+          Room = section.["room"]
+          Nickname = section.["nickname"] }
     let readTelegram (section : IConfigurationSection) =
-        { token = section.["token"]
-          groupId = section.["groupId"] }
+        { Token = section.["token"]
+          GroupId = section.["groupId"] }
 
-    { xmpp = readXmpp <| config.GetSection("xmpp")
-      telegram = readTelegram <| config.GetSection("telegram") }
+    { Xmpp = readXmpp <| config.GetSection("xmpp")
+      Telegram = readTelegram <| config.GetSection("telegram") }

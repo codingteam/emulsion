@@ -145,10 +145,10 @@ let send (settings : TelegramSettings) (OutgoingMessage content) : Async<unit> =
     let sendHtmlMessage groupId text =
         sendMessageBase groupId text (Some ParseMode.HTML) None None None None
 
-    let groupId = Int (int64 settings.groupId)
+    let groupId = Int (int64 settings.GroupId)
     let message = prepareHtmlMessage content
     async {
-        let! result = api settings.token (sendHtmlMessage groupId message)
+        let! result = api settings.Token (sendHtmlMessage groupId message)
         return processResult result
     }
 
@@ -156,5 +156,5 @@ let run (settings: TelegramSettings)
         (cancellationToken: CancellationToken)
         (onMessage: IncomingMessage -> unit) : unit =
     // TODO[F]: Update Funogram and don't ignore the cancellation token here.
-    let config = { defaultConfig with Token = settings.token }
+    let config = { defaultConfig with Token = settings.Token }
     Bot.startBot config (updateArrived onMessage) None
