@@ -12,4 +12,4 @@ type Client(ctx: ServiceContext, cancellationToken: CancellationToken, settings:
         async { Funogram.run settings cancellationToken receiver }
 
     override __.Send message =
-        Funogram.send settings message
+        Funogram.send ctx.Logger settings message

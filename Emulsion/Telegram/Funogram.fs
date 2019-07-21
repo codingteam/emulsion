@@ -6,6 +6,7 @@ open Funogram
 open Funogram.Bot
 open Funogram.Api
 open Funogram.Types
+open Serilog
 
 open Emulsion
 open Emulsion.Settings
@@ -123,15 +124,15 @@ module MessageConverter =
             let replyToMessage = { author = getAuthorName replyTo; text = getMessageBodyText replyTo }
             { main = mainMessage; replyTo = Some replyToMessage }
 
-let private processResultWithValue (result: Result<'a, ApiResponseError>) =
+let private processResultWithValue (logger: ILogger) (result: Result<'a, ApiResponseError>) =
     match result with
     | Ok v -> Some v
     | Error e ->
-        printfn "Error: %s" e.Description
+        logger.Error("Telegram API call processing error: {Error}", e)
         None
 
-let private processResult (result: Result<'a, ApiResponseError>) =
-    processResultWithValue result |> ignore
+let private processResult logger (result: Result<'a, ApiResponseError>) =
+    processResultWithValue logger result |> ignore
 
 let private updateArrived onMessage (ctx : UpdateContext) =
     processCommands ctx [
@@ -141,7 +142,7 @@ let private updateArrived onMessage (ctx : UpdateContext) =
 let internal prepareHtmlMessage { author = author; text = text } : string =
     sprintf "<b>%s</b>\n%s" (Html.escape author) (Html.escape text)
 
-let send (settings : TelegramSettings) (OutgoingMessage content) : Async<unit> =
+let send (logger: ILogger) (settings: TelegramSettings) (OutgoingMessage content): Async<unit> =
     let sendHtmlMessage groupId text =
         sendMessageBase groupId text (Some ParseMode.HTML) None None None None
 
@@ -149,7 +150,7 @@ let send (settings : TelegramSettings) (OutgoingMessage content) : Async<unit> =
     let message = prepareHtmlMessage content
     async {
         let! result = api settings.Token (sendHtmlMessage groupId message)
-        return processResult result
+        return processResult logger result
     }
 
 let run (settings: TelegramSettings)

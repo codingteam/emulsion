@@ -50,7 +50,7 @@ let private startApp config =
             let factories = { xmppFactory = Xmpp.spawn xmpp
                               telegramFactory = Telegram.spawn telegram }
             logger.Information "Core preparation…"
-            let core = Core.spawn factories system "core"
+            let core = Core.spawn logger factories system "core"
             logger.Information "Message systems preparation…"
             let! telegramSystem = startMessageSystem logger telegram core.Tell
             let! xmppSystem = startMessageSystem logger xmpp core.Tell
