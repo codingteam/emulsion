@@ -3,13 +3,18 @@ module Emulsion.Tests.MessageSenderTests
 open System
 open System.Threading
 
+open Serilog
+open Serilog.Core
+open Serilog.Events
+open Serilog.Sinks.TestCorrelator
 open Xunit
+
 open Emulsion
 open Emulsion.MessageSender
 
 let private testContext = {
     Send = fun _ -> async { return () }
-    LogError = ignore
+    Logger = Logger.None
     RestartCooldown = TimeSpan.Zero
 }
 
@@ -43,17 +48,23 @@ let ``Message sender sends the messages sequentially``() =
 [<Fact>]
 let ``Message sender should be cancellable``() =
     use cts = new CancellationTokenSource()
-    let errors = ResizeArray()
-    let context = {
-        testContext with
-            Send = fun _ -> failwith "Should not be called"
-            LogError = fun e -> lock errors (fun () -> errors.Add e)
-    }
-    let sender = MessageSender.startActivity(context, cts.Token)
-    cts.Cancel()
+    using (TestCorrelator.CreateContext()) (fun _ ->
+        let context = {
+            testContext with
+                Send = fun _ -> failwith "Should not be called"
+                Logger = LoggerConfiguration().WriteTo.TestCorrelator().CreateLogger()
+        }
+        let sender = MessageSender.startActivity(context, cts.Token)
+        cts.Cancel()
 
-    let msg = OutgoingMessage { author = "author"; text = "xx" }
-    MessageSender.send sender msg
+        let msg = OutgoingMessage { author = "author"; text = "xx" }
+        MessageSender.send sender msg
 
-    SpinWait.SpinUntil((fun () -> errors.Count > 0), TimeSpan.FromMilliseconds 100.0) |> ignore
-    Assert.Empty errors
+        let getErrors() =
+            TestCorrelator.GetLogEventsFromCurrentContext()
+            |> Seq.filter (fun event -> event.Level = LogEventLevel.Error)
+
+        SpinWait.SpinUntil((fun () -> Seq.length(getErrors()) > 0),
+                           TimeSpan.FromMilliseconds 1000.0) |> ignore
+        Assert.Empty <| getErrors()
+    )

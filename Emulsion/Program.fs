@@ -19,8 +19,13 @@ let private getConfiguration directory fileName =
             .Build()
     Settings.read config
 
-let private logError = printfn "ERROR: %A"
-let private logInfo = printfn "INFO : %s"
+let private createClient rootLogger category clientFactory  cancellationToken config =
+    let logger = Logging.loggerWithCategory category rootLogger
+    let serviceContext = {
+        RestartCooldown = TimeSpan.FromSeconds(30.0) // TODO[F]: Customize through the config.
+        Logger = logger
+    }
+    clientFactory(serviceContext, cancellationToken, config)
 
 let private startMessageSystem (logger: ILogger) (system: IMessageSystem) receiver =
     Async.StartChild <| async {
@@ -28,7 +33,7 @@ let private startMessageSystem (logger: ILogger) (system: IMessageSystem) receiv
         try
             system.Run receiver
         with
-        | ex -> logger.Error(ex, "Message system error {System}", system)
+        | ex -> logger.Error(ex, "Message system error in {System}", system)
     }
 
 let private startApp config =
@@ -38,14 +43,10 @@ let private startApp config =
             logger.Information "Actor system preparation…"
             use system = ActorSystem.Create("emulsion")
             logger.Information "Clients preparation…"
-            let serviceContext = {
-                RestartCooldown = TimeSpan.FromSeconds(30.0) // TODO[F]: Customize through the config.
-                LogError = logError
-                LogMessage = logInfo
-            }
+
             let! cancellationToken = Async.CancellationToken
-            let xmpp = Xmpp.Client(serviceContext, cancellationToken, config.Xmpp)
-            let telegram = Telegram.Client(serviceContext, cancellationToken, config.Telegram)
+            let xmpp = createClient logger Logging.Xmpp Xmpp.Client cancellationToken config.Xmpp
+            let telegram = createClient logger Logging.Telegram Telegram.Client cancellationToken config.Telegram
             let factories = { xmppFactory = Xmpp.spawn xmpp
                               telegramFactory = Telegram.spawn telegram }
             logger.Information "Core preparation…"
