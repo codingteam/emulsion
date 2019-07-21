@@ -2,12 +2,14 @@ namespace Emulsion.Tests.Actors
 
 open Akka.TestKit.Xunit2
 open Xunit
+open Xunit.Abstractions
 
 open Emulsion
 open Emulsion.Actors
 open Emulsion.MessageSystem
+open Emulsion.Tests
 
-type XmppTest() =
+type XmppTest(testOutput: ITestOutputHelper) =
     inherit TestKit()
 
     [<Fact>]
@@ -19,7 +21,7 @@ type XmppTest() =
                 member __.PutMessage message =
                     sentMessage <- Some message
         }
-        let actor = Xmpp.spawn xmpp this.Sys "xmpp"
+        let actor = Xmpp.spawn (Logging.xunitLogger testOutput) xmpp this.Sys "xmpp"
         let message = OutgoingMessage { author = "@nickname"; text = "message" }
         actor.Tell(message, this.TestActor)
         this.ExpectNoMsg()

@@ -3,51 +3,56 @@ module Emulsion.Xmpp.XmppClient
 open System
 open System.Threading.Tasks
 
+open Serilog
 open SharpXMPP
 open SharpXMPP.XMPP
 
 open Emulsion
 open Emulsion.Settings
 
-let private connectionFailedHandler = XmppConnection.ConnectionFailedHandler(fun s e ->
-    printfn "XMPP Connection Failed: %s" e.Message
+let private connectionFailedHandler (logger: ILogger) = XmppConnection.ConnectionFailedHandler(fun s e ->
+    logger.Error(e.Exception, "XMPP connection failed: {Message}", e.Message)
     ())
 
-let private signedInHandler (settings : XmppSettings) (client : XmppClient) = XmppConnection.SignedInHandler(fun s e ->
-    printfn "Connecting to %s" settings.Room
-    SharpXmppHelper.joinRoom client settings.Room settings.Nickname)
+let private signedInHandler (logger: ILogger) (settings: XmppSettings) (client: XmppClient) =
+    XmppConnection.SignedInHandler(fun s e ->
+        logger.Information("Connecting to {Room} as {Nickname}", settings.Room, settings.Nickname)
+        SharpXmppHelper.joinRoom client settings.Room settings.Nickname
+    )
 
 let private shouldSkipMessage settings message =
     SharpXmppHelper.isOwnMessage (settings.Nickname) message
         || SharpXmppHelper.isHistoricalMessage message
 
-let private messageHandler settings onMessage = XmppConnection.MessageHandler(fun _ element ->
-    printfn "<- %A" element
+let private messageHandler (logger: ILogger) settings onMessage = XmppConnection.MessageHandler(fun _ element ->
+    logger.Verbose("Incoming XMPP message: {Message}", element)
     if not <| shouldSkipMessage settings element then
         onMessage(XmppMessage (SharpXmppHelper.parseMessage element))
 )
 
-let private elementHandler = XmppConnection.ElementHandler(fun s e ->
-    let arrow = if e.IsInput then "<-" else "->"
-    printfn "%s %A" arrow e.Stanza)
+let private elementHandler (logger: ILogger) = XmppConnection.ElementHandler(fun s e ->
+    let direction = if e.IsInput then "incoming" else "outgoing"
+    logger.Verbose("XMPP stanza ({Direction}): {Stanza}", direction, e.Stanza)
+)
 
-let private presenceHandler = XmppConnection.PresenceHandler(fun s e ->
-    printfn "[P]: %A" e)
+let private presenceHandler (logger: ILogger) = XmppConnection.PresenceHandler(fun s e ->
+    logger.Verbose("XMPP presence: {Presence}", e)
+)
 
-let create (settings: XmppSettings) (onMessage: IncomingMessage -> unit): XmppClient =
+let create (logger: ILogger) (settings: XmppSettings) (onMessage: IncomingMessage -> unit): XmppClient =
     let client = new XmppClient(JID(settings.Login), settings.Password)
-    client.add_ConnectionFailed(connectionFailedHandler)
-    client.add_SignedIn(signedInHandler settings client)
-    client.add_Element(elementHandler)
-    client.add_Presence(presenceHandler)
-    client.add_Message(messageHandler settings onMessage)
+    client.add_ConnectionFailed(connectionFailedHandler logger)
+    client.add_SignedIn(signedInHandler logger settings client)
+    client.add_Element(elementHandler logger)
+    client.add_Presence(presenceHandler logger)
+    client.add_Message(messageHandler logger settings onMessage)
     client
 
 type ConnectionFailedError(message: string, innerException: Exception) =
     inherit Exception(message, innerException)
 
-let run (client: XmppClient): Async<unit> =
-    printfn "Bot name: %s" client.Jid.FullJid
+let run (logger: ILogger) (client: XmppClient): Async<unit> =
+    logger.Information("Running XMPP bot: {Jid}", client.Jid.FullJid)
     let connectionFinished = TaskCompletionSource()
     let connectionFailedHandler =
         XmppConnection.ConnectionFailedHandler(

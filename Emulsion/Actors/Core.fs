@@ -17,7 +17,7 @@ type CoreActor(logger: ILogger, factories: ActorFactories) as this =
         factory ActorBase.Context name
 
     override this.PreStart() =
-        logger.Information "Core actor starting…"
+        logger.Information("Core actor starting ({Path})…", this.Self.Path)
         xmpp <- this.spawn factories.xmppFactory "xmpp"
         telegram <- this.spawn factories.telegramFactory "telegram"
 
