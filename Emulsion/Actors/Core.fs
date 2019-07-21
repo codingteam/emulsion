@@ -1,11 +1,12 @@
 module Emulsion.Actors.Core
 
 open Akka.Actor
+open Serilog
 
 open Emulsion
 open Emulsion.Telegram
 
-type CoreActor(factories : ActorFactories) as this =
+type CoreActor(logger: ILogger, factories: ActorFactories) as this =
     inherit ReceiveActor()
 
     do this.Receive<IncomingMessage>(this.OnMessage)
@@ -16,7 +17,7 @@ type CoreActor(factories : ActorFactories) as this =
         factory ActorBase.Context name
 
     override this.PreStart() =
-        printfn "Starting Core actor..."
+        logger.Information "Core actor starting…"
         xmpp <- this.spawn factories.xmppFactory "xmpp"
         telegram <- this.spawn factories.telegramFactory "telegram"
 
@@ -27,7 +28,7 @@ type CoreActor(factories : ActorFactories) as this =
             xmpp.Tell(OutgoingMessage message, this.Self)
         | XmppMessage msg -> telegram.Tell(OutgoingMessage msg, this.Self)
 
-let spawn (factories : ActorFactories) (system : IActorRefFactory) (name : string) : IActorRef =
-    printfn "Spawning Core..."
-    let props = Props.Create<CoreActor>(factories)
+let spawn (logger: ILogger) (factories: ActorFactories) (system: IActorRefFactory) (name: string): IActorRef =
+    logger.Information "Core actor spawning…"
+    let props = Props.Create<CoreActor>(logger, factories)
     system.ActorOf(props, name)

@@ -3,11 +3,13 @@
 open Akka.Actor
 open Akka.TestKit.Xunit2
 open Xunit
+open Xunit.Abstractions
 
 open Emulsion
 open Emulsion.Actors
+open Serilog
 
-type CoreTests() as this =
+type CoreTests(testOutput: ITestOutputHelper) as this =
     inherit TestKit()
 
     let mutable actorsCreated = 0
@@ -22,7 +24,8 @@ type CoreTests() as this =
     let factories = { xmppFactory = testActorFactory
                       telegramFactory = testActorFactory }
 
-    let spawnCore() = Core.spawn factories this.Sys "core"
+    let logger = LoggerConfiguration().WriteTo.TestOutput(testOutput).CreateLogger()
+    let spawnCore() = Core.spawn logger factories this.Sys "core"
 
     [<Fact>]
     member this.``Core actor should spawn successfully``() =
