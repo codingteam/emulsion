@@ -3,6 +3,7 @@ module Emulsion.Tests.MessageSystemTests
 open System
 open System.Threading
 
+open Serilog.Core
 open Xunit
 
 open Emulsion
@@ -17,8 +18,7 @@ let private performTest expectedStage runBody =
     }
     let context = {
         RestartCooldown = TimeSpan.Zero
-        LogError = ignore
-        LogMessage = ignore
+        Logger = Logger.None
     }
 
     try

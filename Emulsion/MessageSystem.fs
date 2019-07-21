@@ -1,5 +1,6 @@
 module Emulsion.MessageSystem
 
+open Serilog
 open System
 open System.Threading
 
@@ -16,8 +17,7 @@ type IMessageSystem =
 
 type ServiceContext = {
     RestartCooldown: TimeSpan
-    LogError: Exception -> unit
-    LogMessage: string -> unit
+    Logger: ILogger
 }
 
 let internal wrapRun (ctx: ServiceContext) (runAsync: Async<unit>) : Async<unit> =
@@ -28,8 +28,9 @@ let internal wrapRun (ctx: ServiceContext) (runAsync: Async<unit>) : Async<unit>
             with
             | :? OperationCanceledException -> return ()
             | ex ->
-                ctx.LogError ex
-                ctx.LogMessage <| sprintf "Waiting for %A to restart" ctx.RestartCooldown
+                ctx.Logger.Error(ex, "Non-terminating message system error")
+                ctx.Logger.Information("Waiting for {RestartCooldown} to restart the message system",
+                                       ctx.RestartCooldown)
                 do! Async.Sleep(int ctx.RestartCooldown.TotalMilliseconds)
     }
 
@@ -40,7 +41,7 @@ let putMessage (messageSystem: IMessageSystem) (message: OutgoingMessage) =
 type MessageSystemBase(ctx: ServiceContext, cancellationToken: CancellationToken) as this =
     let sender = MessageSender.startActivity({
         Send = this.Send
-        LogError = ctx.LogError
+        Logger = ctx.Logger
         RestartCooldown = ctx.RestartCooldown
     }, cancellationToken)
 
