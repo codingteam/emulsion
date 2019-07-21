@@ -2,12 +2,14 @@ namespace Emulsion.Tests.Actors
 
 open Akka.TestKit.Xunit2
 open Xunit
+open Xunit.Abstractions
 
 open Emulsion
 open Emulsion.Actors
 open Emulsion.MessageSystem
+open Emulsion.Tests
 
-type TelegramTest() =
+type TelegramTest(testOutput: ITestOutputHelper) =
     inherit TestKit()
 
     [<Fact>]
@@ -19,7 +21,7 @@ type TelegramTest() =
                 member __.PutMessage message =
                     sentMessage <- Some message
         }
-        let actor = Telegram.spawn telegram this.Sys "telegram"
+        let actor = Telegram.spawn (Logging.xunitLogger testOutput) telegram this.Sys "telegram"
         let msg = OutgoingMessage { author = "x"; text = "message" }
         actor.Tell(msg, this.TestActor)
         this.ExpectNoMsg()

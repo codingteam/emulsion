@@ -19,8 +19,7 @@ let private getConfiguration directory fileName =
             .Build()
     Settings.read config
 
-let private createClient rootLogger category clientFactory  cancellationToken config =
-    let logger = Logging.loggerWithCategory category rootLogger
+let private createClient logger clientFactory cancellationToken config =
     let serviceContext = {
         RestartCooldown = TimeSpan.FromSeconds(30.0) // TODO[F]: Customize through the config.
         Logger = logger
@@ -44,11 +43,14 @@ let private startApp config =
             use system = ActorSystem.Create("emulsion")
             logger.Information "Clients preparation…"
 
+            let xmppLogger = Logging.loggerWithCategory Logging.Xmpp logger
+            let telegramLogger = Logging.loggerWithCategory Logging.Telegram logger
+
             let! cancellationToken = Async.CancellationToken
-            let xmpp = createClient logger Logging.Xmpp Xmpp.Client cancellationToken config.Xmpp
-            let telegram = createClient logger Logging.Telegram Telegram.Client cancellationToken config.Telegram
-            let factories = { xmppFactory = Xmpp.spawn xmpp
-                              telegramFactory = Telegram.spawn telegram }
+            let xmpp = createClient xmppLogger Xmpp.Client cancellationToken config.Xmpp
+            let telegram = createClient telegramLogger Telegram.Client cancellationToken config.Telegram
+            let factories = { xmppFactory = Xmpp.spawn xmppLogger xmpp
+                              telegramFactory = Telegram.spawn telegramLogger telegram }
             logger.Information "Core preparation…"
             let core = Core.spawn logger factories system "core"
             logger.Information "Message systems preparation…"

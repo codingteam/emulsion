@@ -2,12 +2,13 @@
 
 open Akka.Actor
 open Akka.TestKit.Xunit2
+open Serilog
 open Xunit
 open Xunit.Abstractions
 
 open Emulsion
 open Emulsion.Actors
-open Serilog
+open Emulsion.Tests
 
 type CoreTests(testOutput: ITestOutputHelper) as this =
     inherit TestKit()
@@ -24,7 +25,7 @@ type CoreTests(testOutput: ITestOutputHelper) as this =
     let factories = { xmppFactory = testActorFactory
                       telegramFactory = testActorFactory }
 
-    let logger = LoggerConfiguration().WriteTo.TestOutput(testOutput).CreateLogger()
+    let logger = Logging.xunitLogger testOutput
     let spawnCore() = Core.spawn logger factories this.Sys "core"
 
     [<Fact>]

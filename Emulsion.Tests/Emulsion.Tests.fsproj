@@ -7,6 +7,7 @@
     <Compile Include="Settings.fs" />
     <Compile Include="MessageSenderTests.fs" />
     <Compile Include="MessageSystemTests.fs" />
+    <Compile Include="Logging.fs" />
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/Telegram.fs" />
     <Compile Include="Actors/Xmpp.fs" />

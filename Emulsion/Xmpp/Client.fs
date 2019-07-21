@@ -12,10 +12,10 @@ type Client(ctx: ServiceContext, cancellationToken: CancellationToken, settings:
     let client = ref None
 
     override __.RunUntilError receiver = async {
-        use newClient = XmppClient.create settings receiver
+        use newClient = XmppClient.create ctx.Logger settings receiver
         try
             Volatile.Write(client, Some newClient)
-            do! XmppClient.run newClient
+            do! XmppClient.run ctx.Logger newClient
         finally
             Volatile.Write(client, None)
     }
