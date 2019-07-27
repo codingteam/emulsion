@@ -27,7 +27,9 @@ let createRootLogger (settings: LogSettings) =
         config.WriteTo.Logger(fun subConfig ->
             let filtered =
                 match category with
-                | Some c -> subConfig.Filter.ByIncludingOnly(Matching.WithProperty(EventCategoryProperty, c))
+                | Some c ->
+                    let scalar = c.ToString() // required because log event properties are actually converted to strings
+                    subConfig.Filter.ByIncludingOnly(Matching.WithProperty(EventCategoryProperty, scalar))
                 | None -> subConfig.Filter.ByExcluding(Matching.WithProperty EventCategoryProperty)
 
             filtered.WriteTo.RollingFile(JsonFormatter(), filePath)
