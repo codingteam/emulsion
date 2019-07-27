@@ -1,8 +1,9 @@
 module Emulsion.MessageSystem
 
-open Serilog
 open System
 open System.Threading
+
+open Serilog
 
 type IncomingMessageReceiver = IncomingMessage -> unit
 
