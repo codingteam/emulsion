@@ -43,8 +43,8 @@ let private startApp config =
             use system = ActorSystem.Create("emulsion")
             logger.Information "Clients preparation…"
 
-            let xmppLogger = Logging.loggerWithCategory Logging.Xmpp logger
-            let telegramLogger = Logging.loggerWithCategory Logging.Telegram logger
+            let xmppLogger = Logging.xmppLogger logger
+            let telegramLogger = Logging.telegramLogger logger
 
             let! cancellationToken = Async.CancellationToken
             let xmpp = createClient xmppLogger Xmpp.Client cancellationToken config.Xmpp

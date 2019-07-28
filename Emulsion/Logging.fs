@@ -9,17 +9,20 @@ open Serilog.Filters
 open Emulsion.Settings
 open Serilog.Formatting.Json
 
-type EventCategory =
+type private EventCategory =
     Telegram | Xmpp
 
 let private EventCategoryProperty = "EventCategory"
 
-let loggerWithCategory (category: EventCategory) (logger: ILogger) =
+let private loggerWithCategory (category: EventCategory) (logger: ILogger) =
     let enricher =
         { new ILogEventEnricher with
              member __.Enrich(logEvent, propertyFactory) =
                  logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(EventCategoryProperty, category)) }
     logger.ForContext enricher
+
+let telegramLogger: ILogger -> ILogger = loggerWithCategory Telegram
+let xmppLogger: ILogger -> ILogger = loggerWithCategory Xmpp
 
 let createRootLogger (settings: LogSettings) =
     let addFileLogger (category: EventCategory option) fileName (config: LoggerConfiguration) =
