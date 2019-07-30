@@ -17,6 +17,7 @@
     <Compile Include="Xmpp/SharpXmppHelper.fs" />
     <Compile Include="Xmpp/XmppClient.fs" />
     <Compile Include="Xmpp\Client.fs" />
+    <Compile Include="Xmpp\AsyncXmppClient.fs" />
     <Compile Include="Actors/Factories.fs" />
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/Telegram.fs" />
