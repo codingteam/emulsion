@@ -138,28 +138,31 @@ let private processResultWithValue (logger: ILogger) (result: Result<'a, ApiResp
 let private processResult logger (result: Result<'a, ApiResponseError>) =
     processResultWithValue logger result |> ignore
 
-let private updateArrived onMessage (ctx : UpdateContext) =
+let private updateArrived (logger: ILogger) onMessage (ctx: UpdateContext) =
     processCommands ctx [
-        fun (msg, _) -> onMessage (TelegramMessage (MessageConverter.read msg)); true
+        fun (msg, _) ->
+            logger.Information("Incoming Telegram message: {Message}", msg)
+            onMessage (TelegramMessage(MessageConverter.read msg)); true
     ] |> ignore
 
-let internal prepareHtmlMessage { author = author; text = text } : string =
+let internal prepareHtmlMessage { author = author; text = text }: string =
     sprintf "<b>%s</b>\n%s" (Html.escape author) (Html.escape text)
 
 let send (logger: ILogger) (settings: TelegramSettings) (OutgoingMessage content): Async<unit> =
     let sendHtmlMessage groupId text =
         sendMessageBase groupId text (Some ParseMode.HTML) None None None None
 
-    let groupId = Int (int64 settings.GroupId)
+    let groupId = Int(int64 settings.GroupId)
     let message = prepareHtmlMessage content
     async {
         let! result = api settings.Token (sendHtmlMessage groupId message)
         return processResult logger result
     }
 
-let run (settings: TelegramSettings)
+let run (logger: ILogger)
+        (settings: TelegramSettings)
         (cancellationToken: CancellationToken)
-        (onMessage: IncomingMessage -> unit) : unit =
+        (onMessage: IncomingMessage -> unit): unit =
     // TODO[F]: Update Funogram and don't ignore the cancellation token here.
     let config = { defaultConfig with Token = settings.Token }
-    Bot.startBot config (updateArrived onMessage) None
+    Bot.startBot config (updateArrived logger onMessage) None

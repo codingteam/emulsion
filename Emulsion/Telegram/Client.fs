@@ -9,7 +9,7 @@ type Client(ctx: ServiceContext, cancellationToken: CancellationToken, settings:
     inherit MessageSystemBase(ctx, cancellationToken)
 
     override __.RunUntilError receiver =
-        async { Funogram.run settings cancellationToken receiver }
+        async { Funogram.run ctx.Logger settings cancellationToken receiver }
 
     override __.Send message =
         Funogram.send ctx.Logger settings message
