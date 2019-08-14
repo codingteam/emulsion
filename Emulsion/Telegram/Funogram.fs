@@ -1,5 +1,6 @@
 module Emulsion.Telegram.Funogram
 
+open System
 open System.Threading
 
 open Funogram
@@ -8,6 +9,7 @@ open Funogram.Api
 open Funogram.Types
 open Serilog
 
+open System.Text
 open Emulsion
 open Emulsion.Settings
 
@@ -50,11 +52,40 @@ module MessageConverter =
             | Some lastName -> sprintf "%s %s" user.FirstName lastName
             | None -> user.FirstName
 
+    let private getTextLinkEntity = function
+    | { Type = "text_link"; Url = Some url; Offset = o; Length = l }
+        when o >= 0L
+             && l > 0L
+             && o < int64 Int32.MaxValue
+             && l < int64 Int32.MaxValue
+             && o + l < int64 Int32.MaxValue ->
+        Some {| Url = url; Offset = o; Length = l |}
+    | _ -> None
+
+    let private applyEntities entities (text: string) =
+        match entities with
+        | None -> text
+        | Some entities ->
+            let links =
+                entities
+                |> Seq.choose getTextLinkEntity
+                |> Seq.sortBy (fun e -> e.Offset)
+            let result = StringBuilder()
+            let mutable pos = 0
+            for link in links do
+                let linkEndOffset = min text.Length (int32 (link.Offset + link.Length))
+                result
+                    .Append(text.Substring(pos, linkEndOffset - pos))
+                    .AppendFormat(" [{0}]", link.Url)
+                |> ignore
+                pos <- linkEndOffset
+            result.Append(text.Substring(pos, text.Length - pos)).ToString()
+
     let private getMessageBodyText (message: FunogramMessage) =
         let text =
             match message.Text with
             | None -> "[DATA UNRECOGNIZED]"
-            | Some text -> text
+            | Some text -> applyEntities message.Entities text
 
         if Option.isSome message.ForwardFrom
         then sprintf "%s<%s> %s" DefaultQuoteSettings.linePrefix (getUserDisplayName message.ForwardFrom) text

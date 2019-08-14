@@ -1,5 +1,7 @@
 module Emulsion.Tests.Telegram.Client
 
+open System
+
 open Funogram.Types
 open Xunit
 
@@ -34,6 +36,19 @@ let private telegramMessage author text =
 
 let private telegramReplyMessage author text replyTo =
     { main = { author = author; text = text }; replyTo = Some replyTo }
+
+let private createEntity t offset length url = {
+    Type = t
+    Offset = offset
+    Length = length
+    Url = Some url
+    User = None
+}
+
+let private createEntities t offset length url = Some <| seq {
+    yield createEntity t offset length url
+}
+
 
 let private originalUser = createUser (Some "originalUser") "" None
 let private replyingUser = createUser (Some "replyingUser") "" None
@@ -96,6 +111,94 @@ module ReadMessageTests =
             { main = { author = "@replyingUser"; text = "Reply text" }
               replyTo = Some { author = "@originalUser"; text = "Original text" } },
             readMessage replyMessage
+        )
+
+    [<Fact>]
+    let readTextLinkMessage() =
+        let message = { createMessage (Some originalUser) (Some "Original text") with
+                            Entities = createEntities "text_link" 0L 8L "https://example.com" }
+
+        Assert.Equal(
+            telegramMessage "@originalUser" "Original [https://example.com] text",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readMultipleTextLinksMessage() =
+        let message = { createMessage (Some originalUser) (Some "Original text") with
+                            Entities = Some <| upcast [| createEntity "text_link" 0L 8L "https://example.com/1"
+                                                         createEntity "text_link" 9L 4L "https://example.com/2" |] }
+        Assert.Equal(
+            telegramMessage "@originalUser" "Original [https://example.com/1] text [https://example.com/2]",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readInvalidTextLinkMessage() =
+        let message = { createMessage (Some originalUser) (Some "Original text") with
+                            Entities = createEntities "text_link" 0L 800L "https://example.com" }
+        Assert.Equal(
+            telegramMessage "@originalUser" "Original text [https://example.com]",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readNegativeOffsetTextLinkMessage() =
+        let message = { createMessage (Some originalUser) (Some "Original text") with
+                            Entities = createEntities "text_link" -1L 5L "https://example.com" }
+        Assert.Equal(
+            telegramMessage "@originalUser" "Original text",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readZeroLengthTextLinkMessage() =
+        let message = { createMessage (Some originalUser) (Some "Original text") with
+                            Entities = createEntities "text_link" 0L 0L "https://example.com" }
+        Assert.Equal(
+            telegramMessage "@originalUser" "Original text",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readSuperLongLengthTextLinkMessage() =
+        let message = { createMessage (Some originalUser) (Some "Original text") with
+                            Entities = createEntities "text_link" Int64.MaxValue Int64.MaxValue "https://example.com" }
+        Assert.Equal(
+            telegramMessage "@originalUser" "Original text",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readOverlappingTextLinksMessage() =
+        let message = { createMessage (Some originalUser) (Some "Original text") with
+                            Entities = Some <| upcast [| createEntity "text_link" 0L 8L "https://example.com/1"
+                                                         createEntity "text_link" 0L 13L "https://example.com/2" |] }
+        Assert.Equal(
+            telegramMessage "@originalUser" "Original [https://example.com/1] text [https://example.com/2]",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readNonTextLinkMessage() =
+        let message = { createMessage (Some originalUser) (Some "Original text") with
+                            Entities = createEntities "not_link" 0L 0L "https://example.com" }
+        Assert.Equal(
+            telegramMessage "@originalUser" "Original text",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readNoneTextLinkMessage() =
+        let message = { createMessage (Some originalUser) (Some "Original text") with
+                            Entities = Some <| upcast [| { Type = "text_link"
+                                                           Url = None
+                                                           Offset = 0L
+                                                           Length = 5L
+                                                           User = None } |] }
+        Assert.Equal(
+            telegramMessage "@originalUser" "Original text",
+            readMessage message
         )
 
     [<Fact>]
