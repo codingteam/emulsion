@@ -23,6 +23,12 @@ let private createReplyMessage from text replyTo : Funogram.Types.Message =
     { createMessage from text with
         ReplyToMessage = (Some replyTo) }
 
+let private createForwardedMessage from (forwarded: Funogram.Types.Message) =
+    { defaultMessage with
+        From = Some from
+        ForwardFrom = forwarded.From
+        Text = forwarded.Text }
+
 let private telegramMessage author text =
     { main = { author = author; text = text }; replyTo = None }
 
@@ -31,6 +37,7 @@ let private telegramReplyMessage author text replyTo =
 
 let private originalUser = createUser (Some "originalUser") "" None
 let private replyingUser = createUser (Some "replyingUser") "" None
+let private forwardingUser = createUser (Some "forwardingUser") "" None
 
 module ReadMessageTests =
     let readMessage = Funogram.MessageConverter.read
@@ -89,6 +96,16 @@ module ReadMessageTests =
             { main = { author = "@replyingUser"; text = "Reply text" }
               replyTo = Some { author = "@originalUser"; text = "Original text" } },
             readMessage replyMessage
+        )
+
+    [<Fact>]
+    let forward(): unit =
+        let forwardedMessage = createMessage (Some originalUser) (Some "test")
+        let message = createForwardedMessage forwardingUser forwardedMessage
+
+        Assert.Equal(
+            telegramMessage "@forwardingUser" ">> <@originalUser> test",
+            readMessage message
         )
 
 module FlattenMessageTests =

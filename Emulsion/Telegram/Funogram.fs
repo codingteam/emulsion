@@ -40,21 +40,25 @@ module MessageConverter =
         dataRedactedMessage = ""
     }
 
-    let private getAuthorName (message: FunogramMessage) =
-        match message.From with
-        | None -> "[UNKNOWN USER]"
-        | Some user ->
-            match user.Username with
-            | Some username -> sprintf "@%s" username
-            | None ->
-                match user.LastName with
-                | Some lastName -> sprintf "%s %s" user.FirstName lastName
-                | None -> user.FirstName
+    let private getUserDisplayName: User option -> string = function
+    | None -> "[UNKNOWN USER]"
+    | Some user ->
+        match user.Username with
+        | Some username -> sprintf "@%s" username
+        | None ->
+            match user.LastName with
+            | Some lastName -> sprintf "%s %s" user.FirstName lastName
+            | None -> user.FirstName
 
     let private getMessageBodyText (message: FunogramMessage) =
-        match message.Text with
-        | None -> "[DATA UNRECOGNIZED]"
-        | Some text -> text
+        let text =
+            match message.Text with
+            | None -> "[DATA UNRECOGNIZED]"
+            | Some text -> text
+
+        if Option.isSome message.ForwardFrom
+        then sprintf "%s<%s> %s" DefaultQuoteSettings.linePrefix (getUserDisplayName message.ForwardFrom) text
+        else text
 
     let private applyLimits limits text =
         let applyMessageLengthLimit (original: {| text: string; wasLimited: bool |}) =
@@ -114,14 +118,14 @@ module MessageConverter =
         { author = author; text = text }
 
     let internal read (message: FunogramMessage): TelegramMessage =
-        let mainAuthor = getAuthorName message
+        let mainAuthor = getUserDisplayName message.From
         let mainBody = getMessageBodyText message
         let mainMessage = { author = mainAuthor; text = mainBody }
 
         match message.ReplyToMessage with
         | None -> { main = mainMessage; replyTo = None }
         | Some replyTo ->
-            let replyToMessage = { author = getAuthorName replyTo; text = getMessageBodyText replyTo }
+            let replyToMessage = { author = getUserDisplayName replyTo.From; text = getMessageBodyText replyTo }
             { main = mainMessage; replyTo = Some replyToMessage }
 
 let private processResultWithValue (logger: ILogger) (result: Result<'a, ApiResponseError>) =
