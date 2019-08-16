@@ -54,3 +54,18 @@ let ``isHistoricalMessage returns false for an ordinary message``() =
 let ``isHistoricalMessage returns true for a message with delay``() =
     let message = XmppMessageFactory.create(delayDate = "2010-01-01")
     Assert.True(SharpXmppHelper.isHistoricalMessage message)
+
+[<Fact>]
+let ``Message without body is considered as empty``(): unit =
+    let message = XmppMessageFactory.create()
+    Assert.True(SharpXmppHelper.isEmptyMessage message)
+
+[<Fact>]
+let ``Message consisting of whitespace is considered as empty``(): unit =
+    let message = XmppMessageFactory.create(text = "     \t ")
+    Assert.True(SharpXmppHelper.isEmptyMessage message)
+
+[<Fact>]
+let ``Message with text is not considered as empty``(): unit =
+    let message = XmppMessageFactory.create(text = "     t ")
+    Assert.False(SharpXmppHelper.isEmptyMessage message)

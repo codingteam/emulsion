@@ -1,5 +1,6 @@
 module Emulsion.Xmpp.SharpXmppHelper
 
+open System
 open System.Xml.Linq
 
 open SharpXMPP
@@ -60,6 +61,9 @@ let isHistoricalMessage (message : XMPPMessage) : bool =
         message.Elements Delay
         |> Seq.isEmpty
     )
+
+let isEmptyMessage(message: XMPPMessage): bool =
+    String.IsNullOrWhiteSpace message.Text
 
 let parseMessage (message: XMPPMessage): Message =
     let nickname =

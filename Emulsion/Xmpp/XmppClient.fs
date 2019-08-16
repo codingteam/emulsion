@@ -23,6 +23,7 @@ let private signedInHandler (logger: ILogger) (settings: XmppSettings) (client: 
 let private shouldSkipMessage settings message =
     SharpXmppHelper.isOwnMessage (settings.Nickname) message
         || SharpXmppHelper.isHistoricalMessage message
+        || SharpXmppHelper.isEmptyMessage message
 
 let private messageHandler (logger: ILogger) settings onMessage = XmppConnection.MessageHandler(fun _ element ->
     logger.Verbose("Incoming XMPP message: {Message}", element)
