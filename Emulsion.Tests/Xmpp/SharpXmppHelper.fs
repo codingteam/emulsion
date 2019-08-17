@@ -69,3 +69,8 @@ let ``Message consisting of whitespace is considered as empty``(): unit =
 let ``Message with text is not considered as empty``(): unit =
     let message = XmppMessageFactory.create(text = "     t ")
     Assert.False(SharpXmppHelper.isEmptyMessage message)
+
+[<Fact>]
+let ``Message with proper type is a group chat message``(): unit =
+    Assert.True(SharpXmppHelper.isGroupChatMessage(XmppMessageFactory.create(messageType = "groupchat")))
+    Assert.False(SharpXmppHelper.isGroupChatMessage(XmppMessageFactory.create(messageType = "error")))

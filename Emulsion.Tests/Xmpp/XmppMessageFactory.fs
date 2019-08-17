@@ -6,7 +6,7 @@ open SharpXMPP.XMPP.Client.Elements
 open Emulsion.Xmpp.SharpXmppHelper.Elements
 
 type XmppMessageFactory =
-    static member create (?senderJid : string, ?text : string, ?delayDate : string) =
+    static member create(?senderJid: string, ?text: string, ?delayDate: string, ?messageType: string): XMPPMessage =
         let element = XMPPMessage()
         senderJid |> Option.iter (fun from ->
             element.SetAttributeValue(From, from)
@@ -18,6 +18,9 @@ type XmppMessageFactory =
             let delay = XElement(Delay)
             delay.SetAttributeValue(Stamp, date)
             element.Add(delay)
+        )
+        messageType |> Option.iter (fun mt ->
+            element.SetAttributeValue(Type, mt)
         )
 
         element

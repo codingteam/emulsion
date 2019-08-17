@@ -20,14 +20,18 @@ let private signedInHandler (logger: ILogger) (settings: XmppSettings) (client: 
         SharpXmppHelper.joinRoom client settings.Room settings.Nickname
     )
 
-let private shouldSkipMessage settings message =
-    SharpXmppHelper.isOwnMessage (settings.Nickname) message
+let private shouldProcessMessage settings message =
+    let isGroup = SharpXmppHelper.isGroupChatMessage message
+    let shouldSkip = lazy (
+        SharpXmppHelper.isOwnMessage (settings.Nickname) message
         || SharpXmppHelper.isHistoricalMessage message
         || SharpXmppHelper.isEmptyMessage message
+    )
+    isGroup && not shouldSkip.Value
 
 let private messageHandler (logger: ILogger) settings onMessage = XmppConnection.MessageHandler(fun _ element ->
     logger.Verbose("Incoming XMPP message: {Message}", element)
-    if not <| shouldSkipMessage settings element then
+    if shouldProcessMessage settings element then
         onMessage(XmppMessage (SharpXmppHelper.parseMessage element))
 )
 

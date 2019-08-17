@@ -62,6 +62,10 @@ let isHistoricalMessage (message : XMPPMessage) : bool =
         |> Seq.isEmpty
     )
 
+let isGroupChatMessage(message: XMPPMessage): bool =
+    let messageType = getAttributeValue message Type
+    messageType = Some "groupchat"
+
 let isEmptyMessage(message: XMPPMessage): bool =
     String.IsNullOrWhiteSpace message.Text
 
