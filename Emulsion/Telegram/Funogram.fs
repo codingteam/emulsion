@@ -1,6 +1,7 @@
 module Emulsion.Telegram.Funogram
 
 open System
+open System.Text
 open System.Threading
 
 open Funogram
@@ -9,7 +10,6 @@ open Funogram.Api
 open Funogram.Types
 open Serilog
 
-open System.Text
 open Emulsion
 open Emulsion.Settings
 
