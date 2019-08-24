@@ -31,6 +31,19 @@ let private createForwardedMessage from (forwarded: Funogram.Types.Message) =
         ForwardFrom = forwarded.From
         Text = forwarded.Text }
 
+let private createStickerMessage from emoji =
+    { defaultMessage with
+        From = Some from
+        Sticker = Some {
+            FileId = ""
+            Width = 0
+            Height = 0
+            Thumb = None
+            FileSize = None
+            Emoji = emoji
+        }
+    }
+
 let private telegramMessage author text =
     { main = { author = author; text = text }; replyTo = None }
 
@@ -208,6 +221,22 @@ module ReadMessageTests =
 
         Assert.Equal(
             telegramMessage "@forwardingUser" ">> <@originalUser> test",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readUnknownSticker(): unit =
+        let message = createStickerMessage originalUser None
+        Assert.Equal(
+            telegramMessage "@originalUser" "[Sticker UNKNOWN]",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readSticker(): unit =
+        let message = createStickerMessage originalUser (Some "🐙")
+        Assert.Equal(
+            telegramMessage "@originalUser" "[Sticker 🐙]",
             readMessage message
         )
 

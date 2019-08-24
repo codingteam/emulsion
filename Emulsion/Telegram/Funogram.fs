@@ -62,6 +62,9 @@ module MessageConverter =
         Some {| Url = url; Offset = o; Length = l |}
     | _ -> None
 
+    let private getEmoji(sticker: Sticker) =
+        Option.defaultValue "UNKNOWN" sticker.Emoji
+
     let private applyEntities entities (text: string) =
         match entities with
         | None -> text
@@ -84,7 +87,12 @@ module MessageConverter =
     let private getMessageBodyText (message: FunogramMessage) =
         let text =
             match message.Text with
-            | None -> "[DATA UNRECOGNIZED]"
+            | None ->
+                match message.Sticker with
+                | None -> "[DATA UNRECOGNIZED]"
+                | Some sticker ->
+                    let emoji = getEmoji sticker
+                    sprintf "[Sticker %s]" emoji
             | Some text -> applyEntities message.Entities text
 
         if Option.isSome message.ForwardFrom
