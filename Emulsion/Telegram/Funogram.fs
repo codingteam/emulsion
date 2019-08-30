@@ -84,6 +84,18 @@ module MessageConverter =
                 pos <- linkEndOffset
             result.Append(text.Substring(pos, text.Length - pos)).ToString()
 
+    let private getQuotedMessage (quoteSettings: QuoteSettings) author text =
+        let formatWithAuthor author message =
+            sprintf "<%s> %s" author message
+
+        let markAsQuote prefix (text: string) =
+            text.Split("\n")
+            |> Seq.map (fun x -> prefix + x)
+            |> String.concat "\n"
+
+        formatWithAuthor author text
+        |> markAsQuote quoteSettings.linePrefix
+
     let private getMessageBodyText (message: FunogramMessage) =
         let text =
             match message.Text with
@@ -96,7 +108,7 @@ module MessageConverter =
             | Some text -> applyEntities message.Entities text
 
         if Option.isSome message.ForwardFrom
-        then sprintf "%s<%s> %s" DefaultQuoteSettings.linePrefix (getUserDisplayName message.ForwardFrom) text
+        then getQuotedMessage DefaultQuoteSettings (getUserDisplayName message.ForwardFrom) text
         else text
 
     let private applyLimits limits text =
@@ -132,18 +144,12 @@ module MessageConverter =
         else result.text
 
     let private addOriginalMessage quoteSettings originalMessage replyMessageBody =
-        let markAsQuote (text: string) =
-            text.Split("\n")
-            |> Seq.map (fun x -> quoteSettings.linePrefix + x)
-            |> String.concat "\n"
-
         let originalAuthorName = originalMessage.author
         let originalMessageBody =
             originalMessage.text
             |> applyLimits quoteSettings.limits
 
-        (sprintf "<%s> %s" originalAuthorName originalMessageBody
-         |> markAsQuote) + "\n" + replyMessageBody
+        (getQuotedMessage quoteSettings originalAuthorName originalMessageBody) + "\n" + replyMessageBody
 
     let internal flatten (quotedLimits: QuoteSettings) (message: TelegramMessage): Message =
         let author = message.main.author
