@@ -26,7 +26,7 @@ let private testConfigText = @"{
    }
 }"
 
-let testConfiguration = {
+let private testConfiguration = {
     Xmpp = {
         Login = "login"
         Password = "password"

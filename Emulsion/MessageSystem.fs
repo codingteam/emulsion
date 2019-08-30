@@ -58,7 +58,15 @@ type MessageSystemBase(ctx: ServiceContext, cancellationToken: CancellationToken
 
     interface IMessageSystem with
         member ms.Run receiver =
-            Async.RunSynchronously (wrapRun ctx (this.RunUntilError receiver), cancellationToken = cancellationToken)
+            let runner = async {
+                MessageSender.setReadyToAcceptMessages sender true
+                try
+                    do! this.RunUntilError receiver
+                finally
+                    MessageSender.setReadyToAcceptMessages sender false
+            }
+
+            Async.RunSynchronously (wrapRun ctx runner, cancellationToken = cancellationToken)
 
         member __.PutMessage message =
             MessageSender.send sender message

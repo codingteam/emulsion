@@ -8,7 +8,7 @@ open Xunit.Abstractions
 
 open Emulsion
 open Emulsion.Actors
-open Emulsion.Tests
+open Emulsion.Tests.TestUtils
 
 type CoreTests(testOutput: ITestOutputHelper) as this =
     inherit TestKit()

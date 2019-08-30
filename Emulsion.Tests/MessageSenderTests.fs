@@ -11,6 +11,8 @@ open Xunit
 
 open Emulsion
 open Emulsion.MessageSender
+open Emulsion.Tests.TestUtils
+open Emulsion.Tests.TestUtils.Waiter
 
 let private testContext = {
     Send = fun _ -> async { return () }
@@ -21,16 +23,15 @@ let private testContext = {
 [<Fact>]
 let ``Message sender sends the messages sequentially``() =
     use cts = new CancellationTokenSource()
-    let messagesReceived = ResizeArray()
+    let buffer = LockedBuffer()
     let context = {
         testContext with
             Send = fun m -> async {
-                lock messagesReceived (fun () ->
-                    messagesReceived.Add m
-                )
+                buffer.Add m
             }
     }
     let sender = MessageSender.startActivity(context, cts.Token)
+    MessageSender.setReadyToAcceptMessages sender true
 
     let messagesSent = [| 1..100 |] |> Array.map (fun i ->
         OutgoingMessage {
@@ -40,10 +41,10 @@ let ``Message sender sends the messages sequentially``() =
     )
     messagesSent |> Array.iter(MessageSender.send sender)
 
-    SpinWait.SpinUntil((fun () -> messagesReceived.Count = messagesSent.Length), TimeSpan.FromSeconds 30.0)
+    waitForItemCount buffer messagesSent.Length defaultTimeout
     |> Assert.True
 
-    Assert.Equal(messagesSent, messagesReceived)
+    Assert.Equal(messagesSent, buffer.All())
 
 [<Fact>]
 let ``Message sender should be cancellable``() =
@@ -64,7 +65,26 @@ let ``Message sender should be cancellable``() =
             TestCorrelator.GetLogEventsFromCurrentContext()
             |> Seq.filter (fun event -> event.Level = LogEventLevel.Error)
 
-        SpinWait.SpinUntil((fun () -> Seq.length(getErrors()) > 0),
-                           TimeSpan.FromMilliseconds 1000.0) |> ignore
+        SpinWait.SpinUntil((fun () -> Seq.length(getErrors()) > 0), shortTimeout) |> ignore
         Assert.Empty <| getErrors()
     )
+
+let ``Message sender does nothing when the system is not ready to process the messages``() =
+    use cts = new CancellationTokenSource()
+    let buffer = LockedBuffer()
+    let context = {
+        testContext with
+            Send = fun m -> async {
+                buffer.Add m
+            }
+    }
+    let sender = MessageSender.startActivity(context, cts.Token)
+    let msg = OutgoingMessage { author = "author"; text = "xx" }
+
+    MessageSender.setReadyToAcceptMessages sender true
+    MessageSender.send sender msg
+    waitForItemCount buffer 1 defaultTimeout |> Assert.True
+
+    MessageSender.setReadyToAcceptMessages sender false
+    MessageSender.send sender msg
+    waitForItemCount buffer 2 shortTimeout |> Assert.False

@@ -7,7 +7,7 @@ open Xunit.Abstractions
 open Emulsion
 open Emulsion.Actors
 open Emulsion.MessageSystem
-open Emulsion.Tests
+open Emulsion.Tests.TestUtils
 
 type XmppTest(testOutput: ITestOutputHelper) =
     inherit TestKit()

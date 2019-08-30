@@ -4,17 +4,20 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="TestUtils\LockedBuffer.fs" />
+    <Compile Include="TestUtils\Logging.fs" />
+    <Compile Include="TestUtils\Waiter.fs" />
     <Compile Include="Settings.fs" />
     <Compile Include="MessageSenderTests.fs" />
-    <Compile Include="MessageSystemTests.fs" />
-    <Compile Include="Logging.fs" />
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/Telegram.fs" />
     <Compile Include="Actors/Xmpp.fs" />
-    <Compile Include="Xmpp\XmppMessageFactory.fs" />
-    <Compile Include="Xmpp/SharpXmppHelper.fs" />
+    <Compile Include="MessageSystemTests\WrapRunTests.fs" />
+    <Compile Include="MessageSystemTests\MessageSystemBaseTests.fs" />
     <Compile Include="Telegram\Html.fs" />
     <Compile Include="Telegram\FunogramTests.fs" />
+    <Compile Include="Xmpp\XmppMessageFactory.fs" />
+    <Compile Include="Xmpp\SharpXmppHelper.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.TestKit" Version="1.3.12" />
