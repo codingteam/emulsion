@@ -225,6 +225,16 @@ module ReadMessageTests =
         )
 
     [<Fact>]
+    let multilineForward(): unit =
+        let forwardedMessage = createMessage (Some originalUser) (Some "test\ntest")
+        let message = createForwardedMessage forwardingUser forwardedMessage
+
+        Assert.Equal(
+            telegramMessage "@forwardingUser" ">> <@originalUser> test\n>> test",
+            readMessage message
+        )
+
+    [<Fact>]
     let readUnknownSticker(): unit =
         let message = createStickerMessage originalUser None
         Assert.Equal(
