@@ -11,13 +11,17 @@
     <Compile Include="MessageSender.fs" />
     <Compile Include="MessageSystem.fs" />
     <Compile Include="Logging.fs" />
+    <Compile Include="Lifetimes.fs" />
+    <Compile Include="ExceptionUtils.fs" />
     <Compile Include="Telegram\Html.fs" />
     <Compile Include="Telegram\Funogram.fs" />
     <Compile Include="Telegram\Client.fs" />
+    <Compile Include="Xmpp\XmppElements.fs" />
     <Compile Include="Xmpp/SharpXmppHelper.fs" />
     <Compile Include="Xmpp/XmppClient.fs" />
     <Compile Include="Xmpp\Client.fs" />
     <Compile Include="Xmpp\AsyncXmppClient.fs" />
+    <Compile Include="Xmpp\SharpXmppClient.fs" />
     <Compile Include="Actors/Factories.fs" />
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/Telegram.fs" />
