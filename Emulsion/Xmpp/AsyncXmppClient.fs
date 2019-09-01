@@ -1,7 +1,8 @@
 module Emulsion.Xmpp.AsyncXmppClient
 
 open System.Security
-open System.Threading
+
+open Emulsion.Lifetimes
 
 type ServerInfo = {
     Host: string
@@ -10,7 +11,7 @@ type ServerInfo = {
 
 type SignInInfo = {
     Login: string
-    Password: SecureString
+    Password: string
 }
 
 type Jid = string
@@ -21,21 +22,14 @@ type RoomInfo = {
 }
 
 type MessageInfo = {
-    RecipientJid: string
+    RecipientJid: Jid
     Text: string
 }
 
 type MessageDeliveryInfo = Async<unit> // Resolves after the message is guaranteed to be delivered to the recipient.
 
-type Lifetime = CancellationToken // TODO[F]: Determine a proper lifetime?
-
 type IAsyncXmppClient =
-    /// Establish a connection to the server. Returns a connection lifetime that will terminate if the connection
-    /// terminates.
-    abstract member Connect : ServerInfo -> Async<Lifetime>
-
-    /// Sign in with the provided credentials. Returns a session lifetime that will terminate if the session terminates.
-    abstract member SignIn : SignInInfo -> Async<Lifetime>
+    // TODO[F]: Implement the remaining functions in SharpXmppClient
 
     /// Enter the room, returning the in-room lifetime. Will terminate if kicked or left the room.
     abstract member EnterRoom : RoomInfo -> Async<Lifetime>

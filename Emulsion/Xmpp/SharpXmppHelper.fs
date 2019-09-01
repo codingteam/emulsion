@@ -9,16 +9,28 @@ open SharpXMPP.XMPP.Client.MUC.Bookmarks.Elements
 open SharpXMPP.XMPP.Client.Elements
 
 open Emulsion
+open Emulsion.Xmpp.XmppElements
+
+module Namespaces =
+    let MucUser = "http://jabber.org/protocol/muc#user"
+
+module Attributes =
+    let Code = XName.Get "code"
+    let From = XName.Get "from"
+    let Jid = XName.Get "jid"
+    let Stamp = XName.Get "stamp"
+    let To = XName.Get "to"
+    let Type = XName.Get "type"
+
+open Attributes
 
 module Elements =
     let Body = XName.Get("body", Namespaces.JabberClient)
     let Delay = XName.Get("delay", "urn:xmpp:delay")
-    let From = XName.Get "from"
-    let Jid = XName.Get "jid"
+    let Error = XName.Get "error"
     let Nick = XName.Get("nick", Namespaces.StorageBookmarks)
-    let Stamp = XName.Get "stamp"
-    let To = XName.Get "to"
-    let Type = XName.Get "type"
+    let Status = XName.Get "status"
+    let X = XName.Get("x", Namespaces.MucUser)
 
 open Elements
 
@@ -75,3 +87,19 @@ let parseMessage (message: XMPPMessage): Message =
         |> Option.map getResource
         |> Option.defaultValue "[UNKNOWN USER]"
     { author = nickname; text = message.Text }
+
+let parsePresence(presence: XMPPPresence): Presence =
+    let from = getAttributeValue presence From |> Option.defaultValue ""
+    let presenceType = getAttributeValue presence Type |> Option.defaultValue ""
+    let states =
+        presence.Element X
+        |> Option.ofObj
+        |> Option.map (fun x ->
+            x.Elements(Status)
+            |> Seq.choose (fun s -> getAttributeValue s Code)
+            |> Seq.map int
+        )
+        |> Option.map Seq.toArray
+        |> Option.defaultWith(fun () -> Array.empty)
+    let error = presence.Element Error |> Option.ofObj
+    { From = from; Type = presenceType; States = states; Error = error }

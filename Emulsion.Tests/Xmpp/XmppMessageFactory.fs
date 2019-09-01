@@ -3,6 +3,7 @@ namespace Emulsion.Tests.Xmpp
 open System.Xml.Linq
 open SharpXMPP.XMPP.Client.Elements
 
+open Emulsion.Xmpp.SharpXmppHelper.Attributes
 open Emulsion.Xmpp.SharpXmppHelper.Elements
 
 type XmppMessageFactory =
