@@ -19,7 +19,7 @@ and Lifetime(token: CancellationToken) =
         token.Register action |> ignore
 
     /// Schedules a termination action, and returns an IDisposable. Whenever this instance is disposed, the action will
-    /// be removed from scheduled on cancellation.
+    /// be removed from the list of actions scheduled on the lifetime termination.
     member __.OnTerminationRemovable(action: Action): IDisposable =
         upcast token.Register action
 
