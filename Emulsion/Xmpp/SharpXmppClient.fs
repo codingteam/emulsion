@@ -8,6 +8,7 @@ open SharpXMPP.XMPP
 
 open Emulsion
 open Emulsion.Lifetimes
+open Emulsion.Xmpp
 open Emulsion.Xmpp.AsyncXmppClient
 open SharpXMPP.XMPP.Client.Elements
 
@@ -53,6 +54,12 @@ let private extractException (roomInfo: RoomInfo) (presence: XMPPPresence) =
         |> Option.map (fun e -> Exception(sprintf "Error: %A" e))
     else None
 
+let private addMessageHandler (lifetime: Lifetime) (client: XmppClient) handler =
+    let handlerDelegate = XmppConnection.MessageHandler handler
+    client.add_Message handlerDelegate
+    lifetime.OnTermination(fun () -> client.remove_Message handlerDelegate)
+
+/// Enter the room, returning the in-room lifetime. Will terminate if kicked or left the room.
 let enterRoom (client: XmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): Async<Lifetime> = async {
     use connectionLifetimeDefinition = lifetime.CreateNested()
     let connectionLifetime = connectionLifetimeDefinition.Lifetime
@@ -92,3 +99,28 @@ let enterRoom (client: XmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): As
         roomLifetimeDefinition.Terminate()
         return ExceptionUtils.reraise ex
 }
+
+let private hasMessageId messageId message =
+    SharpXmppHelper.getMessageId message = Some messageId
+
+let private awaitMessageReceival (lifetime: Lifetime) client messageId = async {
+    use messageLifetimeDefinition = lifetime.CreateNested()
+    let messageLifetime = messageLifetimeDefinition.Lifetime
+    let messageReceivedTask = nestedTaskCompletionSource messageLifetime
+    addMessageHandler lifetime client (fun _ message ->
+        if hasMessageId messageId message then
+            messageReceivedTask.SetResult()
+    )
+
+    do! Async.AwaitTask messageReceivedTask.Task
+}
+
+/// Sends the message to the room. Returns an object that allows to track the message receival.
+let sendRoomMessage (lifetime: Lifetime) (client: XmppClient) (messageInfo: MessageInfo): Async<MessageDeliveryInfo> =
+    async {
+        let messageId = Guid.NewGuid().ToString() // TODO[F]: Move to a new function
+        let message = SharpXmppHelper.message (Some messageId) messageInfo.RecipientJid messageInfo.Text
+        let! result = Async.StartChild <| awaitMessageReceival lifetime client messageId
+        client.Send message
+        return result
+    }

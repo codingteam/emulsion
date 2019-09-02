@@ -79,5 +79,5 @@ let run (logger: ILogger) (client: XmppClient): Async<unit> =
 
 let send (settings: XmppSettings) (client: XmppClient) (message: Message): unit =
     let text = sprintf "<%s> %s" message.author message.text
-    SharpXmppHelper.message settings.Room text
+    SharpXmppHelper.message None settings.Room text
     |> client.Send

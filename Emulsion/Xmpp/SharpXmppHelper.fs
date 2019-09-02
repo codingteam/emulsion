@@ -17,6 +17,7 @@ module Namespaces =
 module Attributes =
     let Code = XName.Get "code"
     let From = XName.Get "from"
+    let Id = XName.Get "id"
     let Jid = XName.Get "jid"
     let Stamp = XName.Get "stamp"
     let To = XName.Get "to"
@@ -45,8 +46,10 @@ let joinRoom (client: XmppClient) (roomJid: string) (nickname: string): unit =
     let room = bookmark roomJid nickname
     client.BookmarkManager.Join(room)
 
-let message (toAddr : string) (text : string) =
+let message (id: string option) (toAddr: string) (text: string): XMPPMessage =
+    // TODO[F]: Make id a mandatory parameter?
     let m = XMPPMessage()
+    id |> Option.iter (fun id -> m.SetAttributeValue(Id, id))
     m.SetAttributeValue(Type, "groupchat")
     m.SetAttributeValue(To, toAddr)
     let body = XElement(Body)
@@ -80,6 +83,9 @@ let isGroupChatMessage(message: XMPPMessage): bool =
 
 let isEmptyMessage(message: XMPPMessage): bool =
     String.IsNullOrWhiteSpace message.Text
+
+let getMessageId(message: XMPPMessage): string option =
+    getAttributeValue message Id
 
 let parseMessage (message: XMPPMessage): Message =
     let nickname =
