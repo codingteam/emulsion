@@ -31,12 +31,6 @@ type MessageDeliveryInfo = Async<unit> // Resolves after the message is guarante
 type IAsyncXmppClient =
     // TODO[F]: Implement the remaining functions in SharpXmppClient
 
-    /// Enter the room, returning the in-room lifetime. Will terminate if kicked or left the room.
-    abstract member EnterRoom : RoomInfo -> Async<Lifetime>
-
-    /// Sends the message to the room.
-    abstract member SendMessage : MessageInfo -> Async<MessageDeliveryInfo>
-
     /// Waits for the message to be delivered.
     abstract member AwaitMessageDelivery : MessageDeliveryInfo -> Async<unit>
 
