@@ -10,6 +10,7 @@ open SharpXMPP.XMPP
 open Emulsion
 open Emulsion.Settings
 
+// TODO[F]: This client should be removed
 let private connectionFailedHandler (logger: ILogger) = XmppConnection.ConnectionFailedHandler(fun s e ->
     logger.Error(e.Exception, "XMPP connection failed: {Message}", e.Message)
     ())

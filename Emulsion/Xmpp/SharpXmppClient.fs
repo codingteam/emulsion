@@ -1,3 +1,4 @@
+// TODO[F]: Add tests for this module
 module Emulsion.Xmpp.SharpXmppClient
 
 open System
@@ -9,13 +10,41 @@ open SharpXMPP.XMPP
 open Emulsion
 open Emulsion.Lifetimes
 open Emulsion.Xmpp
-open Emulsion.Xmpp.AsyncXmppClient
 open SharpXMPP.XMPP.Client.Elements
+
+type ServerInfo = {
+    Host: string
+    Port: uint16
+}
+
+type SignInInfo = {
+    Login: string
+    Password: string
+}
+
+type Jid = string
+
+type RoomInfo = {
+    RoomJid: Jid
+    Nickname: string
+}
+
+type MessageInfo = {
+    RecipientJid: Jid
+    Text: string
+}
+
+type MessageDeliveryInfo = {
+    MessageId: string
+
+    /// Resolves after the message is guaranteed to be delivered to the recipient.
+    Delivery: Async<unit>
+}
 
 /// Establish a connection to the server and log in. Returns a connection lifetime that will terminate if the connection
 /// terminates.
 let signIn (logger: ILogger) (signInInfo: SignInInfo): Async<XmppClient * Lifetime> = async {
-    let client = new XmppClient(JID(signInInfo.Login), signInInfo.Password)
+    let client = new XmppClient(JID(signInInfo.Login), signInInfo.Password) // TODO[F]: Add the logs back
     let connectionLifetime = new LifetimeDefinition()
     client.add_ConnectionFailed <| XmppConnection.ConnectionFailedHandler(
         fun _ error ->
@@ -120,7 +149,14 @@ let sendRoomMessage (lifetime: Lifetime) (client: XmppClient) (messageInfo: Mess
     async {
         let messageId = Guid.NewGuid().ToString() // TODO[F]: Move to a new function
         let message = SharpXmppHelper.message (Some messageId) messageInfo.RecipientJid messageInfo.Text
-        let! result = Async.StartChild <| awaitMessageReceival lifetime client messageId
+        let! delivery = Async.StartChild <| awaitMessageReceival lifetime client messageId
         client.Send message
-        return result
+        return {
+            MessageId = messageId
+            Delivery = delivery
+        }
     }
+
+/// Waits for the message to be delivered.
+let awaitMessageDelivery (deliveryInfo: MessageDeliveryInfo): Async<unit> =
+    deliveryInfo.Delivery
