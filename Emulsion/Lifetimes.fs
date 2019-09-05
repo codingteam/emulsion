@@ -1,34 +1,17 @@
 module Emulsion.Lifetimes
 
-open System
-open System.Threading
 open System.Threading.Tasks
 
-// TODO[F]: Replace with JetBrains.Lifetimes package
-type LifetimeDefinition(cts: CancellationTokenSource) =
-    new() = new LifetimeDefinition(new CancellationTokenSource())
-    member __.Lifetime: Lifetime = Lifetime(cts.Token)
-    member __.Terminate(): unit = cts.Cancel()
-    interface IDisposable with
-        member __.Dispose() = cts.Dispose()
-and Lifetime(token: CancellationToken) =
-    member __.Token: CancellationToken = token
-    member __.CreateNested(): LifetimeDefinition =
-        let cts = CancellationTokenSource.CreateLinkedTokenSource token
-        new LifetimeDefinition(cts)
-    member __.OnTermination(action: Action): unit =
-        token.Register action |> ignore
+open JetBrains.Lifetimes
 
-    /// Schedules a termination action, and returns an IDisposable. Whenever this instance is disposed, the action will
-    /// be removed from the list of actions scheduled on the lifetime termination.
-    member __.OnTerminationRemovable(action: Action): IDisposable =
-        upcast token.Register action
-
+/// Creates a task completion source that will be canceled if lifetime terminates before it is completed successfully.
 let nestedTaskCompletionSource<'T>(lifetime: Lifetime): TaskCompletionSource<'T> =
     let tcs = new TaskCompletionSource<'T>()
 
-    // As an optimization, we'll remove the action after the task has been completed to clean up the memory:
-    let action = lifetime.OnTerminationRemovable(fun () -> tcs.TrySetCanceled() |> ignore)
+    // Register a cancellation action, and remove the action when the task is completed (to not store the unnecessary
+    // action after we already know it won't cancel the task).
+    let cancellationToken = lifetime.ToCancellationToken()
+    let action = cancellationToken.Register(fun () -> tcs.TrySetCanceled() |> ignore)
     tcs.Task.ContinueWith(fun (t: Task<'T>) -> action.Dispose()) |> ignore
 
     tcs
