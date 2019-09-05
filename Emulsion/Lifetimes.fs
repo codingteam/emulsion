@@ -4,6 +4,7 @@ open System
 open System.Threading
 open System.Threading.Tasks
 
+// TODO[F]: Replace with JetBrains.Lifetimes package
 type LifetimeDefinition(cts: CancellationTokenSource) =
     new() = new LifetimeDefinition(new CancellationTokenSource())
     member __.Lifetime: Lifetime = Lifetime(cts.Token)
