@@ -3,6 +3,7 @@ module Emulsion.Xmpp.SharpXmppClient
 
 open System
 
+open JetBrains.Lifetimes
 open Serilog
 open SharpXMPP
 open SharpXMPP.XMPP
@@ -63,7 +64,7 @@ let signIn (logger: ILogger) (signInInfo: SignInInfo): Async<XmppClient * Lifeti
 let private addPresenceHandler (lifetime: Lifetime) (client: XmppClient) handler =
     let handlerDelegate = XmppConnection.PresenceHandler(fun _ p -> handler p)
     client.add_Presence handlerDelegate
-    lifetime.OnTermination (fun () -> client.remove_Presence handlerDelegate)
+    lifetime.OnTermination (fun () -> client.remove_Presence handlerDelegate) |> ignore
 
 let private isSelfPresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
     let presence = SharpXmppHelper.parsePresence presence
@@ -86,7 +87,7 @@ let private extractException (roomInfo: RoomInfo) (presence: XMPPPresence) =
 let private addMessageHandler (lifetime: Lifetime) (client: XmppClient) handler =
     let handlerDelegate = XmppConnection.MessageHandler handler
     client.add_Message handlerDelegate
-    lifetime.OnTermination(fun () -> client.remove_Message handlerDelegate)
+    lifetime.OnTermination(fun () -> client.remove_Message handlerDelegate) |> ignore
 
 /// Enter the room, returning the in-room lifetime. Will terminate if kicked or left the room.
 let enterRoom (client: XmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): Async<Lifetime> = async {
