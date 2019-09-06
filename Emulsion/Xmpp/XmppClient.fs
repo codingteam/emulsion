@@ -3,6 +3,7 @@ module Emulsion.Xmpp.XmppClient
 open System
 open System.Threading.Tasks
 
+open JetBrains.Lifetimes
 open Serilog
 open SharpXMPP
 open SharpXMPP.XMPP
@@ -10,7 +11,13 @@ open SharpXMPP.XMPP
 open Emulsion
 open Emulsion.Settings
 
+// TODO[F]: Create an XmppClient-based implementation of this interface
+type IXmppClient =
+    abstract member Connect: unit -> Async<unit>
+    abstract member AddConnectionFailedHandler: Lifetime -> (ConnFailedArgs -> unit) -> unit
+
 // TODO[F]: This client should be removed
+// TODO[F]: But preserve the logging routines; they're good
 let private connectionFailedHandler (logger: ILogger) = XmppConnection.ConnectionFailedHandler(fun s e ->
     logger.Error(e.Exception, "XMPP connection failed: {Message}", e.Message)
     ())

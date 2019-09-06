@@ -1,4 +1,3 @@
-// TODO[F]: Add tests for this module
 module Emulsion.Xmpp.SharpXmppClient
 
 open System
@@ -6,22 +5,12 @@ open System
 open JetBrains.Lifetimes
 open Serilog
 open SharpXMPP
-open SharpXMPP.XMPP
+open SharpXMPP.XMPP.Client.Elements
 
 open Emulsion
 open Emulsion.Lifetimes
 open Emulsion.Xmpp
-open SharpXMPP.XMPP.Client.Elements
-
-type ServerInfo = {
-    Host: string
-    Port: uint16
-}
-
-type SignInInfo = {
-    Login: string
-    Password: string
-}
+open Emulsion.Xmpp.XmppClient
 
 type Jid = string
 
@@ -44,21 +33,14 @@ type MessageDeliveryInfo = {
 
 /// Establish a connection to the server and log in. Returns a connection lifetime that will terminate if the connection
 /// terminates.
-let signIn (logger: ILogger) (signInInfo: SignInInfo): Async<XmppClient * Lifetime> = async {
-    let client = new XmppClient(JID(signInInfo.Login), signInInfo.Password) // TODO[F]: Add the logs back
+let connect (logger: ILogger) (client: IXmppClient): Async<Lifetime> = async {
     let connectionLifetime = new LifetimeDefinition()
-    client.add_ConnectionFailed <| XmppConnection.ConnectionFailedHandler(
-        fun _ error ->
-            logger.Error(error.Exception, "Connection failed: {Message}", error.Message)
-            connectionLifetime.Terminate()
-    )
-    let! cancellationToken = Async.CancellationToken
-    use _ = cancellationToken.Register(fun () ->
-        logger.Information("Closing the connection due to external cancellation")
-        client.Close()
-    )
-    do! Async.AwaitTask(client.ConnectAsync cancellationToken) // TODO[F]: Check if it will call the ConnectionFailed handler on cancellation
-    return client, connectionLifetime.Lifetime
+    client.AddConnectionFailedHandler connectionLifetime.Lifetime <| fun error ->
+        logger.Error(error.Exception, "Connection failed: {Message}", error.Message)
+        connectionLifetime.Terminate()
+
+    do! client.Connect()
+    return connectionLifetime.Lifetime
 }
 
 let private addPresenceHandler (lifetime: Lifetime) (client: XmppClient) handler =
@@ -90,6 +72,7 @@ let private addMessageHandler (lifetime: Lifetime) (client: XmppClient) handler 
     lifetime.OnTermination(fun () -> client.remove_Message handlerDelegate) |> ignore
 
 /// Enter the room, returning the in-room lifetime. Will terminate if kicked or left the room.
+/// TODO[F]: Write tests for this function.
 let enterRoom (client: XmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): Async<Lifetime> = async {
     use connectionLifetimeDefinition = lifetime.CreateNested()
     let connectionLifetime = connectionLifetimeDefinition.Lifetime
@@ -146,6 +129,7 @@ let private awaitMessageReceival (lifetime: Lifetime) client messageId = async {
 }
 
 /// Sends the message to the room. Returns an object that allows to track the message receival.
+/// TODO[F]: Write tests for this function.
 let sendRoomMessage (lifetime: Lifetime) (client: XmppClient) (messageInfo: MessageInfo): Async<MessageDeliveryInfo> =
     async {
         let messageId = Guid.NewGuid().ToString() // TODO[F]: Move to a new function
@@ -159,5 +143,6 @@ let sendRoomMessage (lifetime: Lifetime) (client: XmppClient) (messageInfo: Mess
     }
 
 /// Waits for the message to be delivered.
+/// TODO[F]: Write tests for this function.
 let awaitMessageDelivery (deliveryInfo: MessageDeliveryInfo): Async<unit> =
     deliveryInfo.Delivery

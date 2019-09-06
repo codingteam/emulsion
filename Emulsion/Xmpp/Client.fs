@@ -6,6 +6,7 @@ open Emulsion
 open Emulsion.MessageSystem
 open Emulsion.Settings
 
+// TODO[F]: Rename to an XmppMessageSystem?
 type Client(ctx: ServiceContext, cancellationToken: CancellationToken, settings: XmppSettings) =
     inherit MessageSystemBase(ctx, cancellationToken)
 
