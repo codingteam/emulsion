@@ -96,7 +96,7 @@ let parseMessage (message: XMPPMessage): Message =
 
 let parsePresence(presence: XMPPPresence): Presence =
     let from = getAttributeValue presence From |> Option.defaultValue ""
-    let presenceType = getAttributeValue presence Type |> Option.defaultValue ""
+    let presenceType = getAttributeValue presence Type
     let states =
         presence.Element X
         |> Option.ofObj

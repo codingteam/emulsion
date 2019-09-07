@@ -10,11 +10,14 @@ open SharpXMPP.XMPP
 
 open Emulsion
 open Emulsion.Settings
+open SharpXMPP.XMPP.Client.Elements
 
 // TODO[F]: Create an XmppClient-based implementation of this interface
 type IXmppClient =
     abstract member Connect: unit -> Async<unit>
     abstract member AddConnectionFailedHandler: Lifetime -> (ConnFailedArgs -> unit) -> unit
+    abstract member AddPresenceHandler: Lifetime -> (XMPPPresence -> unit) -> unit
+    abstract member JoinMultiUserChat: roomJid: JID -> nickname: string -> unit
 
 // TODO[F]: This client should be removed
 // TODO[F]: But preserve the logging routines; they're good

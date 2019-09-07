@@ -1,14 +1,56 @@
 namespace Emulsion.Tests.Xmpp
 
+open System
+
+open JetBrains.Lifetimes
 open SharpXMPP
+open SharpXMPP.XMPP
+open SharpXMPP.XMPP.Client.Elements
 open Xunit
 open Xunit.Abstractions
 
+open System.Xml.Linq
 open Emulsion.Tests.TestUtils
 open Emulsion.Xmpp
+open Emulsion.Xmpp.SharpXmppClient
+open Emulsion.Xmpp.SharpXmppHelper.Attributes
+open Emulsion.Xmpp.SharpXmppHelper.Elements
 
 type SharpXmppClientTests(testOutput: ITestOutputHelper) =
     let logger = Logging.xunitLogger testOutput
+
+    let createPresenceFor (roomJid: JID) nickname =
+        let presence = XMPPPresence()
+        let participantJid = JID(roomJid.FullJid)
+        participantJid.Resource <- nickname
+        presence.SetAttributeValue(From, participantJid.FullJid)
+        presence
+
+    let createSelfPresence roomJid nickname =
+        let presence = createPresenceFor roomJid nickname
+        let x = XElement X
+        let status = XElement Status
+        status.SetAttributeValue(Code, "110")
+        x.Add status
+        presence.Add x
+        presence
+
+    let createErrorPresence roomJid nickname errorXml =
+        let presence = createPresenceFor roomJid nickname
+        presence.SetAttributeValue(Type, "error")
+        let error = XElement Error
+        let errorChild = XElement.Parse errorXml
+        error.Add errorChild
+        presence.Add error
+        presence
+
+    let createLeavePresence roomJid nickname =
+        let presence = createSelfPresence roomJid nickname
+        presence.SetAttributeValue(Type, "unavailable")
+        presence
+
+    let sendPresence presence handlers =
+        Seq.iter (fun h -> h presence) handlers
 
     [<Fact>]
     member __.``connect function calls the Connect method of the client passed``(): unit =
@@ -26,3 +68,72 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
             Assert.True lt.IsAlive
             callback(ConnFailedArgs())
             Assert.False lt.IsAlive
+
+    [<Fact>]
+    member __.``enter function calls JoinMultiUserChat``(): unit =
+        let mutable called = false
+        let mutable presenceHandlers = ResizeArray()
+        let client =
+            XmppClientFactory.create(
+                addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
+                joinMultiUserChat = fun roomJid nickname ->
+                    called <- true
+                    Seq.iter (fun h -> h (createSelfPresence roomJid nickname)) presenceHandlers
+            )
+        let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
+        Lifetime.Using(fun lt ->
+            Async.RunSynchronously <| SharpXmppClient.enterRoom client lt roomInfo |> ignore
+            Assert.True called
+        )
+
+    [<Fact>]
+    member __.``enter throws an exception in case of an error presence``(): unit =
+        let mutable presenceHandlers = ResizeArray()
+        let client =
+            XmppClientFactory.create(
+                addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
+                joinMultiUserChat = fun roomJid nickname ->
+                    sendPresence (createErrorPresence roomJid nickname "<test />") presenceHandlers
+            )
+        let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
+        Lifetime.Using(fun lt ->
+            let ae = Assert.Throws<AggregateException>(fun () ->
+                Async.RunSynchronously <| SharpXmppClient.enterRoom client lt roomInfo |> ignore
+            )
+            let ex = Seq.exactlyOne ae.InnerExceptions
+            Assert.Contains("<test />", ex.Message)
+        )
+
+    [<Fact>]
+    member __.``Lifetime returned from enter terminates by a room leave presence``(): unit =
+        let mutable presenceHandlers = ResizeArray()
+        let client =
+            XmppClientFactory.create(
+                addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
+                joinMultiUserChat = fun roomJid nickname ->
+                    sendPresence (createSelfPresence roomJid nickname) presenceHandlers
+            )
+        let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
+        Lifetime.Using(fun lt ->
+            let roomLt = Async.RunSynchronously <| SharpXmppClient.enterRoom client lt roomInfo
+            Assert.True roomLt.IsAlive
+            sendPresence (createLeavePresence roomInfo.RoomJid roomInfo.Nickname) presenceHandlers
+            Assert.False roomLt.IsAlive
+        )
+
+    [<Fact>]
+    member __.``Lifetime returned from enter terminates by an external lifetime termination``(): unit =
+        let mutable presenceHandlers = ResizeArray()
+        let client =
+            XmppClientFactory.create(
+                addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
+                joinMultiUserChat = fun roomJid nickname ->
+                    sendPresence (createSelfPresence roomJid nickname) presenceHandlers
+            )
+        let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
+        use ld = Lifetime.Define()
+        let lt = ld.Lifetime
+        let roomLt = Async.RunSynchronously <| SharpXmppClient.enterRoom client lt roomInfo
+        Assert.True roomLt.IsAlive
+        ld.Terminate()
+        Assert.False roomLt.IsAlive
