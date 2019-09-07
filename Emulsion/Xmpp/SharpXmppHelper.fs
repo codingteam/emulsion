@@ -87,6 +87,9 @@ let isEmptyMessage(message: XMPPMessage): bool =
 let getMessageId(message: XMPPMessage): string option =
     getAttributeValue message Id
 
+let getMessageError(message: XMPPMessage): XElement option =
+    message.Element Error |> Option.ofObj
+
 let parseMessage (message: XMPPMessage): Message =
     let nickname =
         getAttributeValue message From
