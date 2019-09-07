@@ -15,3 +15,8 @@ let nestedTaskCompletionSource<'T>(lifetime: Lifetime): TaskCompletionSource<'T>
     tcs.Task.ContinueWith(fun (t: Task<'T>) -> action.Dispose()) |> ignore
 
     tcs
+
+let awaitTermination(lifetime: Lifetime): Async<unit> =
+    let tcs = TaskCompletionSource()
+    lifetime.OnTermination(fun () -> tcs.SetResult()) |> ignore
+    Async.AwaitTask tcs.Task

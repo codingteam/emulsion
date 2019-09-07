@@ -20,6 +20,8 @@ type XmppClientFactory =
             member __.JoinMultiUserChat roomJid nickname = joinMultiUserChat roomJid nickname
             member __.Send m = send m
             member __.AddConnectionFailedHandler lt handler = addConnectionFailedHandler lt handler
+            member __.AddSignedInHandler _ _ = ()
+            member __.AddElementHandler _ _ = ()
             member __.AddPresenceHandler lt handler = addPresenceHandler lt handler
             member __.AddMessageHandler lt handler = addMessageHandler lt handler
         }

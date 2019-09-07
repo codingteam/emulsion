@@ -10,6 +10,7 @@ open Serilog
 open Emulsion.Actors
 open Emulsion.MessageSystem
 open Emulsion.Settings
+open Emulsion.Xmpp
 
 let private getConfiguration directory fileName =
     let config =
@@ -47,7 +48,7 @@ let private startApp config =
             let telegramLogger = Logging.telegramLogger logger
 
             let! cancellationToken = Async.CancellationToken
-            let xmpp = createClient xmppLogger Xmpp.Client cancellationToken config.Xmpp
+            let xmpp = createClient xmppLogger XmppMessageSystem cancellationToken config.Xmpp
             let telegram = createClient telegramLogger Telegram.Client cancellationToken config.Telegram
             let factories = { xmppFactory = Xmpp.spawn xmppLogger xmpp
                               telegramFactory = Telegram.spawn telegramLogger telegram }

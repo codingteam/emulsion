@@ -19,7 +19,7 @@
     <Compile Include="Xmpp\XmppClientFactory.fs" />
     <Compile Include="Xmpp\XmppMessageFactory.fs" />
     <Compile Include="Xmpp\SharpXmppHelper.fs" />
-    <Compile Include="Xmpp\SharpXmppClientTests.fs" />
+    <Compile Include="Xmpp\XmppClientTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.TestKit" Version="1.3.12" />

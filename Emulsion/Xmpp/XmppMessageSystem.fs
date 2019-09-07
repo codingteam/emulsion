@@ -5,18 +5,19 @@ open System.Threading
 open Emulsion
 open Emulsion.MessageSystem
 open Emulsion.Settings
+open Emulsion.Xmpp.XmppClient
 
-// TODO[F]: Rename to an XmppMessageSystem?
-type Client(ctx: ServiceContext, cancellationToken: CancellationToken, settings: XmppSettings) =
+type XmppMessageSystem(ctx: ServiceContext, cancellationToken: CancellationToken, settings: XmppSettings) =
     inherit MessageSystemBase(ctx, cancellationToken)
 
     let client = ref None
 
     override __.RunUntilError receiver = async {
-        use newClient = XmppClient.create ctx.Logger settings receiver
+        use sharpXmpp = SharpXmppClient.create settings
+        let newClient = SharpXmppClient.wrap sharpXmpp |> EmulsionXmpp.initializeLogging ctx.Logger
         try
             Volatile.Write(client, Some newClient)
-            do! XmppClient.run ctx.Logger newClient
+            do! EmulsionXmpp.run settings ctx.Logger newClient receiver
         finally
             Volatile.Write(client, None)
     }
@@ -25,5 +26,5 @@ type Client(ctx: ServiceContext, cancellationToken: CancellationToken, settings:
          match Volatile.Read(client) with
          | None -> failwith "Client is offline"
          | Some client ->
-            return XmppClient.send settings client message
+            return EmulsionXmpp.send settings client message
     }
