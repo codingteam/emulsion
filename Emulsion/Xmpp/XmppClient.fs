@@ -12,7 +12,6 @@ open Emulsion
 open Emulsion.Settings
 open SharpXMPP.XMPP.Client.Elements
 
-// TODO[F]: Create an XmppClient-based implementation of this interface
 type IXmppClient =
     abstract member Connect: unit -> Async<unit>
     abstract member JoinMultiUserChat: roomJid: JID -> nickname: string -> unit
@@ -20,6 +19,27 @@ type IXmppClient =
     abstract member AddConnectionFailedHandler: Lifetime -> (ConnFailedArgs -> unit) -> unit
     abstract member AddPresenceHandler: Lifetime -> (XMPPPresence -> unit) -> unit
     abstract member AddMessageHandler: Lifetime -> (XMPPMessage -> unit) -> unit
+
+type SharpXmppClient(client: XmppClient) =
+    interface IXmppClient with
+        member ___.Connect() = async {
+            let! ct = Async.CancellationToken
+            return! Async.AwaitTask(client.ConnectAsync ct)
+        }
+        member __.JoinMultiUserChat roomJid nickname = SharpXmppHelper.joinRoom client roomJid.BareJid nickname
+        member __.Send message = client.Send message
+        member __.AddConnectionFailedHandler lt handler =
+            let handlerDelegate = XmppClient.ConnectionFailedHandler(fun _ args -> handler args)
+            client.add_ConnectionFailed handlerDelegate
+            lt.OnTermination(fun () -> client.remove_ConnectionFailed handlerDelegate) |> ignore
+        member __.AddPresenceHandler lt handler =
+            let handlerDelegate = XmppClient.PresenceHandler(fun _ args -> handler args)
+            client.add_Presence handlerDelegate
+            lt.OnTermination(fun () -> client.remove_Presence handlerDelegate) |> ignore
+        member __.AddMessageHandler lt handler =
+            let handlerDelegate = XmppClient.MessageHandler(fun _ args -> handler args)
+            client.add_Message handlerDelegate
+            lt.OnTermination(fun () -> client.remove_Message handlerDelegate) |> ignore
 
 // TODO[F]: This client should be removed
 // TODO[F]: But preserve the logging routines; they're good
