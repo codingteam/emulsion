@@ -16,11 +16,12 @@
     <Compile Include="Telegram\Html.fs" />
     <Compile Include="Telegram\Funogram.fs" />
     <Compile Include="Telegram\Client.fs" />
-    <Compile Include="Xmpp\XmppElements.fs" />
+    <Compile Include="Xmpp\Types.fs" />
     <Compile Include="Xmpp/SharpXmppHelper.fs" />
-    <Compile Include="Xmpp/XmppClient.fs" />
+    <Compile Include="Xmpp\XmppClient.fs" />
     <Compile Include="Xmpp\SharpXmppClient.fs" />
-    <Compile Include="Xmpp\Client.fs" />
+    <Compile Include="Xmpp\EmulsionXmpp.fs" />
+    <Compile Include="Xmpp\XmppMessageSystem.fs" />
     <Compile Include="Actors/Factories.fs" />
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/Telegram.fs" />

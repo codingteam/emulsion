@@ -1,3 +1,4 @@
+/// Helper functions to deal with SharpXMPP low-level details (such as XML stuff).
 module Emulsion.Xmpp.SharpXmppHelper
 
 open System
@@ -9,7 +10,7 @@ open SharpXMPP.XMPP.Client.MUC.Bookmarks.Elements
 open SharpXMPP.XMPP.Client.Elements
 
 open Emulsion
-open Emulsion.Xmpp.XmppElements
+open Emulsion.Xmpp
 
 module Namespaces =
     let MucUser = "http://jabber.org/protocol/muc#user"

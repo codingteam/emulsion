@@ -1,116 +1,135 @@
+/// A general abstraction around an XMPP client and common functions.
 module Emulsion.Xmpp.XmppClient
 
 open System
-open System.Threading.Tasks
 
 open JetBrains.Lifetimes
 open Serilog
+
 open SharpXMPP
 open SharpXMPP.XMPP
+open SharpXMPP.XMPP.Client.Elements
 
 open Emulsion
-open Emulsion.Settings
-open SharpXMPP.XMPP.Client.Elements
+open Emulsion.Lifetimes
+open Emulsion.Xmpp
 
 type IXmppClient =
     abstract member Connect: unit -> Async<unit>
     abstract member JoinMultiUserChat: roomJid: JID -> nickname: string -> unit
     abstract member Send: XMPPMessage -> unit
     abstract member AddConnectionFailedHandler: Lifetime -> (ConnFailedArgs -> unit) -> unit
+    abstract member AddSignedInHandler: Lifetime -> (SignedInArgs -> unit) -> unit
+    abstract member AddElementHandler: Lifetime -> (ElementArgs -> unit) -> unit
     abstract member AddPresenceHandler: Lifetime -> (XMPPPresence -> unit) -> unit
     abstract member AddMessageHandler: Lifetime -> (XMPPMessage -> unit) -> unit
 
-type SharpXmppClient(client: XmppClient) =
-    interface IXmppClient with
-        member ___.Connect() = async {
-            let! ct = Async.CancellationToken
-            return! Async.AwaitTask(client.ConnectAsync ct)
-        }
-        member __.JoinMultiUserChat roomJid nickname = SharpXmppHelper.joinRoom client roomJid.BareJid nickname
-        member __.Send message = client.Send message
-        member __.AddConnectionFailedHandler lt handler =
-            let handlerDelegate = XmppClient.ConnectionFailedHandler(fun _ args -> handler args)
-            client.add_ConnectionFailed handlerDelegate
-            lt.OnTermination(fun () -> client.remove_ConnectionFailed handlerDelegate) |> ignore
-        member __.AddPresenceHandler lt handler =
-            let handlerDelegate = XmppClient.PresenceHandler(fun _ args -> handler args)
-            client.add_Presence handlerDelegate
-            lt.OnTermination(fun () -> client.remove_Presence handlerDelegate) |> ignore
-        member __.AddMessageHandler lt handler =
-            let handlerDelegate = XmppClient.MessageHandler(fun _ args -> handler args)
-            client.add_Message handlerDelegate
-            lt.OnTermination(fun () -> client.remove_Message handlerDelegate) |> ignore
+/// Establish a connection to the server and log in. Returns a connection lifetime that will terminate if the connection
+/// terminates.
+let connect (logger: ILogger) (client: IXmppClient): Async<Lifetime> = async {
+    let connectionLifetime = new LifetimeDefinition()
+    client.AddConnectionFailedHandler connectionLifetime.Lifetime <| fun error ->
+        connectionLifetime.Terminate()
 
-// TODO[F]: This client should be removed
-// TODO[F]: But preserve the logging routines; they're good
-let private connectionFailedHandler (logger: ILogger) = XmppConnection.ConnectionFailedHandler(fun s e ->
-    logger.Error(e.Exception, "XMPP connection failed: {Message}", e.Message)
-    ())
+    do! client.Connect()
+    return connectionLifetime.Lifetime
+}
 
-let private signedInHandler (logger: ILogger) (settings: XmppSettings) (client: XmppClient) =
-    XmppConnection.SignedInHandler(fun s e ->
-        logger.Information("Connecting to {Room} as {Nickname}", settings.Room, settings.Nickname)
-        SharpXmppHelper.joinRoom client settings.Room settings.Nickname
+let private isSelfPresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
+    let presence = SharpXmppHelper.parsePresence presence
+    let expectedJid = sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
+    presence.Type = None && presence.From = expectedJid && Array.contains 110 presence.States
+
+let private isLeavePresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
+    let presence = SharpXmppHelper.parsePresence presence
+    let expectedJid = sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
+    presence.From = expectedJid && Array.contains 110 presence.States && presence.Type = Some "unavailable"
+
+let private extractPresenceException (roomInfo: RoomInfo) (presence: XMPPPresence) =
+    let presence = SharpXmppHelper.parsePresence presence
+    let expectedJid = sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
+    if presence.From = expectedJid then
+        presence.Error
+        |> Option.map (fun e -> Exception(sprintf "Error: %A" e))
+    else None
+
+/// Enter the room, returning the in-room lifetime. Will terminate if kicked or left the room.
+let enterRoom (client: IXmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): Async<Lifetime> = async {
+    use connectionLifetimeDefinition = lifetime.CreateNested()
+    let connectionLifetime = connectionLifetimeDefinition.Lifetime
+
+    let roomLifetimeDefinition = lifetime.CreateNested()
+    let roomLifetime = roomLifetimeDefinition.Lifetime
+
+    let tcs = nestedTaskCompletionSource connectionLifetime
+
+    // Success and error handlers:
+    client.AddPresenceHandler connectionLifetime (fun presence ->
+        if isSelfPresence roomInfo presence
+        then tcs.SetResult()
+        else
+            match extractPresenceException roomInfo presence with
+            | Some ex -> tcs.SetException ex
+            | None -> ()
     )
 
-let private shouldProcessMessage settings message =
-    let isGroup = SharpXmppHelper.isGroupChatMessage message
-    let shouldSkip = lazy (
-        SharpXmppHelper.isOwnMessage (settings.Nickname) message
-        || SharpXmppHelper.isHistoricalMessage message
-        || SharpXmppHelper.isEmptyMessage message
+    // Room leave handler:
+    client.AddPresenceHandler roomLifetime (fun presence ->
+        if isLeavePresence roomInfo presence
+        then roomLifetimeDefinition.Terminate()
     )
-    isGroup && not shouldSkip.Value
 
-let private messageHandler (logger: ILogger) settings onMessage = XmppConnection.MessageHandler(fun _ element ->
-    logger.Verbose("Incoming XMPP message: {Message}", element)
-    if shouldProcessMessage settings element then
-        onMessage(XmppMessage (SharpXmppHelper.parseMessage element))
-)
+    try
+        // Start the join process, wait for a result:
+        client.JoinMultiUserChat roomInfo.RoomJid roomInfo.Nickname
+        do! Async.AwaitTask tcs.Task
+        return roomLifetime
+    with
+    | ex ->
+        // In case of an error, terminate the room lifetime (but leave it intact in case of success):
+        roomLifetimeDefinition.Terminate()
+        return ExceptionUtils.reraise ex
+}
 
-let private elementHandler (logger: ILogger) = XmppConnection.ElementHandler(fun s e ->
-    let direction = if e.IsInput then "incoming" else "outgoing"
-    logger.Verbose("XMPP stanza ({Direction}): {Stanza}", direction, e.Stanza)
-)
+let private hasMessageId messageId message =
+    SharpXmppHelper.getMessageId message = Some messageId
 
-let private presenceHandler (logger: ILogger) = XmppConnection.PresenceHandler(fun s e ->
-    logger.Verbose("XMPP presence: {Presence}", e)
-)
+let private extractMessageException message =
+    SharpXmppHelper.getMessageError message
+    |> Option.map(fun e -> Exception(sprintf "Error: %A" e))
 
-let create (logger: ILogger) (settings: XmppSettings) (onMessage: IncomingMessage -> unit): XmppClient =
-    let client = new XmppClient(JID(settings.Login), settings.Password)
-    client.add_ConnectionFailed(connectionFailedHandler logger)
-    client.add_SignedIn(signedInHandler logger settings client)
-    client.add_Element(elementHandler logger)
-    client.add_Presence(presenceHandler logger)
-    client.add_Message(messageHandler logger settings onMessage)
-    client
-
-type ConnectionFailedError(message: string, innerException: Exception) =
-    inherit Exception(message, innerException)
-
-let run (logger: ILogger) (client: XmppClient): Async<unit> =
-    logger.Information("Running XMPP bot: {Jid}", client.Jid.FullJid)
-    let connectionFinished = TaskCompletionSource()
-    let connectionFailedHandler =
-        XmppConnection.ConnectionFailedHandler(
-            fun _ error -> connectionFinished.SetException(ConnectionFailedError(error.Message, error.Exception))
-        )
-
+let private awaitMessageReceival (client: IXmppClient) (lifetime: Lifetime) messageId =
+    // We need to perform this part synchronously to avoid the race condition between adding a message handler and
+    // actually sending a message.
+    let messageLifetimeDefinition = lifetime.CreateNested()
+    let messageLifetime = messageLifetimeDefinition.Lifetime
+    let messageReceivedTask = nestedTaskCompletionSource messageLifetime
+    client.AddMessageHandler lifetime (fun message ->
+        if hasMessageId messageId message then
+            match extractMessageException message with
+            | Some ex -> messageReceivedTask.SetException ex
+            | None -> messageReceivedTask.SetResult()
+    )
     async {
         try
-            let! token = Async.CancellationToken
-            use _ = token.Register(fun () -> client.Close())
-
-            client.add_ConnectionFailed connectionFailedHandler
-            do! Async.AwaitTask(client.ConnectAsync token)
-
-            do! Async.AwaitTask connectionFinished.Task
+            do! Async.AwaitTask messageReceivedTask.Task
         finally
-            client.remove_ConnectionFailed connectionFailedHandler
+            messageLifetimeDefinition.Dispose()
     }
 
-let send (settings: XmppSettings) (client: XmppClient) (message: Message): unit =
-    let text = sprintf "<%s> %s" message.author message.text
-    SharpXmppHelper.message None settings.Room text
-    |> client.Send
+/// Sends the message to the room. Returns an object that allows to track the message receival.
+let sendRoomMessage (client: IXmppClient) (lifetime: Lifetime) (messageInfo: MessageInfo): Async<MessageDeliveryInfo> =
+    async {
+        let messageId = Guid.NewGuid().ToString() // TODO[F]: Move to a new function
+        let message = SharpXmppHelper.message (Some messageId) messageInfo.RecipientJid.FullJid messageInfo.Text
+        let! delivery = Async.StartChild <| awaitMessageReceival client lifetime messageId
+        client.Send message
+        return {
+            MessageId = messageId
+            Delivery = delivery
+        }
+    }
+
+/// Waits for the message to be delivered.
+let awaitMessageDelivery (deliveryInfo: MessageDeliveryInfo): Async<unit> =
+    deliveryInfo.Delivery

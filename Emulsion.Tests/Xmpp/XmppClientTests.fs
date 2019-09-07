@@ -1,6 +1,8 @@
 namespace Emulsion.Tests.Xmpp
 
 open System
+open System.Threading.Tasks
+open System.Xml.Linq
 
 open JetBrains.Lifetimes
 open SharpXMPP
@@ -9,15 +11,12 @@ open SharpXMPP.XMPP.Client.Elements
 open Xunit
 open Xunit.Abstractions
 
-open System.Threading.Tasks
-open System.Xml.Linq
 open Emulsion.Tests.TestUtils
 open Emulsion.Xmpp
-open Emulsion.Xmpp.SharpXmppClient
 open Emulsion.Xmpp.SharpXmppHelper.Attributes
 open Emulsion.Xmpp.SharpXmppHelper.Elements
 
-type SharpXmppClientTests(testOutput: ITestOutputHelper) =
+type XmppClientTests(testOutput: ITestOutputHelper) =
     let logger = Logging.xunitLogger testOutput
 
     let createPresenceFor (roomJid: JID) nickname =
@@ -69,7 +68,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
     member __.``connect function calls the Connect method of the client passed``(): unit =
         let mutable connectCalled = false
         let client = XmppClientFactory.create(fun () -> async { connectCalled <- true })
-        Async.RunSynchronously <| SharpXmppClient.connect logger client |> ignore
+        Async.RunSynchronously <| XmppClient.connect logger client |> ignore
         Assert.True connectCalled
 
     [<Fact>]
@@ -77,7 +76,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
         : unit =
             let mutable callback = ignore
             let client = XmppClientFactory.create(addConnectionFailedHandler = fun _ h -> callback <- h)
-            let lt = Async.RunSynchronously <| SharpXmppClient.connect logger client
+            let lt = Async.RunSynchronously <| XmppClient.connect logger client
             Assert.True lt.IsAlive
             callback(ConnFailedArgs())
             Assert.False lt.IsAlive
@@ -95,7 +94,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
             )
         let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
         Lifetime.Using(fun lt ->
-            Async.RunSynchronously <| SharpXmppClient.enterRoom client lt roomInfo |> ignore
+            Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo |> ignore
             Assert.True called
         )
 
@@ -111,7 +110,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
         let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
         Lifetime.Using(fun lt ->
             let ae = Assert.Throws<AggregateException>(fun () ->
-                Async.RunSynchronously <| SharpXmppClient.enterRoom client lt roomInfo |> ignore
+                Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo |> ignore
             )
             let ex = Seq.exactlyOne ae.InnerExceptions
             Assert.Contains("<test />", ex.Message)
@@ -128,7 +127,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
             )
         let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
         Lifetime.Using(fun lt ->
-            let roomLt = Async.RunSynchronously <| SharpXmppClient.enterRoom client lt roomInfo
+            let roomLt = Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo
             Assert.True roomLt.IsAlive
             sendPresence (createLeavePresence roomInfo.RoomJid roomInfo.Nickname) presenceHandlers
             Assert.False roomLt.IsAlive
@@ -146,7 +145,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
         let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
         use ld = Lifetime.Define()
         let lt = ld.Lifetime
-        let roomLt = Async.RunSynchronously <| SharpXmppClient.enterRoom client lt roomInfo
+        let roomLt = Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo
         Assert.True roomLt.IsAlive
         ld.Terminate()
         Assert.False roomLt.IsAlive
@@ -157,7 +156,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
         let client = XmppClientFactory.create(send = fun m -> message <- m)
         let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
         Lifetime.Using(fun lt ->
-            Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo |> ignore
+            Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo |> ignore
             Assert.Equal(messageInfo.RecipientJid.FullJid, message.To.FullJid)
             Assert.Equal(messageInfo.Text, message.Text)
         )
@@ -173,7 +172,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
             )
         let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
         Lifetime.Using(fun lt ->
-            let deliveryInfo = Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo
+            let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo
             Assert.Equal(message.ID, deliveryInfo.MessageId)
             let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
             Assert.False deliveryTask.IsCompleted
@@ -187,7 +186,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
         let client = XmppClientFactory.create(addMessageHandler = fun _ h -> messageHandler <- h)
         let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
         Lifetime.Using(fun lt ->
-            let deliveryInfo = Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo
+            let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo
             let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
             Assert.False deliveryTask.IsCompleted
 
@@ -206,7 +205,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
             )
         let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
         Lifetime.Using(fun lt ->
-            let deliveryInfo = Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo
+            let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo
             let ae = Assert.Throws<AggregateException>(fun () -> Async.RunSynchronously deliveryInfo.Delivery)
             let ex = Seq.exactlyOne ae.InnerExceptions
             Assert.Contains("<forbidden />", ex.Message)
@@ -218,7 +217,7 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
         let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
         use ld = Lifetime.Define()
         let lt = ld.Lifetime
-        let deliveryInfo = Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo
+        let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo
         let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
         Assert.False deliveryTask.IsCompleted
         ld.Terminate()
@@ -228,5 +227,5 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
     member __.``awaitMessageDelivery just returns an async from the delivery info``(): unit =
         let async = async { return () }
         let deliveryInfo = { MessageId = ""; Delivery = async }
-        let result = awaitMessageDelivery deliveryInfo
+        let result = XmppClient.awaitMessageDelivery deliveryInfo
         Assert.True(Object.ReferenceEquals(async, result))
