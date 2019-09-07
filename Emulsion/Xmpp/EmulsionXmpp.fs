@@ -20,7 +20,7 @@ let private shouldProcessMessage (settings: XmppSettings) message =
     )
     isGroup && not shouldSkip.Value
 
-let private addMessageHandler settings lt (client: IXmppClient) receiver =
+let private addMessageHandler (client: IXmppClient) lt settings receiver =
     client.AddMessageHandler lt (fun xmppMessage ->
         if shouldProcessMessage settings xmppMessage then
             let message = SharpXmppHelper.parseMessage xmppMessage
@@ -46,7 +46,7 @@ let run (settings: XmppSettings)
     logger.Information "Connection succeeded"
 
     logger.Information "Initializing client handler"
-    addMessageHandler settings sessionLifetime client messageReceiver
+    addMessageHandler client sessionLifetime settings messageReceiver
     logger.Information "Client handler initialized"
 
     let roomInfo = { RoomJid = JID(settings.Room); Nickname = settings.Nickname }
@@ -59,7 +59,14 @@ let run (settings: XmppSettings)
     logger.Information "Room lifetime has been terminated"
 }
 
-let send (settings: XmppSettings) (client: IXmppClient) (message: Message): unit =
+let send (logger: ILogger)
+         (client: IXmppClient)
+         (lifetime: Lifetime)
+         (settings: XmppSettings)
+         (message: Message): Async<unit> = async {
     let text = sprintf "<%s> %s" message.author message.text
-    SharpXmppHelper.message None settings.Room text
-    |> client.Send
+    let message = { RecipientJid = JID(settings.Room); Text = text }
+    let! deliveryInfo = XmppClient.sendRoomMessage client lifetime message
+    logger.Information("Message {MessageId} has been sent; awaiting delivery", deliveryInfo.MessageId)
+    do! XmppClient.awaitMessageDelivery deliveryInfo
+}
