@@ -4,14 +4,13 @@ open System
 
 open JetBrains.Lifetimes
 open Serilog
-open SharpXMPP
+open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.Elements
 
 open Emulsion
 open Emulsion.Lifetimes
 open Emulsion.Xmpp
 open Emulsion.Xmpp.XmppClient
-open SharpXMPP.XMPP
 
 type RoomInfo = {
     RoomJid: JID
@@ -52,18 +51,13 @@ let private isLeavePresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
     let expectedJid = sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
     presence.From = expectedJid && Array.contains 110 presence.States && presence.Type = Some "unavailable"
 
-let private extractException (roomInfo: RoomInfo) (presence: XMPPPresence) =
+let private extractPresenceException (roomInfo: RoomInfo) (presence: XMPPPresence) =
     let presence = SharpXmppHelper.parsePresence presence
     let expectedJid = sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
     if presence.From = expectedJid then
         presence.Error
         |> Option.map (fun e -> Exception(sprintf "Error: %A" e))
     else None
-
-let private addMessageHandler (lifetime: Lifetime) (client: XmppClient) handler =
-    let handlerDelegate = XmppConnection.MessageHandler handler
-    client.add_Message handlerDelegate
-    lifetime.OnTermination(fun () -> client.remove_Message handlerDelegate) |> ignore
 
 /// Enter the room, returning the in-room lifetime. Will terminate if kicked or left the room.
 let enterRoom (client: IXmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): Async<Lifetime> = async {
@@ -80,7 +74,7 @@ let enterRoom (client: IXmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): A
         if isSelfPresence roomInfo presence
         then tcs.SetResult()
         else
-            match extractException roomInfo presence with
+            match extractPresenceException roomInfo presence with
             | Some ex -> tcs.SetException ex
             | None -> ()
     )
@@ -106,25 +100,35 @@ let enterRoom (client: IXmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): A
 let private hasMessageId messageId message =
     SharpXmppHelper.getMessageId message = Some messageId
 
-let private awaitMessageReceival (lifetime: Lifetime) client messageId = async {
-    use messageLifetimeDefinition = lifetime.CreateNested()
+let private extractMessageException message =
+    SharpXmppHelper.getMessageError message
+    |> Option.map(fun e -> Exception(sprintf "Error: %A" e))
+
+let private awaitMessageReceival (client: IXmppClient) (lifetime: Lifetime) messageId =
+    // We need to perform this part synchronously to avoid the race condition between adding a message handler and
+    // actually sending a message.
+    let messageLifetimeDefinition = lifetime.CreateNested()
     let messageLifetime = messageLifetimeDefinition.Lifetime
     let messageReceivedTask = nestedTaskCompletionSource messageLifetime
-    addMessageHandler lifetime client (fun _ message ->
+    client.AddMessageHandler lifetime (fun message ->
         if hasMessageId messageId message then
-            messageReceivedTask.SetResult()
+            match extractMessageException message with
+            | Some ex -> messageReceivedTask.SetException ex
+            | None -> messageReceivedTask.SetResult()
     )
-
-    do! Async.AwaitTask messageReceivedTask.Task
-}
+    async {
+        try
+            do! Async.AwaitTask messageReceivedTask.Task
+        finally
+            messageLifetimeDefinition.Dispose()
+    }
 
 /// Sends the message to the room. Returns an object that allows to track the message receival.
-/// TODO[F]: Write tests for this function.
-let sendRoomMessage (lifetime: Lifetime) (client: XmppClient) (messageInfo: MessageInfo): Async<MessageDeliveryInfo> =
+let sendRoomMessage (client: IXmppClient) (lifetime: Lifetime) (messageInfo: MessageInfo): Async<MessageDeliveryInfo> =
     async {
         let messageId = Guid.NewGuid().ToString() // TODO[F]: Move to a new function
         let message = SharpXmppHelper.message (Some messageId) messageInfo.RecipientJid.FullJid messageInfo.Text
-        let! delivery = Async.StartChild <| awaitMessageReceival lifetime client messageId
+        let! delivery = Async.StartChild <| awaitMessageReceival client lifetime messageId
         client.Send message
         return {
             MessageId = messageId

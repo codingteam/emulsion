@@ -9,6 +9,7 @@ open SharpXMPP.XMPP.Client.Elements
 open Xunit
 open Xunit.Abstractions
 
+open System.Threading.Tasks
 open System.Xml.Linq
 open Emulsion.Tests.TestUtils
 open Emulsion.Xmpp
@@ -51,6 +52,18 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
 
     let sendPresence presence handlers =
         Seq.iter (fun h -> h presence) handlers
+
+    let createErrorMessage (message: XMPPMessage) errorXml =
+        // An error message is an exact copy of the original with the "error" element added:
+        let errorMessage = XMPPMessage()
+        message.Attributes() |> Seq.iter (fun a -> errorMessage.SetAttributeValue(a.Name, a.Value))
+        message.Elements() |> Seq.iter (fun e -> errorMessage.Add e)
+
+        let error = XElement Error
+        let errorChild = XElement.Parse errorXml
+        error.Add errorChild
+        errorMessage.Add error
+        errorMessage
 
     [<Fact>]
     member __.``connect function calls the Connect method of the client passed``(): unit =
@@ -137,3 +150,76 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
         Assert.True roomLt.IsAlive
         ld.Terminate()
         Assert.False roomLt.IsAlive
+
+    [<Fact>]
+    member __.``sendRoomMessage calls Send method on the client``(): unit =
+        let mutable message = Unchecked.defaultof<XMPPMessage>
+        let client = XmppClientFactory.create(send = fun m -> message <- m)
+        let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
+        Lifetime.Using(fun lt ->
+            Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo |> ignore
+            Assert.Equal(messageInfo.RecipientJid.FullJid, message.To.FullJid)
+            Assert.Equal(messageInfo.Text, message.Text)
+        )
+
+    [<Fact>]
+    member __.``sendRoomMessage's result gets resolved after the message receival``(): unit =
+        let mutable messageHandler = ignore
+        let mutable message = Unchecked.defaultof<XMPPMessage>
+        let client =
+            XmppClientFactory.create(
+                addMessageHandler = (fun _ h -> messageHandler <- h),
+                send = fun m -> message <- m
+            )
+        let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
+        Lifetime.Using(fun lt ->
+            let deliveryInfo = Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo
+            Assert.Equal(message.ID, deliveryInfo.MessageId)
+            let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
+            Assert.False deliveryTask.IsCompleted
+            messageHandler message
+            deliveryTask.Wait()
+        )
+
+    [<Fact>]
+    member __.``sendRoomMessage's result doesn't get resolved after receiving other message``(): unit =
+        let mutable messageHandler = ignore
+        let client = XmppClientFactory.create(addMessageHandler = fun _ h -> messageHandler <- h)
+        let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
+        Lifetime.Using(fun lt ->
+            let deliveryInfo = Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo
+            let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
+            Assert.False deliveryTask.IsCompleted
+
+            let otherMessage = SharpXmppHelper.message (Some "xxx") "nickname@example.org" "foo bar"
+            messageHandler otherMessage
+            Assert.False deliveryTask.IsCompleted
+        )
+
+    [<Fact>]
+    member __.``sendRoomMessage's result gets resolved with an error if an error response is received``(): unit =
+        let mutable messageHandler = ignore
+        let client =
+            XmppClientFactory.create(
+                addMessageHandler = (fun _ h -> messageHandler <- h),
+                send = fun m -> messageHandler(createErrorMessage m "<forbidden />")
+            )
+        let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
+        Lifetime.Using(fun lt ->
+            let deliveryInfo = Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo
+            let ae = Assert.Throws<AggregateException>(fun () -> Async.RunSynchronously deliveryInfo.Delivery)
+            let ex = Seq.exactlyOne ae.InnerExceptions
+            Assert.Contains("<forbidden />", ex.Message)
+        )
+
+    [<Fact>]
+    member __.``sendRoomMessage's result gets terminated after parent lifetime termination``(): unit =
+        let client = XmppClientFactory.create()
+        let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
+        use ld = Lifetime.Define()
+        let lt = ld.Lifetime
+        let deliveryInfo = Async.RunSynchronously <| SharpXmppClient.sendRoomMessage client lt messageInfo
+        let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
+        Assert.False deliveryTask.IsCompleted
+        ld.Terminate()
+        Assert.Throws<TaskCanceledException>(fun () -> deliveryTask.GetAwaiter().GetResult()) |> ignore
