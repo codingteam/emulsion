@@ -223,3 +223,10 @@ type SharpXmppClientTests(testOutput: ITestOutputHelper) =
         Assert.False deliveryTask.IsCompleted
         ld.Terminate()
         Assert.Throws<TaskCanceledException>(fun () -> deliveryTask.GetAwaiter().GetResult()) |> ignore
+
+    [<Fact>]
+    member __.``awaitMessageDelivery just returns an async from the delivery info``(): unit =
+        let async = async { return () }
+        let deliveryInfo = { MessageId = ""; Delivery = async }
+        let result = awaitMessageDelivery deliveryInfo
+        Assert.True(Object.ReferenceEquals(async, result))

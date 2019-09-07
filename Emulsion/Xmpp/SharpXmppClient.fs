@@ -137,6 +137,5 @@ let sendRoomMessage (client: IXmppClient) (lifetime: Lifetime) (messageInfo: Mes
     }
 
 /// Waits for the message to be delivered.
-/// TODO[F]: Write tests for this function.
 let awaitMessageDelivery (deliveryInfo: MessageDeliveryInfo): Async<unit> =
     deliveryInfo.Delivery
