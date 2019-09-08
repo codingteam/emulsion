@@ -105,7 +105,7 @@ let parsePresence(presence: XMPPPresence): Presence =
         presence.Element X
         |> Option.ofObj
         |> Option.map (fun x ->
-            x.Elements(Status)
+            x.Elements Status
             |> Seq.choose (fun s -> getAttributeValue s Code)
             |> Seq.map int
         )

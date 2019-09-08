@@ -1,4 +1,4 @@
-module Emulsion.Tests.Xmpp.SharpXmppHelper
+module Emulsion.Tests.Xmpp.SharpXmppHelperTests
 
 open System.Xml.Linq
 
