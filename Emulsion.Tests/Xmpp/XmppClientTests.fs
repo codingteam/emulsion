@@ -67,8 +67,7 @@ let ``connect function calls the Connect method of the client passed``(): unit =
     Assert.True connectCalled
 
 [<Fact>]
-let ``connect function returns a lifetime terminated whenever the ConnectionFailed callback is triggered``()
-    : unit =
+let ``connect function returns a lifetime terminated whenever the ConnectionFailed callback is triggered``(): unit =
         let mutable callback = ignore
         let client = XmppClientFactory.create(addConnectionFailedHandler = fun _ h -> callback <- h)
         let lt = Async.RunSynchronously <| XmppClient.connect client
@@ -77,7 +76,7 @@ let ``connect function returns a lifetime terminated whenever the ConnectionFail
         Assert.False lt.IsAlive
 
 [<Fact>]
-let ``enter function calls JoinMultiUserChat``(): unit =
+let ``enterRoom function calls JoinMultiUserChat``(): unit =
     let mutable called = false
     let mutable presenceHandlers = ResizeArray()
     let client =
@@ -94,7 +93,7 @@ let ``enter function calls JoinMultiUserChat``(): unit =
     )
 
 [<Fact>]
-let ``enter throws an exception in case of an error presence``(): unit =
+let ``enterRoom throws an exception in case of an error presence``(): unit =
     let mutable presenceHandlers = ResizeArray()
     let client =
         XmppClientFactory.create(
@@ -112,7 +111,7 @@ let ``enter throws an exception in case of an error presence``(): unit =
     )
 
 [<Fact>]
-let ``Lifetime returned from enter terminates by a room leave presence``(): unit =
+let ``Lifetime returned from enterRoom terminates by a room leave presence``(): unit =
     let mutable presenceHandlers = ResizeArray()
     let client =
         XmppClientFactory.create(
@@ -129,7 +128,7 @@ let ``Lifetime returned from enter terminates by a room leave presence``(): unit
     )
 
 [<Fact>]
-let ``Lifetime returned from enter terminates by an external lifetime termination``(): unit =
+let ``Lifetime returned from enterRoom terminates by an external lifetime termination``(): unit =
     let mutable presenceHandlers = ResizeArray()
     let client =
         XmppClientFactory.create(

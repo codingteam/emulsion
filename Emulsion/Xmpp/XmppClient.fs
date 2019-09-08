@@ -4,7 +4,6 @@ module Emulsion.Xmpp.XmppClient
 open System
 
 open JetBrains.Lifetimes
-open Serilog
 
 open SharpXMPP
 open SharpXMPP.XMPP
