@@ -21,11 +21,11 @@ let private createPresenceFor (roomJid: JID) nickname =
     presence.SetAttributeValue(From, participantJid.FullJid)
     presence
 
-let private createSelfPresence roomJid nickname =
+let private createSelfPresence roomJid nickname (statusCode: int) =
     let presence = createPresenceFor roomJid nickname
     let x = XElement X
     let status = XElement Status
-    status.SetAttributeValue(Code, "110")
+    status.SetAttributeValue(Code, statusCode)
     x.Add status
     presence.Add x
     presence
@@ -40,7 +40,7 @@ let private createErrorPresence roomJid nickname errorXml =
     presence
 
 let private createLeavePresence roomJid nickname =
-    let presence = createSelfPresence roomJid nickname
+    let presence = createSelfPresence roomJid nickname 307
     presence.SetAttributeValue(Type, "unavailable")
     presence
 
@@ -84,7 +84,7 @@ let ``enterRoom function calls JoinMultiUserChat``(): unit =
             addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
             joinMultiUserChat = fun roomJid nickname ->
                 called <- true
-                Seq.iter (fun h -> h (createSelfPresence roomJid nickname)) presenceHandlers
+                Seq.iter (fun h -> h (createSelfPresence roomJid nickname 110)) presenceHandlers
         )
     let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
     Lifetime.Using(fun lt ->
@@ -117,7 +117,7 @@ let ``Lifetime returned from enterRoom terminates by a room leave presence``(): 
         XmppClientFactory.create(
             addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
             joinMultiUserChat = fun roomJid nickname ->
-                sendPresence (createSelfPresence roomJid nickname) presenceHandlers
+                sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers
         )
     let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
     Lifetime.Using(fun lt ->
@@ -134,7 +134,7 @@ let ``Lifetime returned from enterRoom terminates by an external lifetime termin
         XmppClientFactory.create(
             addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
             joinMultiUserChat = fun roomJid nickname ->
-                sendPresence (createSelfPresence roomJid nickname) presenceHandlers
+                sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers
         )
     let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
     use ld = Lifetime.Define()

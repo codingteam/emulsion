@@ -31,7 +31,7 @@ module Elements =
     let Delay = XName.Get("delay", "urn:xmpp:delay")
     let Error = XName.Get "error"
     let Nick = XName.Get("nick", Namespaces.StorageBookmarks)
-    let Status = XName.Get "status"
+    let Status = XName.Get("status", Namespaces.MucUser)
     let X = XName.Get("x", Namespaces.MucUser)
 
 open Elements
@@ -83,6 +83,11 @@ let isGroupChatMessage(message: XMPPMessage): bool =
 
 let isEmptyMessage(message: XMPPMessage): bool =
     String.IsNullOrWhiteSpace message.Text
+
+/// See https://xmpp.org/registrar/mucstatus.html
+let private removalCodes = Set.ofArray [| 301; 307; 321; 322; 332 |]
+let hasRemovalCode(states: int[]): bool =
+    states |> Array.exists (fun x -> Set.contains x removalCodes)
 
 let getMessageId(message: XMPPMessage): string option =
     getAttributeValue message Id
