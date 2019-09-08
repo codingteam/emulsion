@@ -8,8 +8,9 @@
     <Compile Include="TestUtils\Logging.fs" />
     <Compile Include="TestUtils\Waiter.fs" />
     <Compile Include="ExceptionUtilsTests.fs" />
-    <Compile Include="Settings.fs" />
+    <Compile Include="LifetimesTests.fs" />
     <Compile Include="MessageSenderTests.fs" />
+    <Compile Include="Settings.fs" />
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/Telegram.fs" />
     <Compile Include="Actors/Xmpp.fs" />
