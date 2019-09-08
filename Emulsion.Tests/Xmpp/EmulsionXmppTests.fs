@@ -153,7 +153,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
             let client =
                 XmppClientFactory.create(
                     addMessageHandler = (fun _ h -> messageHandlers.Add h),
-                    send = fun m -> messageId.SetResult(SharpXmppHelper.getMessageId m)
+                    send = fun m -> messageId.SetResult(Option.get <| SharpXmppHelper.getMessageId m)
                 )
             let outgoingMessage = { author = "author"; text = "text" }
 

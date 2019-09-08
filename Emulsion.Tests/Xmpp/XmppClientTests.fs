@@ -184,7 +184,7 @@ let ``sendRoomMessage's result doesn't get resolved after receiving other messag
         let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
         Assert.False deliveryTask.IsCompleted
 
-        let otherMessage = SharpXmppHelper.message (Some "xxx") "nickname@example.org" "foo bar"
+        let otherMessage = SharpXmppHelper.message "xxx" "nickname@example.org" "foo bar"
         messageHandler otherMessage
         Assert.False deliveryTask.IsCompleted
     )

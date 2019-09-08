@@ -47,10 +47,9 @@ let joinRoom (client: XmppClient) (roomJid: string) (nickname: string): unit =
     let room = bookmark roomJid nickname
     client.BookmarkManager.Join(room)
 
-let message (id: string option) (toAddr: string) (text: string): XMPPMessage =
-    // TODO[F]: Make id a mandatory parameter?
+let message (id: string) (toAddr: string) (text: string): XMPPMessage =
     let m = XMPPMessage()
-    id |> Option.iter (fun id -> m.SetAttributeValue(Id, id))
+    m.SetAttributeValue(Id, id)
     m.SetAttributeValue(Type, "groupchat")
     m.SetAttributeValue(To, toAddr)
     let body = XElement(Body)
