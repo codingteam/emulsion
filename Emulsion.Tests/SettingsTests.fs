@@ -1,4 +1,4 @@
-module Emulsion.Tests.Settings
+module Emulsion.Tests.SettingsTests
 
 open System
 open System.IO

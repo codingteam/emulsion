@@ -1,5 +1,4 @@
 /// Main business logic for an XMPP part of the Emulsion application.
-/// TODO[F]: Add tests for this module.
 module Emulsion.Xmpp.EmulsionXmpp
 
 open JetBrains.Lifetimes
@@ -42,7 +41,8 @@ let run (settings: XmppSettings)
         (client: IXmppClient)
         (messageReceiver: IncomingMessageReceiver): Async<unit> = async {
     logger.Information "Connecting to the server"
-    let! sessionLifetime = XmppClient.connect logger client
+    let! sessionLifetime = XmppClient.connect client
+    sessionLifetime.ThrowIfNotAlive()
     logger.Information "Connection succeeded"
 
     logger.Information "Initializing client handler"

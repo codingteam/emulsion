@@ -26,9 +26,9 @@ type IXmppClient =
 
 /// Establish a connection to the server and log in. Returns a connection lifetime that will terminate if the connection
 /// terminates.
-let connect (logger: ILogger) (client: IXmppClient): Async<Lifetime> = async {
+let connect (client: IXmppClient): Async<Lifetime> = async {
     let connectionLifetime = new LifetimeDefinition()
-    client.AddConnectionFailedHandler connectionLifetime.Lifetime <| fun error ->
+    client.AddConnectionFailedHandler connectionLifetime.Lifetime <| fun _ ->
         connectionLifetime.Terminate()
 
     do! client.Connect()
