@@ -42,7 +42,7 @@ let private isSelfPresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
 let private isLeavePresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
     let presence = SharpXmppHelper.parsePresence presence
     let expectedJid = sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
-    presence.From = expectedJid && Array.contains 110 presence.States && presence.Type = Some "unavailable"
+    presence.From = expectedJid && presence.Type = Some "unavailable" && SharpXmppHelper.hasRemovalCode presence.States
 
 let private extractPresenceException (roomInfo: RoomInfo) (presence: XMPPPresence) =
     let presence = SharpXmppHelper.parsePresence presence
