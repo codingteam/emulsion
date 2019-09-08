@@ -68,12 +68,12 @@ let ``connect function calls the Connect method of the client passed``(): unit =
 
 [<Fact>]
 let ``connect function returns a lifetime terminated whenever the ConnectionFailed callback is triggered``(): unit =
-        let mutable callback = ignore
-        let client = XmppClientFactory.create(addConnectionFailedHandler = fun _ h -> callback <- h)
-        let lt = Async.RunSynchronously <| XmppClient.connect client
-        Assert.True lt.IsAlive
-        callback(ConnFailedArgs())
-        Assert.False lt.IsAlive
+    let mutable callback = ignore
+    let client = XmppClientFactory.create(addConnectionFailedHandler = fun _ h -> callback <- h)
+    let lt = Async.RunSynchronously <| XmppClient.connect client
+    Assert.True lt.IsAlive
+    callback(ConnFailedArgs())
+    Assert.False lt.IsAlive
 
 [<Fact>]
 let ``enterRoom function calls JoinMultiUserChat``(): unit =
