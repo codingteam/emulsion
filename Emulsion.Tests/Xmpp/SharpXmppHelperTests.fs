@@ -10,7 +10,7 @@ open Emulsion.Xmpp
 
 [<Fact>]
 let ``Message body has a proper namespace``() =
-    let message = SharpXmppHelper.message None "cthulhu@test" "text"
+    let message = SharpXmppHelper.message "" "cthulhu@test" "text"
     let body = Seq.exactlyOne(message.Descendants())
     Assert.Equal(XNamespace.Get "jabber:client", body.Name.Namespace)
 

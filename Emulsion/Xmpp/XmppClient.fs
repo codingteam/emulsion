@@ -116,11 +116,14 @@ let private awaitMessageReceival (client: IXmppClient) (lifetime: Lifetime) mess
             messageLifetimeDefinition.Dispose()
     }
 
+let private newMessageId(): string =
+    Guid.NewGuid().ToString()
+
 /// Sends the message to the room. Returns an object that allows to track the message receival.
 let sendRoomMessage (client: IXmppClient) (lifetime: Lifetime) (messageInfo: MessageInfo): Async<MessageDeliveryInfo> =
     async {
-        let messageId = Guid.NewGuid().ToString() // TODO[F]: Move to a new function
-        let message = SharpXmppHelper.message (Some messageId) messageInfo.RecipientJid.FullJid messageInfo.Text
+        let messageId = newMessageId()
+        let message = SharpXmppHelper.message messageId messageInfo.RecipientJid.FullJid messageInfo.Text
         let! delivery = Async.StartChild <| awaitMessageReceival client lifetime messageId
         client.Send message
         return {
