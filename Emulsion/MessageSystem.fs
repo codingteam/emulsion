@@ -11,7 +11,7 @@ type IncomingMessageReceiver = IncomingMessage -> unit
 /// a queue and sends them when possible. Redirects the incoming messages to a function passed when starting the queue.
 type IMessageSystem =
     /// Starts the IM connection, manages reconnects. Never terminates unless cancelled.
-    abstract member Run : IncomingMessageReceiver -> unit
+    abstract member RunSynchronously : IncomingMessageReceiver -> unit
 
     /// Queues the message to be sent to the IM system when possible.
     abstract member PutMessage : OutgoingMessage -> unit
@@ -46,27 +46,39 @@ type MessageSystemBase(ctx: ServiceContext, cancellationToken: CancellationToken
         RestartCooldown = ctx.RestartCooldown
     }, cancellationToken)
 
-    /// Starts the IM connection, manages reconnects. On cancellation could either throw OperationCanceledException or
-    /// return a unit.
+    /// Implements the two-phase run protocol.
+    ///
+    /// First, the parent async workflow resolves when the connection has been established, and the system is ready to
+    /// receive outgoing messages.
+    ///
+    /// The nested async workflow is a message loop inside of a system. While this second workflow is executing, the
+    /// system is expected to receive the messages.
+    ///
+    /// Any of these workflows could either throw OperationCanceledException or return a unit on cancellation.
     ///
     /// This method will never be called multiple times in parallel on a single instance.
-    abstract member RunUntilError : IncomingMessageReceiver -> Async<unit>
+    abstract member RunUntilError : IncomingMessageReceiver -> Async<Async<unit>>
 
     /// Sends a message through the message system. Free-threaded. Could throw exceptions; if throws an exception, then
     /// will be restarted later.
     abstract member Send : OutgoingMessage -> Async<unit>
 
-    interface IMessageSystem with
-        member ms.Run receiver =
-            let runner = async {
-                MessageSender.setReadyToAcceptMessages sender true
-                try
-                    do! this.RunUntilError receiver
-                finally
-                    MessageSender.setReadyToAcceptMessages sender false
-            }
+    /// Runs the message system loop asynchronously. Should never terminate unless cancelled.
+    abstract member RunAsync : IncomingMessageReceiver -> Async<unit>
+    default __.RunAsync receiver = async {
+        // While this line executes, the system isn't yet started and isn't ready to accept the messages:
+        let! runLoop = this.RunUntilError receiver
+        MessageSender.setReadyToAcceptMessages sender true
+        try
+            do! runLoop
+        finally
+            MessageSender.setReadyToAcceptMessages sender false
+    }
 
-            Async.RunSynchronously (wrapRun ctx runner, cancellationToken = cancellationToken)
+    interface IMessageSystem with
+        member __.RunSynchronously receiver =
+            let runner = this.RunAsync receiver
+            Async.RunSynchronously(wrapRun ctx runner, cancellationToken = cancellationToken)
 
         member __.PutMessage message =
             MessageSender.send sender message

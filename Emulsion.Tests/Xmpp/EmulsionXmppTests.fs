@@ -23,6 +23,12 @@ let private settings = {
     Nickname = "nickname"
 }
 
+let private runClientSynchronously settings logger client onMessage =
+    Async.RunSynchronously <| async {
+        let! runLoop = EmulsionXmpp.run settings logger client onMessage
+        return! runLoop
+    }
+
 type RunTests(outputHelper: ITestOutputHelper) =
     let logger = Logging.xunitLogger outputHelper
 
@@ -39,7 +45,7 @@ type RunTests(outputHelper: ITestOutputHelper) =
                     disconnect()
                 })
             )
-        Assert.ThrowsAny<Exception>(fun() -> Async.RunSynchronously <| EmulsionXmpp.run settings logger client ignore)
+        Assert.ThrowsAny<Exception>(fun() -> runClientSynchronously settings logger client ignore)
         |> ignore
         Assert.True connectCalled
 
@@ -56,7 +62,7 @@ type RunTests(outputHelper: ITestOutputHelper) =
                     disconnect()
                 )
             )
-        Assert.ThrowsAny<Exception>(fun() -> Async.RunSynchronously <| EmulsionXmpp.run settings logger client ignore)
+        Assert.ThrowsAny<Exception>(fun() -> runClientSynchronously settings logger client ignore)
         |> ignore
         Assert.Equal((settings.Room, settings.Nickname), joinRoomArgs)
 
@@ -81,9 +87,7 @@ type ReceiveMessageTests(outputHelper: ITestOutputHelper) =
                     sendMessage message
                     disconnect()
             )
-        Assert.ThrowsAny<Exception>(fun() ->
-            Async.RunSynchronously <| EmulsionXmpp.run settings logger client onMessageReceived
-        ) |> ignore
+        Assert.ThrowsAny<Exception>(fun() -> runClientSynchronously settings logger client onMessageReceived) |> ignore
 
         messageReceived
 

@@ -17,7 +17,7 @@ type XmppTest(testOutput: ITestOutputHelper) =
         let mutable sentMessage = None
         let xmpp = {
             new IMessageSystem with
-                member __.Run _ = ()
+                member __.RunSynchronously _ = ()
                 member __.PutMessage message =
                     sentMessage <- Some message
         }

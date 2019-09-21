@@ -31,7 +31,7 @@ let private startMessageSystem (logger: ILogger) (system: IMessageSystem) receiv
     Async.StartChild <| async {
         do! Async.SwitchToNewThread()
         try
-            system.Run receiver
+            system.RunSynchronously receiver
         with
         | ex -> logger.Error(ex, "Message system error in {System}", system)
     }

@@ -36,10 +36,12 @@ let initializeLogging (logger: ILogger) (client: IXmppClient): IXmppClient =
     )
     client
 
+/// Outer async will establish a connection and enter the room, inner async will await for the room session
+/// termination.
 let run (settings: XmppSettings)
         (logger: ILogger)
         (client: IXmppClient)
-        (messageReceiver: IncomingMessageReceiver): Async<unit> = async {
+        (messageReceiver: IncomingMessageReceiver): Async<Async<unit>> = async {
     logger.Information "Connecting to the server"
     let! sessionLifetime = XmppClient.connect client
     sessionLifetime.ThrowIfNotAlive()
@@ -54,9 +56,11 @@ let run (settings: XmppSettings)
     let! roomLifetime = XmppClient.enterRoom client sessionLifetime roomInfo
     logger.Information "Entered the room"
 
-    logger.Information "Ready, waiting for room lifetime termination"
-    do! Lifetimes.awaitTermination roomLifetime
-    logger.Information "Room lifetime has been terminated"
+    return async {
+        logger.Information "Ready, waiting for room lifetime termination"
+        do! Lifetimes.awaitTermination roomLifetime
+        logger.Information "Room lifetime has been terminated"
+    }
 }
 
 let send (logger: ILogger)

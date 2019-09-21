@@ -17,7 +17,7 @@ type TelegramTest(testOutput: ITestOutputHelper) =
         let mutable sentMessage = None
         let telegram = {
             new IMessageSystem with
-                member __.Run _ = ()
+                member __.RunSynchronously _ = ()
                 member __.PutMessage message =
                     sentMessage <- Some message
         }
