@@ -146,7 +146,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
         upcast (async {
             use ld = Lifetime.Define()
             let lt = ld.Lifetime
-            let messageId = nestedTaskCompletionSource lt
+            let messageId = lt.CreateTaskCompletionSource()
             let messageHandlers = ResizeArray()
             let onMessage msg = messageHandlers |> Seq.iter (fun h -> h msg)
 

@@ -60,7 +60,7 @@ let enterRoom (client: IXmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): A
     let roomLifetimeDefinition = lifetime.CreateNested()
     let roomLifetime = roomLifetimeDefinition.Lifetime
 
-    let tcs = nestedTaskCompletionSource connectionLifetime
+    let tcs = connectionLifetime.CreateTaskCompletionSource()
 
     // Success and error handlers:
     client.AddPresenceHandler connectionLifetime (fun presence ->
@@ -102,7 +102,7 @@ let private awaitMessageReceival (client: IXmppClient) (lifetime: Lifetime) mess
     // actually sending a message.
     let messageLifetimeDefinition = lifetime.CreateNested()
     let messageLifetime = messageLifetimeDefinition.Lifetime
-    let messageReceivedTask = nestedTaskCompletionSource messageLifetime
+    let messageReceivedTask = messageLifetime.CreateTaskCompletionSource()
     client.AddMessageHandler lifetime (fun message ->
         if hasMessageId messageId message then
             match extractMessageException message with
