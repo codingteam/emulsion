@@ -49,7 +49,7 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
         tcs.SetResult()
 
         // Now the system should have entered the run loop and the message should be sent:
-        waitForItemCount buffer 1 shortTimeout |> Assert.True
+        waitForItemCount buffer 1 defaultTimeout |> Assert.True
         Assert.Equal(true, Volatile.Read &enteredRunLoop)
         Assert.Equal<OutgoingMessage>(Seq.singleton msg, buffer.All())
 
