@@ -71,7 +71,7 @@ let private createEntity t offset length url = {
 }
 
 let private createEntities t offset length url = Some <| seq {
-    yield createEntity t offset length url
+    createEntity t offset length url
 }
 
 let private originalUser = createUser (Some "originalUser") "" None

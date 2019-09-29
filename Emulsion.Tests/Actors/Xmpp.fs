@@ -17,8 +17,8 @@ type XmppTest(testOutput: ITestOutputHelper) =
         let mutable sentMessage = None
         let xmpp = {
             new IMessageSystem with
-                member __.RunSynchronously _ = ()
-                member __.PutMessage message =
+                member _.RunSynchronously _ = ()
+                member _.PutMessage message =
                     sentMessage <- Some message
         }
         let actor = Xmpp.spawn (Logging.xunitLogger testOutput) xmpp this.Sys "xmpp"

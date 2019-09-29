@@ -33,7 +33,7 @@ type RunTests(outputHelper: ITestOutputHelper) =
     let logger = Logging.xunitLogger outputHelper
 
     [<Fact>]
-    member __.``EmulsionXmpp connects the server``(): unit =
+    member _.``EmulsionXmpp connects the server``(): unit =
         let mutable connectionFailedHandler = ignore
         let disconnect() = connectionFailedHandler(ConnFailedArgs())
         let mutable connectCalled = false
@@ -50,7 +50,7 @@ type RunTests(outputHelper: ITestOutputHelper) =
         Assert.True connectCalled
 
     [<Fact>]
-    member __.``EmulsionXmpp connects the room``(): unit =
+    member _.``EmulsionXmpp connects the room``(): unit =
         let mutable connectionFailedHandler = ignore
         let disconnect() = connectionFailedHandler(ConnFailedArgs())
         let mutable joinRoomArgs = Unchecked.defaultof<_>
@@ -92,7 +92,7 @@ type ReceiveMessageTests(outputHelper: ITestOutputHelper) =
         messageReceived
 
     [<Fact>]
-    member __.``Ordinary message gets received by the client``(): unit =
+    member _.``Ordinary message gets received by the client``(): unit =
         let incomingMessage = XmppMessageFactory.create("room@conference.example.org/sender",
                                                         "test",
                                                         messageType = "groupchat")
@@ -100,7 +100,7 @@ type ReceiveMessageTests(outputHelper: ITestOutputHelper) =
         Assert.Equal(Some <| XmppMessage { author = "sender"; text = "test" }, receivedMessage)
 
     [<Fact>]
-    member __.``Own message gets skipped by the client``(): unit =
+    member _.``Own message gets skipped by the client``(): unit =
         let ownMessage = XmppMessageFactory.create("room@conference.example.org/nickname",
                                                    "test",
                                                    messageType = "groupchat")
@@ -108,7 +108,7 @@ type ReceiveMessageTests(outputHelper: ITestOutputHelper) =
         Assert.Equal(None, receivedMessage)
 
     [<Fact>]
-    member __.``Historical message gets skipped by the client``(): unit =
+    member _.``Historical message gets skipped by the client``(): unit =
         let historicalMessage = XmppMessageFactory.create("room@conference.example.org/sender",
                                                           "test",
                                                           messageType = "groupchat",
@@ -117,7 +117,7 @@ type ReceiveMessageTests(outputHelper: ITestOutputHelper) =
         Assert.Equal(None, receivedMessage)
 
     [<Fact>]
-    member __.``Empty message gets skipped by the client``(): unit =
+    member _.``Empty message gets skipped by the client``(): unit =
         let emptyMessage = XmppMessageFactory.create("room@conference.example.org/sender",
                                                      "",
                                                      messageType = "groupchat")
@@ -128,7 +128,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
     let logger = Logging.xunitLogger outputHelper
 
     [<Fact>]
-    member __.``send function calls the Send method on the client``(): unit =
+    member _.``send function calls the Send method on the client``(): unit =
         use ld = Lifetime.Define()
         let lt = ld.Lifetime
         let mutable sentMessage = Unchecked.defaultof<_>
@@ -146,7 +146,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
         Assert.Equal("<author> text", text)
 
     [<Fact>]
-    member __.``send function awaits the message delivery``(): Task =
+    member _.``send function awaits the message delivery``(): Task =
         upcast (async {
             use ld = Lifetime.Define()
             let lt = ld.Lifetime

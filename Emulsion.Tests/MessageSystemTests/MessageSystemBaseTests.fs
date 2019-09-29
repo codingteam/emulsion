@@ -18,7 +18,7 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
     let msg = OutgoingMessage { author = "author"; text = "text" }
 
     [<Fact>]
-    member __.``Message system should not send any messages before being started``(): unit =
+    member _.``Message system should not send any messages before being started``(): unit =
         let context = { RestartCooldown = TimeSpan.Zero; Logger = logger }
         let buffer = LockedBuffer()
         use cts = new CancellationTokenSource()
@@ -26,7 +26,7 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
         let tcs = new TaskCompletionSource<unit>()
         let messageSystem : IMessageSystem =
             upcast { new MessageSystemBase(context, cts.Token) with
-                member __.RunUntilError _ =
+                member _.RunUntilError _ =
                     async {
                         do! Async.AwaitTask tcs.Task
                         return async {
@@ -34,7 +34,7 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
                             do! Async.Sleep Int32.MaxValue
                         }
                     }
-                member __.Send m = async {
+                member _.Send m = async {
                     buffer.Add m
                 }
             }
@@ -58,15 +58,15 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
         Assert.Throws<OperationCanceledException>(fun() -> task.GetAwaiter().GetResult()) |> ignore
 
     [<Fact>]
-    member __.``Message system should send the messages after being started``() =
+    member _.``Message system should send the messages after being started``() =
         let context = { RestartCooldown = TimeSpan.Zero; Logger = logger }
         let buffer = LockedBuffer()
         use cts = new CancellationTokenSource()
         let messageSystem =
             { new MessageSystemBase(context, cts.Token) with
-                member __.RunUntilError _ =
+                member _.RunUntilError _ =
                     async { return Async.Sleep Int32.MaxValue }
-                member __.Send m = async {
+                member _.Send m = async {
                     buffer.Add m
                 }
             }

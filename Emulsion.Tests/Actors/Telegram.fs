@@ -17,8 +17,8 @@ type TelegramTest(testOutput: ITestOutputHelper) =
         let mutable sentMessage = None
         let telegram = {
             new IMessageSystem with
-                member __.RunSynchronously _ = ()
-                member __.PutMessage message =
+                member _.RunSynchronously _ = ()
+                member _.PutMessage message =
                     sentMessage <- Some message
         }
         let actor = Telegram.spawn (Logging.xunitLogger testOutput) telegram this.Sys "telegram"
