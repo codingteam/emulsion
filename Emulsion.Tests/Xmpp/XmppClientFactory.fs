@@ -16,12 +16,12 @@ type XmppClientFactory =
         let addPresenceHandler = defaultArg addPresenceHandler <| fun _ _ -> ()
         let addMessageHandler = defaultArg addMessageHandler <| fun _ _ -> ()
         { new IXmppClient with
-            member __.Connect() = connect()
-            member __.JoinMultiUserChat roomJid nickname = joinMultiUserChat roomJid nickname
-            member __.Send m = send m
-            member __.AddConnectionFailedHandler lt handler = addConnectionFailedHandler lt handler
-            member __.AddSignedInHandler _ _ = ()
-            member __.AddElementHandler _ _ = ()
-            member __.AddPresenceHandler lt handler = addPresenceHandler lt handler
-            member __.AddMessageHandler lt handler = addMessageHandler lt handler
+            member _.Connect() = connect()
+            member _.JoinMultiUserChat roomJid nickname = joinMultiUserChat roomJid nickname
+            member _.Send m = send m
+            member _.AddConnectionFailedHandler lt handler = addConnectionFailedHandler lt handler
+            member _.AddSignedInHandler _ _ = ()
+            member _.AddElementHandler _ _ = ()
+            member _.AddPresenceHandler lt handler = addPresenceHandler lt handler
+            member _.AddMessageHandler lt handler = addMessageHandler lt handler
         }

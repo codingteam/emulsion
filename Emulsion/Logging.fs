@@ -17,7 +17,7 @@ let private EventCategoryProperty = "EventCategory"
 let private loggerWithCategory (category: EventCategory) (logger: ILogger) =
     let enricher =
         { new ILogEventEnricher with
-             member __.Enrich(logEvent, propertyFactory) =
+             member _.Enrich(logEvent, propertyFactory) =
                  logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(EventCategoryProperty, category)) }
     logger.ForContext enricher
 

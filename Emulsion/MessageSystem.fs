@@ -65,7 +65,7 @@ type MessageSystemBase(ctx: ServiceContext, cancellationToken: CancellationToken
 
     /// Runs the message system loop asynchronously. Should never terminate unless cancelled.
     abstract member RunAsync : IncomingMessageReceiver -> Async<unit>
-    default __.RunAsync receiver = async {
+    default _.RunAsync receiver = async {
         // While this line executes, the system isn't yet started and isn't ready to accept the messages:
         let! runLoop = this.RunUntilError receiver
         MessageSender.setReadyToAcceptMessages sender true
@@ -76,9 +76,9 @@ type MessageSystemBase(ctx: ServiceContext, cancellationToken: CancellationToken
     }
 
     interface IMessageSystem with
-        member __.RunSynchronously receiver =
+        member _.RunSynchronously receiver =
             let runner = this.RunAsync receiver
             Async.RunSynchronously(wrapRun ctx runner, cancellationToken = cancellationToken)
 
-        member __.PutMessage message =
+        member _.PutMessage message =
             MessageSender.send sender message
