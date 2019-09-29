@@ -68,7 +68,8 @@ let private replyingUser = createUser (Some "replyingUser") "" None
 let private forwardingUser = createUser (Some "forwardingUser") "" None
 
 module ReadMessageTests =
-    let readMessage = Funogram.MessageConverter.read 0L
+    let selfUserId = 100500L
+    let readMessage = Funogram.MessageConverter.read selfUserId
 
     [<Fact>]
     let readMessageWithUnknownUser() =
@@ -248,6 +249,24 @@ module ReadMessageTests =
         Assert.Equal(
             telegramMessage "@originalUser" "[Sticker 🐙]",
             readMessage message
+        )
+
+    [<Fact>]
+    let messageFromBotShouldBeUnwrapped(): unit =
+        let originalMessage = { defaultMessage with
+                                    From = Some { createUser None "" None
+                                                      with Id = selfUserId }
+                                    Text = Some "Myself\nTests"
+                                    Entities = Some <| seq {
+                                        yield { Type = "bold"
+                                                Offset = 0L
+                                                Length = int64 "Myself".Length
+                                                Url = None
+                                                User = None } } }
+        let reply = createReplyMessage (Some replyingUser) (Some "reply text") originalMessage
+        Assert.Equal(
+            telegramReplyMessage "@replyingUser" "reply text" (telegramMessage "Myself" "Tests").main,
+            readMessage reply
         )
 
 module FlattenMessageTests =

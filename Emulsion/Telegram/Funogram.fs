@@ -162,15 +162,43 @@ module MessageConverter =
 
         { author = author; text = text }
 
-    let internal read (selfUserId: int64) (message: FunogramMessage): TelegramMessage =
+    let private isSelfMessage selfUserId (message: FunogramMessage) =
+        match message.From with
+        | Some user -> user.Id = selfUserId
+        | None -> false
+
+    let private extractMessageContent(message: FunogramMessage) =
         let mainAuthor = getUserDisplayName message.From
         let mainBody = getMessageBodyText message
-        let mainMessage = { author = mainAuthor; text = mainBody }
+        { author = mainAuthor; text = mainBody }
 
+    /// For messages from the bot, the first bold section of the message will contain the nickname of the author.
+    /// Everything else is the message text.
+    let private extractSelfMessageContent(message: FunogramMessage) =
+        match (message.Entities, message.Text) with
+        | None, _ | _, None -> extractMessageContent message
+        | Some entities, Some text ->
+            let boldEntity: MessageEntity option = Seq.tryFind (fun e -> e.Type = "bold") entities
+            match boldEntity with
+            | None -> extractMessageContent message
+            | Some section ->
+                let authorNameOffset = min text.Length
+                                           (max 0 (int32 section.Offset))
+                let authorNameLength = min (text.Length - authorNameOffset) (int32 section.Length)
+                let authorName = text.Substring(authorNameOffset, authorNameLength)
+                let messageTextOffset = min text.Length (authorNameOffset + authorNameLength + 1) // 1 for \n
+                let messageText = text.Substring(messageTextOffset)
+                { author = authorName; text = messageText }
+
+    let internal read (selfUserId: int64) (message: FunogramMessage): TelegramMessage =
+        let mainMessage = extractMessageContent message
         match message.ReplyToMessage with
         | None -> { main = mainMessage; replyTo = None }
         | Some replyTo ->
-            let replyToMessage = { author = getUserDisplayName replyTo.From; text = getMessageBodyText replyTo }
+            let replyToMessage =
+                if isSelfMessage selfUserId replyTo
+                then extractSelfMessageContent replyTo
+                else extractMessageContent replyTo
             { main = mainMessage; replyTo = Some replyToMessage }
 
 let private processResultWithValue (logger: ILogger) (result: Result<'a, ApiResponseError>) =
