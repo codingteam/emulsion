@@ -162,7 +162,7 @@ module MessageConverter =
 
         { author = author; text = text }
 
-    let internal read (message: FunogramMessage): TelegramMessage =
+    let internal read (selfUserId: int64) (message: FunogramMessage): TelegramMessage =
         let mainAuthor = getUserDisplayName message.From
         let mainBody = getMessageBodyText message
         let mainMessage = { author = mainAuthor; text = mainBody }
@@ -187,7 +187,7 @@ let private updateArrived (logger: ILogger) onMessage (ctx: UpdateContext) =
     processCommands ctx [
         fun (msg, _) ->
             logger.Information("Incoming Telegram message: {Message}", msg)
-            onMessage (TelegramMessage(MessageConverter.read msg)); true
+            onMessage (TelegramMessage(MessageConverter.read ctx.Me.Id msg)); true
     ] |> ignore
 
 let internal prepareHtmlMessage { author = author; text = text }: string =

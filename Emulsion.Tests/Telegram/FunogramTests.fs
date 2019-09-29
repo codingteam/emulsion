@@ -68,7 +68,7 @@ let private replyingUser = createUser (Some "replyingUser") "" None
 let private forwardingUser = createUser (Some "forwardingUser") "" None
 
 module ReadMessageTests =
-    let readMessage = Funogram.MessageConverter.read
+    let readMessage = Funogram.MessageConverter.read 0L
 
     [<Fact>]
     let readMessageWithUnknownUser() =
