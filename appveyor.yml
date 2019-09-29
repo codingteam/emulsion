@@ -1,4 +1,4 @@
-os: Visual Studio 2017
+os: Visual Studio 2019
 skip_branch_with_pr: true
 environment:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
