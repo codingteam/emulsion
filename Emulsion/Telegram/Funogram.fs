@@ -189,7 +189,7 @@ module MessageConverter =
                 let authorNameLength = Math.Clamp(int32 section.Length, 0, text.Length - authorNameOffset)
                 let authorName = text.Substring(authorNameOffset, authorNameLength)
                 let messageTextOffset = Math.Clamp(authorNameOffset + authorNameLength + 1, 0, text.Length) // +1 for \n
-                let messageText = text.Substring(messageTextOffset)
+                let messageText = text.Substring messageTextOffset
                 { author = authorName; text = messageText }
 
     let internal read (selfUserId: int64) (message: FunogramMessage): TelegramMessage =
