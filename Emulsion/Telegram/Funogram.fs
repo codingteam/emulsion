@@ -178,7 +178,7 @@ module MessageConverter =
         match (message.Entities, message.Text) with
         | None, _ | _, None -> extractMessageContent message
         | Some entities, Some text ->
-            let boldEntity: MessageEntity option = Seq.tryFind (fun e -> e.Type = "bold") entities
+            let boldEntity = Seq.tryFind (fun (e: MessageEntity) -> e.Type = "bold") entities
             match boldEntity with
             | None -> extractMessageContent message
             | Some section ->
