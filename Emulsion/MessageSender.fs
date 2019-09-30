@@ -27,7 +27,7 @@ let private trySendMessage ctx msg = async {
         return false
 }
 
-let private processState ctx (state: State) = async {
+let private tryProcessTopMessage ctx (state: State) = async {
     if not state.ReadyToAcceptMessages then
         return state
     else
@@ -51,44 +51,38 @@ type Event =
 | SetReceiveStatus of bool
 
 type Sender = MailboxProcessor<Event>
-let private receiver ctx (inbox: Sender) =
+let internal receiver (ctx: MessageSenderContext) (inbox: Sender): Async<unit> =
     let rec loop (state: State) = async {
         ctx.Logger.Debug("Current queue state: {State}", state)
 
-        let processIncomingMessage msg = async {
-            let newState =
-                match msg with
-                | QueueMessage m ->
-                    let newMessages = Queue.conj m state.Messages
-                    { state with Messages = newMessages }
-                | SetReceiveStatus status ->
-                    { state with ReadyToAcceptMessages = status }
-            return! processState ctx newState
-        }
+        let calculateNewState msg =
+            match msg with
+            | QueueMessage m ->
+                let newMessages = Queue.conj m state.Messages
+                { state with Messages = newMessages }
+            | SetReceiveStatus status ->
+                { state with ReadyToAcceptMessages = status }
 
-        let blockAndProcessIncomingMessage() = async {
+        let blockAndProcessNextIncomingMessage() = async {
             let! msg = inbox.Receive()
-            return! processIncomingMessage msg
+            return! loop (calculateNewState msg)
         }
 
-        let! nextState =
+        // Always process the incoming queue first if there're anything there:
+        match! inbox.TryReceive 0 with
+        | Some msg ->
+            return! loop (calculateNewState msg)
+        | None ->
             match state.ReadyToAcceptMessages, state.Messages with
             | false, _ -> // We aren't permitted to send any messages, we have nothing other to do than block on the
                           // message queue.
-                blockAndProcessIncomingMessage()
+                return! blockAndProcessNextIncomingMessage()
             | true, Queue.Cons _ -> // We're permitted to send a message and the queue is not empty.
-                // Peek the queued message: maybe it's the `SetReceiveStatus false` which should have the priority over
-                // everything else. If there're no incoming messages, then just process the current state as usual.
-                async {
-                    match! inbox.TryReceive 0 with
-                    | Some msg -> return! processIncomingMessage msg
-                    | None -> return! processState ctx state
-                }
+                let! newState = tryProcessTopMessage ctx state
+                return! loop newState
             | true, Queue.Nil -> // We're allowed to send a message, but the queue is empty. We have nothing to send,
                                  // thus we have nothing to do other than to block on the message queue.
-                blockAndProcessIncomingMessage()
-
-        return! loop nextState
+                return! blockAndProcessNextIncomingMessage()
     }
     loop State.initial
 

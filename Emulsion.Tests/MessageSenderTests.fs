@@ -1,4 +1,4 @@
-module Emulsion.Tests.MessageSenderTests
+namespace Emulsion.Tests
 
 open System
 open System.Threading
@@ -21,9 +21,10 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
         RestartCooldown = TimeSpan.Zero
     }
 
-    [<Fact>]
-    member __.``Message sender sends the messages sequentially``(): unit =
-        use cts = new CancellationTokenSource()
+    let createSender ctx token =
+        new MailboxProcessor<_>(MessageSender.receiver ctx, token)
+
+    let createBufferedContext() =
         let buffer = LockedBuffer()
         let context = {
             testContext with
@@ -31,6 +32,12 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
                     buffer.Add m
                 }
         }
+        buffer, context
+
+    [<Fact>]
+    member __.``Message sender sends the messages sequentially``(): unit =
+        use cts = new CancellationTokenSource()
+        let buffer, context = createBufferedContext()
         let sender = MessageSender.startActivity(context, cts.Token)
         MessageSender.setReadyToAcceptMessages sender true
 
@@ -73,13 +80,7 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
     [<Fact>]
     member __.``Message sender does nothing when the system is not ready to process the messages``(): unit =
         use cts = new CancellationTokenSource()
-        let buffer = LockedBuffer()
-        let context = {
-            testContext with
-                Send = fun m -> async {
-                    buffer.Add m
-                }
-        }
+        let buffer, context = createBufferedContext()
         let sender = MessageSender.startActivity(context, cts.Token)
         let msg = OutgoingMessage { author = "author"; text = "xx" }
 
@@ -94,13 +95,7 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
     [<Fact>]
     member __.``Message sender should empty the queue before blocking on further messages``(): unit =
         use cts = new CancellationTokenSource()
-        let buffer = LockedBuffer()
-        let context = {
-            testContext with
-                Send = fun m -> async {
-                    buffer.Add m
-                }
-        }
+        let buffer, context = createBufferedContext()
         let sender = MessageSender.startActivity(context, cts.Token)
         MessageSender.setReadyToAcceptMessages sender false
         MessageSender.send sender (OutgoingMessage { author = "author"; text = "1" })
@@ -130,3 +125,20 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
 
         MessageSender.send sender (OutgoingMessage { author = "author"; text = "2" })
         waitForItemCount buffer 2 shortTimeout |> Assert.False
+
+    [<Fact>]
+    member __.``Message sender should process the queue first before sending any messages``(): unit =
+        use cts = new CancellationTokenSource()
+        let buffer, context = createBufferedContext()
+        let sender = createSender context cts.Token
+
+        // First, create the message queue:
+        MessageSender.setReadyToAcceptMessages sender true
+        MessageSender.send sender (OutgoingMessage { author = "author"; text = "1" })
+        MessageSender.send sender (OutgoingMessage { author = "author"; text = "2" })
+        MessageSender.send sender (OutgoingMessage { author = "author"; text = "3" })
+        MessageSender.setReadyToAcceptMessages sender false
+
+        // Now start the processor and check that the full queue was processed before sending any messages:
+        sender.Start()
+        waitForItemCountCond buffer (fun c -> c > 0) shortTimeout |> Assert.False
