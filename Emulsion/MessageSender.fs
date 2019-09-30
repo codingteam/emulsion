@@ -14,8 +14,8 @@ type MessageSenderContext = {
 
 type private State = {
     Messages: Queue<OutgoingMessage>
-    ReadyToAcceptMessages: bool
-} with static member initial = { Messages = Queue.empty; ReadyToAcceptMessages = false }
+    ClientReadyToSendMessages: bool
+} with static member initial = { Messages = Queue.empty; ClientReadyToSendMessages = false }
 
 let private trySendMessage ctx msg = async {
     try
@@ -28,7 +28,7 @@ let private trySendMessage ctx msg = async {
 }
 
 let private tryProcessTopMessage ctx (state: State) = async {
-    if not state.ReadyToAcceptMessages then
+    if not state.ClientReadyToSendMessages then
         return state
     else
         match state.Messages with
@@ -61,7 +61,7 @@ let internal receiver (ctx: MessageSenderContext) (inbox: Sender): Async<unit> =
                 let newMessages = Queue.conj m state.Messages
                 { state with Messages = newMessages }
             | SetReceiveStatus status ->
-                { state with ReadyToAcceptMessages = status }
+                { state with ClientReadyToSendMessages = status }
 
         let blockAndProcessNextIncomingMessage() = async {
             let! msg = inbox.Receive()
@@ -73,7 +73,7 @@ let internal receiver (ctx: MessageSenderContext) (inbox: Sender): Async<unit> =
         | Some msg ->
             return! loop (calculateNewState msg)
         | None ->
-            match state.ReadyToAcceptMessages, state.Messages with
+            match state.ClientReadyToSendMessages, state.Messages with
             | false, _ -> // We aren't permitted to send any messages, we have nothing other to do than block on the
                           // message queue.
                 return! blockAndProcessNextIncomingMessage()
