@@ -117,7 +117,10 @@ module MessageConverter =
             | None -> original
             | Some limit when original.text.Length <= limit -> original
             | Some limit ->
-                let newText = original.text.Substring(0, max 0 (limit - limits.dataRedactedMessage.Length))
+                let newText = original.text.Substring(0,
+                                                      Math.Clamp(limit - limits.dataRedactedMessage.Length,
+                                                                 0,
+                                                                 original.text.Length))
                 {| text = newText; wasLimited = true |}
 
         let applyLineLimit (original: {| text: string; wasLimited: bool |}) =
@@ -182,11 +185,10 @@ module MessageConverter =
             match boldEntity with
             | None -> extractMessageContent message
             | Some section ->
-                let authorNameOffset = min text.Length
-                                           (max 0 (int32 section.Offset))
-                let authorNameLength = min (text.Length - authorNameOffset) (int32 section.Length)
+                let authorNameOffset = Math.Clamp(int32 section.Offset, 0, text.Length)
+                let authorNameLength = Math.Clamp(int32 section.Length, 0, text.Length - authorNameOffset)
                 let authorName = text.Substring(authorNameOffset, authorNameLength)
-                let messageTextOffset = min text.Length (authorNameOffset + authorNameLength + 1) // 1 for \n
+                let messageTextOffset = Math.Clamp(authorNameOffset + authorNameLength + 1, 0, text.Length) // +1 for \n
                 let messageText = text.Substring(messageTextOffset)
                 { author = authorName; text = messageText }
 
