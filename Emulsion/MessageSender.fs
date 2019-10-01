@@ -50,28 +50,28 @@ type Event =
 | QueueMessage of OutgoingMessage
 | SetReceiveStatus of bool
 
+let private updateState state msg =
+    match msg with
+    | QueueMessage m ->
+        let newMessages = Queue.conj m state.Messages
+        { state with Messages = newMessages }
+    | SetReceiveStatus status ->
+        { state with ClientReadyToSendMessages = status }
+
 type Sender = MailboxProcessor<Event>
 let internal receiver (ctx: MessageSenderContext) (inbox: Sender): Async<unit> =
     let rec loop (state: State) = async {
         ctx.Logger.Debug("Current queue state: {State}", state)
 
-        let calculateNewState msg =
-            match msg with
-            | QueueMessage m ->
-                let newMessages = Queue.conj m state.Messages
-                { state with Messages = newMessages }
-            | SetReceiveStatus status ->
-                { state with ClientReadyToSendMessages = status }
-
         let blockAndProcessNextIncomingMessage() = async {
             let! msg = inbox.Receive()
-            return! loop (calculateNewState msg)
+            return! loop (updateState state msg)
         }
 
         // Always process the incoming queue first if there're anything there:
         match! inbox.TryReceive 0 with
         | Some msg ->
-            return! loop (calculateNewState msg)
+            return! loop (updateState state msg)
         | None ->
             match state.ClientReadyToSendMessages, state.Messages with
             | false, _ -> // We aren't permitted to send any messages, we have nothing other to do than block on the
