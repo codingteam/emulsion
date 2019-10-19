@@ -8,9 +8,10 @@ type XmppSettings =
       Room : string
       Nickname : string }
 
-type TelegramSettings =
-    { Token : string
-      GroupId : string }
+type TelegramSettings = {
+    Token: string
+    GroupId: int64
+}
 
 type LogSettings = {
     Directory: string
@@ -28,9 +29,10 @@ let read (config : IConfiguration) : EmulsionSettings =
           Password = section.["password"]
           Room = section.["room"]
           Nickname = section.["nickname"] }
-    let readTelegram (section : IConfigurationSection) =
-        { Token = section.["token"]
-          GroupId = section.["groupId"] }
+    let readTelegram (section : IConfigurationSection) = {
+        Token = section.["token"]
+        GroupId = int64 section.["groupId"]
+    }
     let readLog(section: IConfigurationSection) = {
         Directory = section.["directory"]
     }

@@ -7,7 +7,7 @@
     },
     "telegram": {
         "token": "999999999:aaaaaaaaaaaaaaaaaaaaaaaaa_777777777",
-        "groupId": "12312312312"
+        "groupId": 12312312312
     },
     "log": {
         "directory": "./logs/"

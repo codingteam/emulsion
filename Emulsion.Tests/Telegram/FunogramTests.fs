@@ -7,6 +7,10 @@ open Xunit
 
 open Emulsion
 open Emulsion.Telegram
+open Emulsion.Telegram.Funogram
+
+let private selfUserId = 100500L
+let private groupId = 200600L
 
 let private createUser username firstName lastName = {
     Id = 0L
@@ -16,9 +20,15 @@ let private createUser username firstName lastName = {
     LanguageCode = None
 }
 
+let private currentChat = {
+    defaultChat with
+        Id = groupId
+}
+
 let private createMessage from text : Funogram.Types.Message =
     { defaultMessage with
         From = from
+        Chat = currentChat
         Text = text }
 
 let private createReplyMessage from text replyTo : Funogram.Types.Message =
@@ -28,12 +38,14 @@ let private createReplyMessage from text replyTo : Funogram.Types.Message =
 let private createForwardedMessage from (forwarded: Funogram.Types.Message) =
     { defaultMessage with
         From = Some from
+        Chat = currentChat
         ForwardFrom = forwarded.From
         Text = forwarded.Text }
 
 let private createStickerMessage from emoji =
     { defaultMessage with
         From = Some from
+        Chat = currentChat
         Sticker = Some {
             FileId = ""
             Width = 0
@@ -62,14 +74,13 @@ let private createEntities t offset length url = Some <| seq {
     yield createEntity t offset length url
 }
 
-
 let private originalUser = createUser (Some "originalUser") "" None
 let private replyingUser = createUser (Some "replyingUser") "" None
 let private forwardingUser = createUser (Some "forwardingUser") "" None
 
 module ReadMessageTests =
-    let selfUserId = 100500L
-    let readMessage = Funogram.MessageConverter.read selfUserId
+    let readMessageOpt = MessageConverter.read { SelfUserId = selfUserId; GroupId = groupId }
+    let readMessage = readMessageOpt >> Option.get
 
     [<Fact>]
     let readMessageWithUnknownUser() =
@@ -268,6 +279,12 @@ module ReadMessageTests =
             telegramReplyMessage "@replyingUser" "reply text" (telegramMessage "Myself" "Tests").main,
             readMessage reply
         )
+
+    [<Fact>]
+    let messageFromOtherChatShouldBeIgnored(): unit =
+        let message = { createMessage (Some originalUser) (Some "test") with
+                          Chat = defaultChat }
+        Assert.Equal(None, readMessageOpt message)
 
 module FlattenMessageTests =
     let private flattenMessage = Funogram.MessageConverter.flatten Funogram.MessageConverter.DefaultQuoteSettings
