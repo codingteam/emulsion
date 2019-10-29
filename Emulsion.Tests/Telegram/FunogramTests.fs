@@ -79,8 +79,7 @@ let private replyingUser = createUser (Some "replyingUser") "" None
 let private forwardingUser = createUser (Some "forwardingUser") "" None
 
 module ReadMessageTests =
-    let readMessageOpt = MessageConverter.read { SelfUserId = selfUserId; GroupId = groupId }
-    let readMessage = readMessageOpt >> Option.get
+    let readMessage = MessageConverter.read selfUserId
 
     [<Fact>]
     let readMessageWithUnknownUser() =
@@ -280,11 +279,14 @@ module ReadMessageTests =
             readMessage reply
         )
 
+module ProcessMessageTests =
+    let private processMessage = Funogram.processMessage {| SelfUserId = selfUserId; GroupId = groupId |}
+
     [<Fact>]
     let messageFromOtherChatShouldBeIgnored(): unit =
         let message = { createMessage (Some originalUser) (Some "test") with
                           Chat = defaultChat }
-        Assert.Equal(None, readMessageOpt message)
+        Assert.Equal(None, processMessage message)
 
 module FlattenMessageTests =
     let private flattenMessage = Funogram.MessageConverter.flatten Funogram.MessageConverter.DefaultQuoteSettings

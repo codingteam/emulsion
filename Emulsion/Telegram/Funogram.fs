@@ -27,11 +27,6 @@ module MessageConverter =
         linePrefix: string
     }
 
-    type ReadMessageContext = {
-        SelfUserId: int64
-        GroupId: int64
-    }
-
     let DefaultQuoteSettings = {
         limits = {
             messageLengthLimit = Some 500
@@ -197,19 +192,16 @@ module MessageConverter =
                 let messageText = text.Substring messageTextOffset
                 { author = authorName; text = messageText }
 
-    let internal read (context: ReadMessageContext) (message: FunogramMessage): TelegramMessage option =
-        if message.Chat.Id <> context.GroupId
-        then None
-        else
-            let mainMessage = extractMessageContent message
-            match message.ReplyToMessage with
-            | None -> Some { main = mainMessage; replyTo = None }
-            | Some replyTo ->
-                let replyToMessage =
-                    if isSelfMessage context.SelfUserId replyTo
-                    then extractSelfMessageContent replyTo
-                    else extractMessageContent replyTo
-                Some { main = mainMessage; replyTo = Some replyToMessage }
+    let internal read (selfUserId: int64) (message: FunogramMessage): TelegramMessage =
+        let mainMessage = extractMessageContent message
+        match message.ReplyToMessage with
+        | None -> { main = mainMessage; replyTo = None }
+        | Some replyTo ->
+            let replyToMessage =
+                if isSelfMessage selfUserId replyTo
+                then extractSelfMessageContent replyTo
+                else extractMessageContent replyTo
+            { main = mainMessage; replyTo = Some replyToMessage }
 
 let private processResultWithValue (logger: ILogger) (result: Result<'a, ApiResponseError>) =
     match result with
@@ -221,15 +213,21 @@ let private processResultWithValue (logger: ILogger) (result: Result<'a, ApiResp
 let private processResult logger (result: Result<'a, ApiResponseError>) =
     processResultWithValue logger result |> ignore
 
+let internal processMessage (context: {| SelfUserId: int64; GroupId: int64 |})
+                            (message: FunogramMessage): TelegramMessage option =
+    if context.GroupId = message.Chat.Id
+    then Some <| MessageConverter.read context.SelfUserId message
+    else None
+
 let private updateArrived groupId (logger: ILogger) onMessage (ctx: UpdateContext) =
-    let readContext: MessageConverter.ReadMessageContext = {
+    let readContext = {|
         SelfUserId = ctx.Me.Id
         GroupId = groupId
-    }
+    |}
     processCommands ctx [
         fun (msg, _) ->
             logger.Information("Incoming Telegram message: {Message}", msg)
-            match MessageConverter.read readContext msg with
+            match processMessage readContext msg with
             | Some m -> onMessage(TelegramMessage m)
             | None -> logger.Warning "Message from unidentified source ignored"
             true
