@@ -6,7 +6,8 @@ emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
 Build
 -----
 
-Install [.NET Core SDK][dotnet-core-sdk] for your platform, then run:
+Install [.NET Core SDK][dotnet-core-sdk] 3.0 or newer for your platform, then
+run:
 
 ```console
 $ dotnet build
