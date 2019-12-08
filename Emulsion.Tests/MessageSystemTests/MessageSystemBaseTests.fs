@@ -23,7 +23,7 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
         let buffer = LockedBuffer()
         use cts = new CancellationTokenSource()
         let mutable enteredRunLoop = false
-        let tcs = new TaskCompletionSource<unit>()
+        let tcs = TaskCompletionSource<unit>()
         let messageSystem : IMessageSystem =
             upcast { new MessageSystemBase(context, cts.Token) with
                 member _.RunUntilError _ =
@@ -46,11 +46,17 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
         Assert.Equal(false, Volatile.Read &enteredRunLoop)
 
         let task = Async.StartAsTask(async { messageSystem.RunSynchronously ignore }, cancellationToken = cts.Token)
+
+        // Still no messages sent (because the task hasn't really been started yet):
+        waitForItemCount buffer 1 shortTimeout |> Assert.False
+        Assert.Equal(false, Volatile.Read &enteredRunLoop)
+
+        // Now allow the task to start:
         tcs.SetResult()
 
         // Now the system should have entered the run loop and the message should be sent:
         waitForItemCount buffer 1 defaultTimeout |> Assert.True
-        Assert.Equal(true, Volatile.Read &enteredRunLoop)
+        SpinWait.SpinUntil((fun () -> Volatile.Read &enteredRunLoop), shortTimeout) |> Assert.True
         Assert.Equal<OutgoingMessage>(Seq.singleton msg, buffer.All())
 
         // Terminate the system:
