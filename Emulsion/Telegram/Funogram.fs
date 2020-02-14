@@ -98,14 +98,13 @@ module MessageConverter =
 
     let private getMessageBodyText (message: FunogramMessage) =
         let text =
-            match message.Text with
-            | None ->
-                match message.Sticker with
-                | None -> "[DATA UNRECOGNIZED]"
-                | Some sticker ->
-                    let emoji = getEmoji sticker
-                    sprintf "[Sticker %s]" emoji
-            | Some text -> applyEntities message.Entities text
+            match message with
+            | { Text = Some text } -> applyEntities message.Entities text
+            | { Caption = Some caption } -> sprintf "[File with caption \"%s\"]" caption
+            | { Sticker = Some sticker }  ->
+                let emoji = getEmoji sticker
+                sprintf "[Sticker %s]" emoji
+            | _ -> "[DATA UNRECOGNIZED]"
 
         if Option.isSome message.ForwardFrom
         then getQuotedMessage DefaultQuoteSettings (getUserDisplayName message.ForwardFrom) text

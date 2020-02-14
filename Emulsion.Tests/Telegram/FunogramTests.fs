@@ -56,6 +56,12 @@ let private createStickerMessage from emoji =
         }
     }
 
+let private createMessageWithCaption from caption =
+    { defaultMessage with
+        From = Some from
+        Chat = currentChat
+        Caption = Some caption }
+
 let private telegramMessage author text =
     { main = { author = author; text = text }; replyTo = None }
 
@@ -258,6 +264,14 @@ module ReadMessageTests =
         let message = createStickerMessage originalUser (Some "🐙")
         Assert.Equal(
             telegramMessage "@originalUser" "[Sticker 🐙]",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readCaption(): unit =
+        let message = createMessageWithCaption originalUser "test"
+        Assert.Equal(
+            telegramMessage "@originalUser" "[File with caption \"test\"]",
             readMessage message
         )
 
