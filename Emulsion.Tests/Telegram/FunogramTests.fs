@@ -18,6 +18,7 @@ let private createUser username firstName lastName = {
     LastName = lastName
     Username = username
     LanguageCode = None
+    IsBot = false
 }
 
 let private currentChat = {
@@ -53,6 +54,8 @@ let private createStickerMessage from emoji =
             Thumb = None
             FileSize = None
             Emoji = emoji
+            SetName = None
+            MaskPosition = None
         }
     }
 

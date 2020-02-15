@@ -224,32 +224,33 @@ let private updateArrived groupId (logger: ILogger) onMessage (ctx: UpdateContex
         GroupId = groupId
     |}
     processCommands ctx [
-        fun (msg, _) ->
-            logger.Information("Incoming Telegram message: {Message}", msg)
-            match processMessage readContext msg with
-            | Some m -> onMessage(TelegramMessage m)
-            | None -> logger.Warning "Message from unidentified source ignored"
-            true
-        ] |> ignore
+        fun ctx ->
+            match ctx.Update.Message with
+            | Some msg ->
+                logger.Information("Incoming Telegram message: {Message}", msg)
+                match processMessage readContext msg with
+                | Some m -> onMessage(TelegramMessage m)
+                | None -> logger.Warning "Message from unidentified source ignored"
+                true
+            | _ -> false
+    ] |> ignore
 
 let internal prepareHtmlMessage { author = author; text = text }: string =
     sprintf "<b>%s</b>\n%s" (Html.escape author) (Html.escape text)
 
-let send (logger: ILogger) (settings: TelegramSettings) (OutgoingMessage content): Async<unit> =
+let send (logger: ILogger) (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =
     let sendHtmlMessage groupId text =
         sendMessageBase groupId text (Some ParseMode.HTML) None None None None
 
     let groupId = Int(int64 settings.GroupId)
     let message = prepareHtmlMessage content
     async {
-        let! result = api settings.Token (sendHtmlMessage groupId message)
+        let! result = api botConfig (sendHtmlMessage groupId message)
         return processResult logger result
     }
 
 let run (logger: ILogger)
         (settings: TelegramSettings)
-        (cancellationToken: CancellationToken)
-        (onMessage: IncomingMessage -> unit): unit =
-    // TODO[F]: Update Funogram and don't ignore the cancellation token here.
-    let config = { defaultConfig with Token = settings.Token }
-    Bot.startBot config (updateArrived settings.GroupId logger onMessage) None
+        (botConfig: BotConfig)
+        (onMessage: IncomingMessage -> unit): Async<unit> =
+    Bot.startBot botConfig (updateArrived settings.GroupId logger onMessage) None
