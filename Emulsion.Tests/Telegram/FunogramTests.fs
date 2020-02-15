@@ -2,7 +2,7 @@ module Emulsion.Tests.Telegram.Client
 
 open System
 
-open Funogram.Types
+open Funogram.Telegram.Types
 open Xunit
 
 open Emulsion
@@ -26,17 +26,17 @@ let private currentChat = {
         Id = groupId
 }
 
-let private createMessage from text : Funogram.Types.Message =
+let private createMessage from text : Funogram.Telegram.Types.Message =
     { defaultMessage with
         From = from
         Chat = currentChat
         Text = text }
 
-let private createReplyMessage from text replyTo : Funogram.Types.Message =
+let private createReplyMessage from text replyTo : Funogram.Telegram.Types.Message =
     { createMessage from text with
         ReplyToMessage = (Some replyTo) }
 
-let private createForwardedMessage from (forwarded: Funogram.Types.Message) =
+let private createForwardedMessage from (forwarded: Funogram.Telegram.Types.Message) =
     { defaultMessage with
         From = Some from
         Chat = currentChat
@@ -56,6 +56,7 @@ let private createStickerMessage from emoji =
             Emoji = emoji
             SetName = None
             MaskPosition = None
+            IsAnimated = false
         }
     }
 

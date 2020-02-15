@@ -2,10 +2,9 @@ module Emulsion.Telegram.Funogram
 
 open System
 open System.Text
-open System.Threading
 
-open Funogram
-open Funogram.Bot
+open Funogram.Telegram
+open Funogram.Telegram.Types
 open Funogram.Api
 open Funogram.Types
 open Serilog
@@ -13,7 +12,7 @@ open Serilog
 open Emulsion
 open Emulsion.Settings
 
-type private FunogramMessage = Funogram.Types.Message
+type private FunogramMessage = Funogram.Telegram.Types.Message
 
 module MessageConverter =
     type MessageLimits = {
@@ -218,12 +217,12 @@ let internal processMessage (context: {| SelfUserId: int64; GroupId: int64 |})
     then Some <| MessageConverter.read context.SelfUserId message
     else None
 
-let private updateArrived groupId (logger: ILogger) onMessage (ctx: UpdateContext) =
+let private updateArrived groupId (logger: ILogger) onMessage (ctx: Bot.UpdateContext) =
     let readContext = {|
         SelfUserId = ctx.Me.Id
         GroupId = groupId
     |}
-    processCommands ctx [
+    Bot.processCommands ctx [
         fun ctx ->
             match ctx.Update.Message with
             | Some msg ->
@@ -240,7 +239,7 @@ let internal prepareHtmlMessage { author = author; text = text }: string =
 
 let send (logger: ILogger) (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =
     let sendHtmlMessage groupId text =
-        sendMessageBase groupId text (Some ParseMode.HTML) None None None None
+        Api.sendMessageBase groupId text (Some ParseMode.HTML) None None None None
 
     let groupId = Int(int64 settings.GroupId)
     let message = prepareHtmlMessage content

@@ -8,7 +8,7 @@ open Emulsion.Settings
 type Client(ctx: ServiceContext, cancellationToken: CancellationToken, settings: TelegramSettings) =
     inherit MessageSystemBase(ctx, cancellationToken)
 
-    let botConfig = { Funogram.Bot.defaultConfig with Token = settings.Token }
+    let botConfig = { Funogram.Telegram.Bot.defaultConfig with Token = settings.Token }
 
     override _.RunUntilError receiver = async {
         // Run loop of Telegram is in no need for complicated start, so just return an async that will perform it:
