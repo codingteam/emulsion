@@ -275,7 +275,17 @@ module ReadMessageTests =
     let readCaption(): unit =
         let message = createMessageWithCaption originalUser "test"
         Assert.Equal(
-            telegramMessage "@originalUser" "[File with caption \"test\"]",
+            telegramMessage "@originalUser" "[Content with caption \"test\"]",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readCaptionLinkMessage() =
+        let message = { createMessageWithCaption originalUser "Original text" with
+                            CaptionEntities = createEntities "text_link" 0L 8L "https://example.com" }
+
+        Assert.Equal(
+            telegramMessage "@originalUser" "[Content with caption \"Original [https://example.com] text\"]",
             readMessage message
         )
 

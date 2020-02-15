@@ -99,7 +99,9 @@ module MessageConverter =
         let text =
             match message with
             | { Text = Some text } -> applyEntities message.Entities text
-            | { Caption = Some caption } -> sprintf "[File with caption \"%s\"]" caption
+            | { Caption = Some caption } ->
+                let caption = applyEntities message.CaptionEntities caption
+                sprintf "[Content with caption \"%s\"]" caption
             | { Sticker = Some sticker }  ->
                 let emoji = getEmoji sticker
                 sprintf "[Sticker %s]" emoji
