@@ -66,6 +66,25 @@ let private createMessageWithCaption from caption =
         Chat = currentChat
         Caption = Some caption }
 
+let private createPoll from (question: string) (options: string[]) =
+    let options =
+        options
+        |> Array.map (fun opt -> {
+            Text = opt
+            VoterCount = 0
+        })
+
+    let poll: Poll =
+        { Id = ""
+          Question = question
+          Options = options
+          IsClosed = false }
+
+    { defaultMessage with
+        From = Some from
+        Chat = currentChat
+        Poll = Some poll }
+
 let private telegramMessage author text =
     { main = { author = author; text = text }; replyTo = None }
 
@@ -286,6 +305,14 @@ module ReadMessageTests =
 
         Assert.Equal(
             telegramMessage "@originalUser" "[Content with caption \"Original [https://example.com] text\"]",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readPollMessage() =
+        let message = createPoll originalUser "Question?" [|"Option 1"; "Option 2"|]
+        Assert.Equal(
+            telegramMessage "@originalUser" "[Poll] Question?\n- Option 1\n- Option 2",
             readMessage message
         )
 
