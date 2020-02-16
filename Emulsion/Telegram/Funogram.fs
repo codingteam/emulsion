@@ -64,6 +64,12 @@ module MessageConverter =
     let private getEmoji(sticker: Sticker) =
         Option.defaultValue "UNKNOWN" sticker.Emoji
 
+    let private getPollText (poll: Poll) =
+        let result = StringBuilder().Append(poll.Question)
+        for option in poll.Options do
+            result.AppendFormat("\n- {0}", option.Text) |> ignore
+        result.ToString()
+
     let private applyEntities entities (text: string) =
         match entities with
         | None -> text
@@ -105,6 +111,9 @@ module MessageConverter =
             | { Sticker = Some sticker }  ->
                 let emoji = getEmoji sticker
                 sprintf "[Sticker %s]" emoji
+            | { Poll = Some poll } ->
+                let text = getPollText poll
+                sprintf "[Poll] %s" text
             | _ -> "[DATA UNRECOGNIZED]"
 
         if Option.isSome message.ForwardFrom
