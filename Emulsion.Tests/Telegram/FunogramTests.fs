@@ -32,6 +32,11 @@ let private createMessage from text : Funogram.Telegram.Types.Message =
         Chat = currentChat
         Text = text }
 
+let private createEmptyMessage from : Funogram.Telegram.Types.Message =
+    { defaultMessage with
+        From = Some from
+        Chat = currentChat }
+
 let private createReplyMessage from text replyTo : Funogram.Telegram.Types.Message =
     { createMessage from text with
         ReplyToMessage = (Some replyTo) }
@@ -313,6 +318,29 @@ module ReadMessageTests =
         let message = createPoll originalUser "Question?" [|"Option 1"; "Option 2"|]
         Assert.Equal(
             telegramMessage "@originalUser" "[Poll] Question?\n- Option 1\n- Option 2",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readNewChatMembers() =
+        let newUsers = seq {
+            createUser None "FirstName1" None
+            createUser None "FirstName2" None
+        }
+        let message = { createEmptyMessage originalUser with NewChatMembers = Some newUsers }
+
+        Assert.Equal(
+            telegramMessage "@originalUser" "[FirstName1 has entered the chat]\n[FirstName2 has entered the chat]",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readLeftChatMember() =
+        let user = createUser None "FirstName1" None
+        let message = { createEmptyMessage originalUser with LeftChatMember = Some user }
+
+        Assert.Equal(
+            telegramMessage "@originalUser" "[FirstName1 has left the chat]",
             readMessage message
         )
 

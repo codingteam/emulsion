@@ -41,15 +41,15 @@ module MessageConverter =
         dataRedactedMessage = ""
     }
 
-    let private getUserDisplayName: User option -> string = function
+    let private getUserDisplayName (user: User) =
+        match user with
+        | { Username = Some username } -> sprintf "@%s" username
+        | { LastName = Some lastName } -> sprintf "%s %s" user.FirstName lastName
+        | _ -> user.FirstName
+
+    let private getOptionalUserDisplayName: User option -> string = function
+    | Some user -> getUserDisplayName user
     | None -> "[UNKNOWN USER]"
-    | Some user ->
-        match user.Username with
-        | Some username -> sprintf "@%s" username
-        | None ->
-            match user.LastName with
-            | Some lastName -> sprintf "%s %s" user.FirstName lastName
-            | None -> user.FirstName
 
     let private getTextLinkEntity = function
     | { Type = "text_link"; Url = Some url; Offset = o; Length = l }
@@ -108,16 +108,22 @@ module MessageConverter =
             | { Caption = Some caption } ->
                 let caption = applyEntities message.CaptionEntities caption
                 sprintf "[Content with caption \"%s\"]" caption
-            | { Sticker = Some sticker }  ->
+            | { Sticker = Some sticker } ->
                 let emoji = getEmoji sticker
                 sprintf "[Sticker %s]" emoji
             | { Poll = Some poll } ->
                 let text = getPollText poll
                 sprintf "[Poll] %s" text
+            | { NewChatMembers = Some users } ->
+                users
+                |> Seq.map (fun user -> sprintf "[%s has entered the chat]" (getUserDisplayName user))
+                |> String.concat "\n"
+            | { LeftChatMember = Some user } ->
+                sprintf "[%s has left the chat]" (getUserDisplayName user)
             | _ -> "[DATA UNRECOGNIZED]"
 
         if Option.isSome message.ForwardFrom
-        then getQuotedMessage DefaultQuoteSettings (getUserDisplayName message.ForwardFrom) text
+        then getQuotedMessage DefaultQuoteSettings (getOptionalUserDisplayName message.ForwardFrom) text
         else text
 
     let private applyLimits limits text =
@@ -180,7 +186,7 @@ module MessageConverter =
         | None -> false
 
     let private extractMessageContent(message: FunogramMessage) =
-        let mainAuthor = getUserDisplayName message.From
+        let mainAuthor = getOptionalUserDisplayName message.From
         let mainBody = getMessageBodyText message
         { author = mainAuthor; text = mainBody }
 
