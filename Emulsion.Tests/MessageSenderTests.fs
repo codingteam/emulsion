@@ -42,10 +42,10 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
         MessageSender.setReadyToAcceptMessages sender true
 
         let messagesSent = [| 1..100 |] |> Array.map (fun i ->
-            OutgoingMessage {
+            OutgoingMessage (Authored {
                 author = "author"
                 text = string i
-            }
+            })
         )
         messagesSent |> Array.iter(MessageSender.send sender)
 
@@ -66,7 +66,7 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
             let sender = MessageSender.startActivity(context, cts.Token)
             cts.Cancel()
 
-            let msg = OutgoingMessage { author = "author"; text = "xx" }
+            let msg = OutgoingMessage (Authored { author = "author"; text = "xx" })
             MessageSender.send sender msg
 
             let getErrors() =
@@ -82,7 +82,7 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
         use cts = new CancellationTokenSource()
         let buffer, context = createBufferedContext()
         let sender = MessageSender.startActivity(context, cts.Token)
-        let msg = OutgoingMessage { author = "author"; text = "xx" }
+        let msg = OutgoingMessage (Authored { author = "author"; text = "xx" })
 
         MessageSender.setReadyToAcceptMessages sender true
         MessageSender.send sender msg
@@ -98,8 +98,8 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
         let buffer, context = createBufferedContext()
         let sender = MessageSender.startActivity(context, cts.Token)
         MessageSender.setReadyToAcceptMessages sender false
-        MessageSender.send sender (OutgoingMessage { author = "author"; text = "1" })
-        MessageSender.send sender (OutgoingMessage { author = "author"; text = "2" })
+        MessageSender.send sender (OutgoingMessage (Authored { author = "author"; text = "1" }))
+        MessageSender.send sender (OutgoingMessage (Authored { author = "author"; text = "2" }))
         MessageSender.setReadyToAcceptMessages sender true
         waitForItemCount buffer 2 defaultTimeout |> Assert.True
 
@@ -120,10 +120,10 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
 
         // This will send a message and block the second one:
         MessageSender.setReadyToAcceptMessages sender true
-        MessageSender.send sender (OutgoingMessage { author = "author"; text = "1" })
+        MessageSender.send sender (OutgoingMessage (Authored { author = "author"; text = "1" }))
         waitForItemCount buffer 1 defaultTimeout |> Assert.True
 
-        MessageSender.send sender (OutgoingMessage { author = "author"; text = "2" })
+        MessageSender.send sender (OutgoingMessage (Authored { author = "author"; text = "2" }))
         waitForItemCount buffer 2 shortTimeout |> Assert.False
 
     [<Fact>]
@@ -134,9 +134,9 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
 
         // First, create the message queue:
         MessageSender.setReadyToAcceptMessages sender true
-        MessageSender.send sender (OutgoingMessage { author = "author"; text = "1" })
-        MessageSender.send sender (OutgoingMessage { author = "author"; text = "2" })
-        MessageSender.send sender (OutgoingMessage { author = "author"; text = "3" })
+        MessageSender.send sender (OutgoingMessage (Authored { author = "author"; text = "1" }))
+        MessageSender.send sender (OutgoingMessage (Authored { author = "author"; text = "2" }))
+        MessageSender.send sender (OutgoingMessage (Authored { author = "author"; text = "3" }))
         MessageSender.setReadyToAcceptMessages sender false
 
         // Now start the processor and check that the full queue was processed before sending any messages:

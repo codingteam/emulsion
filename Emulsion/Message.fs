@@ -1,10 +1,19 @@
 namespace Emulsion
 
 [<Struct>]
-type Message = {
-    author : string
-    text : string
+type AuthoredMessage = {
+    author: string
+    text: string
 }
+
+[<Struct>]
+type EventMessage = {
+    text: string
+}
+
+type Message =
+| Authored of AuthoredMessage
+| Event of EventMessage
 
 type OutgoingMessage =
 | OutgoingMessage of Message

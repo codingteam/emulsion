@@ -22,7 +22,7 @@ type TelegramTest(testOutput: ITestOutputHelper) =
                     sentMessage <- Some message
         }
         let actor = Telegram.spawn (Logging.xunitLogger testOutput) telegram this.Sys "telegram"
-        let msg = OutgoingMessage { author = "x"; text = "message" }
+        let msg = OutgoingMessage (Authored { author = "x"; text = "message" })
         actor.Tell(msg, this.TestActor)
         this.ExpectNoMsg()
         Assert.Equal(Some msg, sentMessage)

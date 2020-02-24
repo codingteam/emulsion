@@ -22,7 +22,7 @@ type XmppTest(testOutput: ITestOutputHelper) =
                     sentMessage <- Some message
         }
         let actor = Xmpp.spawn (Logging.xunitLogger testOutput) xmpp this.Sys "xmpp"
-        let message = OutgoingMessage { author = "@nickname"; text = "message" }
+        let message = OutgoingMessage (Authored { author = "@nickname"; text = "message" })
         actor.Tell(message, this.TestActor)
         this.ExpectNoMsg()
         Assert.Equal(Some message, sentMessage)

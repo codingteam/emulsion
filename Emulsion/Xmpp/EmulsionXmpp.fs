@@ -68,7 +68,10 @@ let send (logger: ILogger)
          (lifetime: Lifetime)
          (settings: XmppSettings)
          (message: Message): Async<unit> = async {
-    let text = sprintf "<%s> %s" message.author message.text
+    let text =
+        match message with
+        | Authored msg -> sprintf "<%s> %s" msg.author msg.text
+        | Event msg -> sprintf "%s" msg.text
     let message = { RecipientJid = JID(settings.Room); Text = text }
     let! deliveryInfo = XmppClient.sendRoomMessage client lifetime message
     logger.Information("Message {MessageId} has been sent; awaiting delivery", deliveryInfo.MessageId)

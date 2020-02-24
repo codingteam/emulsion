@@ -42,11 +42,11 @@ type CoreTests(testOutput: ITestOutputHelper) as this =
     [<Fact>]
     member this.``Core sends XMPP message to Telegram actor``() =
         let core = spawnCore()
-        core.Tell(XmppMessage { author = "xxx"; text = "x" })
-        telegramActor.ExpectMsg(OutgoingMessage { author = "xxx"; text = "x" })
+        core.Tell(XmppMessage (Authored { author = "xxx"; text = "x" }))
+        telegramActor.ExpectMsg(OutgoingMessage (Authored { author = "xxx"; text = "x" }))
 
     [<Fact>]
     member this.``Core sends Telegram message to XMPP actor``() =
         let core = spawnCore()
-        core.Tell(TelegramMessage { main = { author = "Telegram user"; text = "x" }; replyTo = None })
-        xmppActor.ExpectMsg(OutgoingMessage { author = "Telegram user"; text = "x" })
+        core.Tell(TelegramMessage { main = Authored { author = "Telegram user"; text = "x" }; replyTo = None })
+        xmppActor.ExpectMsg(OutgoingMessage (Authored { author = "Telegram user"; text = "x" }))

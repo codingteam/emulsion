@@ -90,11 +90,14 @@ let private createPoll from (question: string) (options: string[]) =
         Chat = currentChat
         Poll = Some poll }
 
-let private telegramMessage author text =
-    { main = { author = author; text = text }; replyTo = None }
+let private authoredTelegramMessage author text =
+    { main = Authored { author = author; text = text }; replyTo = None }
 
-let private telegramReplyMessage author text replyTo =
-    { main = { author = author; text = text }; replyTo = Some replyTo }
+let private authoredTelegramReplyMessage author text replyTo =
+    { main = Authored { author = author; text = text }; replyTo = Some replyTo }
+
+let private eventTelegramMessage text =
+    { main = Event { text = text }; replyTo = None }
 
 let private createEntity t offset length url = {
     Type = t
@@ -118,7 +121,7 @@ module ReadMessageTests =
     [<Fact>]
     let readMessageWithUnknownUser() =
         Assert.Equal(
-            telegramMessage "[UNKNOWN USER]" "",
+            authoredTelegramMessage "[UNKNOWN USER]" "",
             readMessage (createMessage None (Some ""))
         )
 
@@ -126,7 +129,7 @@ module ReadMessageTests =
     let readMessageWithKnownUsername() =
         let user = createUser (Some "Username") "" None
         Assert.Equal(
-            telegramMessage "@Username" "",
+            authoredTelegramMessage "@Username" "",
             readMessage (createMessage (Some user) (Some ""))
         )
 
@@ -134,7 +137,7 @@ module ReadMessageTests =
     let readMessageWithFullName() =
         let user = createUser None "FirstName" (Some "LastName")
         Assert.Equal(
-            telegramMessage "FirstName LastName" "",
+            authoredTelegramMessage "FirstName LastName" "",
             readMessage (createMessage (Some user) (Some ""))
         )
 
@@ -142,21 +145,21 @@ module ReadMessageTests =
     let readMessageWithFirstNameOnly() =
         let user = createUser None "FirstName" None
         Assert.Equal(
-            telegramMessage "FirstName" "",
+            authoredTelegramMessage "FirstName" "",
             readMessage (createMessage (Some user) (Some ""))
         )
 
     [<Fact>]
     let readMessageWithText() =
         Assert.Equal(
-            telegramMessage "[UNKNOWN USER]" "text",
+            authoredTelegramMessage "[UNKNOWN USER]" "text",
             readMessage (createMessage None (Some "text"))
         )
 
     [<Fact>]
     let readMessageWithoutText() =
         Assert.Equal(
-            telegramMessage "[UNKNOWN USER]" "[DATA UNRECOGNIZED]",
+            authoredTelegramMessage "[UNKNOWN USER]" "[DATA UNRECOGNIZED]",
             readMessage (createMessage None None)
         )
 
@@ -166,8 +169,8 @@ module ReadMessageTests =
         let replyMessage = createReplyMessage (Some replyingUser) (Some "Reply text") originalMessage
 
         Assert.Equal(
-            { main = { author = "@replyingUser"; text = "Reply text" }
-              replyTo = Some { author = "@originalUser"; text = "Original text" } },
+            { main = Authored { author = "@replyingUser"; text = "Reply text" }
+              replyTo = Some (Authored { author = "@originalUser"; text = "Original text" }) },
             readMessage replyMessage
         )
 
@@ -177,7 +180,7 @@ module ReadMessageTests =
                             Entities = createEntities "text_link" 0L 8L "https://example.com" }
 
         Assert.Equal(
-            telegramMessage "@originalUser" "Original [https://example.com] text",
+            authoredTelegramMessage "@originalUser" "Original [https://example.com] text",
             readMessage message
         )
 
@@ -187,7 +190,7 @@ module ReadMessageTests =
                             Entities = Some <| upcast [| createEntity "text_link" 0L 8L "https://example.com/1"
                                                          createEntity "text_link" 9L 4L "https://example.com/2" |] }
         Assert.Equal(
-            telegramMessage "@originalUser" "Original [https://example.com/1] text [https://example.com/2]",
+            authoredTelegramMessage "@originalUser" "Original [https://example.com/1] text [https://example.com/2]",
             readMessage message
         )
 
@@ -196,7 +199,7 @@ module ReadMessageTests =
         let message = { createMessage (Some originalUser) (Some "Original text") with
                             Entities = createEntities "text_link" 0L 800L "https://example.com" }
         Assert.Equal(
-            telegramMessage "@originalUser" "Original text [https://example.com]",
+            authoredTelegramMessage "@originalUser" "Original text [https://example.com]",
             readMessage message
         )
 
@@ -205,7 +208,7 @@ module ReadMessageTests =
         let message = { createMessage (Some originalUser) (Some "Original text") with
                             Entities = createEntities "text_link" -1L 5L "https://example.com" }
         Assert.Equal(
-            telegramMessage "@originalUser" "Original text",
+            authoredTelegramMessage "@originalUser" "Original text",
             readMessage message
         )
 
@@ -214,7 +217,7 @@ module ReadMessageTests =
         let message = { createMessage (Some originalUser) (Some "Original text") with
                             Entities = createEntities "text_link" 0L 0L "https://example.com" }
         Assert.Equal(
-            telegramMessage "@originalUser" "Original text",
+            authoredTelegramMessage "@originalUser" "Original text",
             readMessage message
         )
 
@@ -223,7 +226,7 @@ module ReadMessageTests =
         let message = { createMessage (Some originalUser) (Some "Original text") with
                             Entities = createEntities "text_link" Int64.MaxValue Int64.MaxValue "https://example.com" }
         Assert.Equal(
-            telegramMessage "@originalUser" "Original text",
+            authoredTelegramMessage "@originalUser" "Original text",
             readMessage message
         )
 
@@ -233,7 +236,7 @@ module ReadMessageTests =
                             Entities = Some <| upcast [| createEntity "text_link" 0L 8L "https://example.com/1"
                                                          createEntity "text_link" 0L 13L "https://example.com/2" |] }
         Assert.Equal(
-            telegramMessage "@originalUser" "Original [https://example.com/1] text [https://example.com/2]",
+            authoredTelegramMessage "@originalUser" "Original [https://example.com/1] text [https://example.com/2]",
             readMessage message
         )
 
@@ -242,7 +245,7 @@ module ReadMessageTests =
         let message = { createMessage (Some originalUser) (Some "Original text") with
                             Entities = createEntities "not_link" 0L 0L "https://example.com" }
         Assert.Equal(
-            telegramMessage "@originalUser" "Original text",
+            authoredTelegramMessage "@originalUser" "Original text",
             readMessage message
         )
 
@@ -255,7 +258,7 @@ module ReadMessageTests =
                                                            Length = 5L
                                                            User = None } |] }
         Assert.Equal(
-            telegramMessage "@originalUser" "Original text",
+            authoredTelegramMessage "@originalUser" "Original text",
             readMessage message
         )
 
@@ -265,7 +268,7 @@ module ReadMessageTests =
         let message = createForwardedMessage forwardingUser forwardedMessage
 
         Assert.Equal(
-            telegramMessage "@forwardingUser" ">> <@originalUser> test",
+            authoredTelegramMessage "@forwardingUser" ">> <@originalUser> test",
             readMessage message
         )
 
@@ -275,7 +278,7 @@ module ReadMessageTests =
         let message = createForwardedMessage forwardingUser forwardedMessage
 
         Assert.Equal(
-            telegramMessage "@forwardingUser" ">> <@originalUser> test\n>> test",
+            authoredTelegramMessage "@forwardingUser" ">> <@originalUser> test\n>> test",
             readMessage message
         )
 
@@ -283,7 +286,7 @@ module ReadMessageTests =
     let readUnknownSticker(): unit =
         let message = createStickerMessage originalUser None
         Assert.Equal(
-            telegramMessage "@originalUser" "[Sticker UNKNOWN]",
+            authoredTelegramMessage "@originalUser" "[Sticker UNKNOWN]",
             readMessage message
         )
 
@@ -291,7 +294,7 @@ module ReadMessageTests =
     let readSticker(): unit =
         let message = createStickerMessage originalUser (Some "🐙")
         Assert.Equal(
-            telegramMessage "@originalUser" "[Sticker 🐙]",
+            authoredTelegramMessage "@originalUser" "[Sticker 🐙]",
             readMessage message
         )
 
@@ -299,7 +302,7 @@ module ReadMessageTests =
     let readCaption(): unit =
         let message = createMessageWithCaption originalUser "test"
         Assert.Equal(
-            telegramMessage "@originalUser" "[Content with caption \"test\"]",
+            authoredTelegramMessage "@originalUser" "[Content with caption \"test\"]",
             readMessage message
         )
 
@@ -309,7 +312,7 @@ module ReadMessageTests =
                             CaptionEntities = createEntities "text_link" 0L 8L "https://example.com" }
 
         Assert.Equal(
-            telegramMessage "@originalUser" "[Content with caption \"Original [https://example.com] text\"]",
+            authoredTelegramMessage "@originalUser" "[Content with caption \"Original [https://example.com] text\"]",
             readMessage message
         )
 
@@ -317,7 +320,34 @@ module ReadMessageTests =
     let readPollMessage() =
         let message = createPoll originalUser "Question?" [|"Option 1"; "Option 2"|]
         Assert.Equal(
-            telegramMessage "@originalUser" "[Poll] Question?\n- Option 1\n- Option 2",
+            authoredTelegramMessage "@originalUser" "[Poll] Question?\n- Option 1\n- Option 2",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readUserEntersChat() =
+        let message = { createEmptyMessage originalUser with
+                            NewChatMembers = Some <| seq { originalUser } }
+        Assert.Equal(
+            eventTelegramMessage "@originalUser has entered the chat",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readUserLeftChat() =
+        let message = { createEmptyMessage originalUser with
+                            LeftChatMember = Some originalUser }
+        Assert.Equal(
+            eventTelegramMessage "@originalUser has left the chat",
+            readMessage message
+        )
+
+    let readAddedChatMember() =
+        let newUser = createUser None "FirstName1" None
+        let message = { createEmptyMessage originalUser with
+                            NewChatMembers = Some <| seq { newUser } }
+        Assert.Equal(
+            eventTelegramMessage "@originalUser has added FirstName1 the chat",
             readMessage message
         )
 
@@ -330,7 +360,21 @@ module ReadMessageTests =
         let message = { createEmptyMessage originalUser with NewChatMembers = Some newUsers }
 
         Assert.Equal(
-            telegramMessage "@originalUser" "[FirstName1 has entered the chat]\n[FirstName2 has entered the chat]",
+            eventTelegramMessage "@originalUser has added FirstName1 and FirstName2 to the chat",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readMoreChatMembers() =
+        let newUsers = seq {
+            createUser None "FirstName1" None
+            createUser None "FirstName2" None
+            createUser None "FirstName3" None
+        }
+        let message = { createEmptyMessage originalUser with NewChatMembers = Some newUsers }
+
+        Assert.Equal(
+            eventTelegramMessage "@originalUser has added FirstName1, FirstName2, and FirstName3 to the chat",
             readMessage message
         )
 
@@ -340,7 +384,7 @@ module ReadMessageTests =
         let message = { createEmptyMessage originalUser with LeftChatMember = Some user }
 
         Assert.Equal(
-            telegramMessage "@originalUser" "[FirstName1 has left the chat]",
+            eventTelegramMessage "@originalUser has removed FirstName1 from the chat",
             readMessage message
         )
 
@@ -358,7 +402,7 @@ module ReadMessageTests =
                                                 User = None } } }
         let reply = createReplyMessage (Some replyingUser) (Some "reply text") originalMessage
         Assert.Equal(
-            telegramReplyMessage "@replyingUser" "reply text" (telegramMessage "Myself" "Tests").main,
+            authoredTelegramReplyMessage "@replyingUser" "reply text" (authoredTelegramMessage "Myself" "Tests").main,
             readMessage reply
         )
 
@@ -381,38 +425,38 @@ module FlattenMessageTests =
 
     [<Fact>]
     let flattenReplyMessage() =
-        let originalMessage = telegramMessage "@originalUser" "Original text"
-        let replyMessage = telegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
+        let originalMessage = authoredTelegramMessage "@originalUser" "Original text"
+        let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
         Assert.Equal(
-            { author = "@replyingUser"; text = ">> <@originalUser> Original text\nReply text" },
+            Authored { author = "@replyingUser"; text = ">> <@originalUser> Original text\nReply text" },
             flattenMessage replyMessage
         )
 
     [<Fact>]
     let flattenMultilineReplyMessage() =
-        let originalMessage = telegramMessage "@originalUser" "1\n2\n3"
-        let replyMessage = telegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
+        let originalMessage = authoredTelegramMessage "@originalUser" "1\n2\n3"
+        let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
         Assert.Equal(
-            { author = "@replyingUser"; text = ">> <@originalUser> 1\n>> 2\n>> 3\nReply text" },
+            Authored { author = "@replyingUser"; text = ">> <@originalUser> 1\n>> 2\n>> 3\nReply text" },
             flattenMessage replyMessage
         )
 
     [<Fact>]
     let flattenOverquotedReplyMessage() =
-        let originalMessage = telegramMessage "@originalUser" "1\n2\n3\n4"
-        let replyMessage = telegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
+        let originalMessage = authoredTelegramMessage "@originalUser" "1\n2\n3\n4"
+        let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
         Assert.Equal(
-            { author = "@replyingUser"; text = ">> <@originalUser> 1\n>> 2\n>> […]\nReply text" },
+            Authored { author = "@replyingUser"; text = ">> <@originalUser> 1\n>> 2\n>> […]\nReply text" },
             flattenMessage replyMessage
         )
 
     [<Fact>]
     let flattenOverlongReplyMessage() =
-        let originalMessage = telegramMessage "@originalUser" "1234567890"
-        let replyMessage = telegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
+        let originalMessage = authoredTelegramMessage "@originalUser" "1234567890"
+        let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
 
         Assert.Equal(
-            { author = "@replyingUser"; text = ">> <@originalUser> 12[…]\nReply text" },
+            Authored { author = "@replyingUser"; text = ">> <@originalUser> 12[…]\nReply text" },
             flattenMessageLineLimit 5 replyMessage
         )
 
@@ -421,5 +465,5 @@ module PrepareMessageTests =
     let prepareMessageEscapesHtml() =
         Assert.Equal(
             "<b>user &lt;3</b>\nmymessage &lt;&amp;&gt;",
-            Funogram.prepareHtmlMessage { author = "user <3"; text = "mymessage <&>" }
+            Funogram.prepareHtmlMessage (Authored { author = "user <3"; text = "mymessage <&>" })
         )

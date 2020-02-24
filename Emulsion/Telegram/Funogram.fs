@@ -9,6 +9,7 @@ open Funogram.Api
 open Funogram.Types
 open Serilog
 
+open System.Text
 open Emulsion
 open Emulsion.Settings
 
@@ -101,7 +102,7 @@ module MessageConverter =
         formatWithAuthor author text
         |> markAsQuote quoteSettings.linePrefix
 
-    let private getMessageBodyText (message: FunogramMessage) =
+    let private getAuthoredMessageBodyText (message: FunogramMessage) =
         let text =
             match message with
             | { Text = Some text } -> applyEntities message.Entities text
@@ -114,17 +115,35 @@ module MessageConverter =
             | { Poll = Some poll } ->
                 let text = getPollText poll
                 sprintf "[Poll] %s" text
-            | { NewChatMembers = Some users } ->
-                users
-                |> Seq.map (fun user -> sprintf "[%s has entered the chat]" (getUserDisplayName user))
-                |> String.concat "\n"
-            | { LeftChatMember = Some user } ->
-                sprintf "[%s has left the chat]" (getUserDisplayName user)
             | _ -> "[DATA UNRECOGNIZED]"
 
         if Option.isSome message.ForwardFrom
         then getQuotedMessage DefaultQuoteSettings (getOptionalUserDisplayName message.ForwardFrom) text
         else text
+
+    let private getEventMessageBodyText (message: FunogramMessage) =
+        match message with
+        | { From = Some originalUser; NewChatMembers = Some users } ->
+            let users = Seq.toArray users
+            match users with
+            | [| user |] when user = originalUser -> sprintf "%s has entered the chat" (getUserDisplayName user)
+            | [| user |] -> sprintf "%s has added %s to the chat" (getUserDisplayName originalUser) (getUserDisplayName user)
+            | [| user1; user2 |] ->
+                sprintf "%s has added %s and %s to the chat"
+                    (getUserDisplayName originalUser)
+                    (getUserDisplayName user1) (getUserDisplayName user2)
+            | _ ->
+                let builder = StringBuilder().AppendFormat("{0} has added ", getUserDisplayName originalUser)
+                for i = 0 to users.Length - 2 do
+                    builder.AppendFormat("{0}, ", getUserDisplayName users.[i]) |> ignore
+                builder
+                    .AppendFormat("and {0} to the chat", getUserDisplayName users.[users.Length - 1])
+                    .ToString()
+        | { From = Some originalUser; LeftChatMember = Some user } ->
+            if originalUser = user
+            then sprintf "%s has left the chat" (getUserDisplayName user)
+            else sprintf "%s has removed %s from the chat" (getUserDisplayName originalUser) (getUserDisplayName user)
+        | _ -> "[DATA UNRECOGNIZED]"
 
     let private applyLimits limits text =
         let applyMessageLengthLimit (original: {| text: string; wasLimited: bool |}) =
@@ -170,29 +189,41 @@ module MessageConverter =
         (getQuotedMessage quoteSettings originalAuthorName originalMessageBody) + "\n" + replyMessageBody
 
     let internal flatten (quotedLimits: QuoteSettings) (message: TelegramMessage): Message =
-        let author = message.main.author
-        let mainText = message.main.text
-        let text =
-            match message.replyTo with
-            | None -> mainText
-            | Some replyTo ->
-                addOriginalMessage quotedLimits replyTo mainText
+        match message.main with
+        | Authored msg ->
+            let author = msg.author
+            let mainText = msg.text
+            let text =
+                match message.replyTo with
+                | Some (Authored replyTo) ->
+                    addOriginalMessage quotedLimits replyTo mainText
+                | _ -> mainText
 
-        { author = author; text = text }
+            Authored { author = author; text = text }
+        | msg -> msg
 
     let private isSelfMessage selfUserId (message: FunogramMessage) =
         match message.From with
         | Some user -> user.Id = selfUserId
         | None -> false
 
-    let private extractMessageContent(message: FunogramMessage) =
-        let mainAuthor = getOptionalUserDisplayName message.From
-        let mainBody = getMessageBodyText message
-        { author = mainAuthor; text = mainBody }
+    let private (|EventFunogramMessage|_|) (message: FunogramMessage) =
+        if message.NewChatMembers.IsSome || message.LeftChatMember.IsSome
+        then Some message
+        else None
+
+    let private extractMessageContent(message: FunogramMessage): Message =
+        match message with
+        | EventFunogramMessage msg ->
+            Event { text = getEventMessageBodyText msg }
+        | _ ->
+            let mainAuthor = getOptionalUserDisplayName message.From
+            let mainBody = getAuthoredMessageBodyText message
+            Authored { author = mainAuthor; text = mainBody }
 
     /// For messages from the bot, the first bold section of the message will contain the nickname of the author.
     /// Everything else is the message text.
-    let private extractSelfMessageContent(message: FunogramMessage) =
+    let private extractSelfMessageContent(message: FunogramMessage): Message =
         match (message.Entities, message.Text) with
         | None, _ | _, None -> extractMessageContent message
         | Some entities, Some text ->
@@ -205,7 +236,7 @@ module MessageConverter =
                 let authorName = text.Substring(authorNameOffset, authorNameLength)
                 let messageTextOffset = Math.Clamp(authorNameOffset + authorNameLength + 1, 0, text.Length) // +1 for \n
                 let messageText = text.Substring messageTextOffset
-                { author = authorName; text = messageText }
+                Authored { author = authorName; text = messageText }
 
     let internal read (selfUserId: int64) (message: FunogramMessage): TelegramMessage =
         let mainMessage = extractMessageContent message
@@ -251,8 +282,9 @@ let private updateArrived groupId (logger: ILogger) onMessage (ctx: Bot.UpdateCo
             | _ -> false
     ] |> ignore
 
-let internal prepareHtmlMessage { author = author; text = text }: string =
-    sprintf "<b>%s</b>\n%s" (Html.escape author) (Html.escape text)
+let internal prepareHtmlMessage: Message -> string = function
+| Authored {author = author; text = text} -> sprintf "<b>%s</b>\n%s" (Html.escape author) (Html.escape text)
+| Event {text = text} -> sprintf "%s" (Html.escape text)
 
 let send (logger: ILogger) (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =
     let sendHtmlMessage groupId text =

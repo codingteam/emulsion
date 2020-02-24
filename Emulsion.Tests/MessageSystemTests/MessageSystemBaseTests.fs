@@ -15,7 +15,7 @@ open Emulsion.Tests.TestUtils.Waiter
 type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
     let logger = Logging.xunitLogger testLogger
 
-    let msg = OutgoingMessage { author = "author"; text = "text" }
+    let msg = OutgoingMessage (Authored { author = "author"; text = "text" })
 
     [<Fact>]
     member _.``Message system should not send any messages before being started``(): unit =

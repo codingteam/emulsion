@@ -97,7 +97,7 @@ type ReceiveMessageTests(outputHelper: ITestOutputHelper) =
                                                         "test",
                                                         messageType = "groupchat")
         let receivedMessage = runReceiveMessageTest incomingMessage
-        Assert.Equal(Some <| XmppMessage { author = "sender"; text = "test" }, receivedMessage)
+        Assert.Equal(Some <| XmppMessage (Authored { author = "sender"; text = "test" }), receivedMessage)
 
     [<Fact>]
     member _.``Own message gets skipped by the client``(): unit =
@@ -137,7 +137,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
             ld.Terminate()
         )
 
-        let outgoingMessage = { author = "author"; text = "text" }
+        let outgoingMessage = Authored { author = "author"; text = "text" }
         Assert.Throws<TaskCanceledException>(fun () ->
             Async.RunSynchronously <| EmulsionXmpp.send logger client lt settings outgoingMessage
         ) |> ignore
@@ -159,7 +159,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
                     addMessageHandler = (fun _ h -> messageHandlers.Add h),
                     send = fun m -> messageId.SetResult(Option.get <| SharpXmppHelper.getMessageId m)
                 )
-            let outgoingMessage = { author = "author"; text = "text" }
+            let outgoingMessage = Authored { author = "author"; text = "text" }
 
             let! receival = Async.StartChild <| EmulsionXmpp.send logger client lt settings outgoingMessage
             let receivalTask = Async.StartAsTask receival

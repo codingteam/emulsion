@@ -100,7 +100,7 @@ let parseMessage (message: XMPPMessage): Message =
         getAttributeValue message From
         |> Option.map getResource
         |> Option.defaultValue "[UNKNOWN USER]"
-    { author = nickname; text = message.Text }
+    Authored { author = nickname; text = message.Text }
 
 let parsePresence(presence: XMPPPresence): Presence =
     let from = getAttributeValue presence From |> Option.defaultValue ""
