@@ -9,8 +9,12 @@ open Emulsion
 open Emulsion.Telegram
 open Emulsion.Telegram.Funogram
 
+[<Literal>]
 let private selfUserId = 100500L
+[<Literal>]
 let private groupId = 200600L
+[<Literal>]
+let private chatName = "test_room"
 
 let private createUser username firstName lastName = {
     Id = 0L
@@ -24,6 +28,8 @@ let private createUser username firstName lastName = {
 let private currentChat = {
     defaultChat with
         Id = groupId
+        Username = Some chatName
+        Type = SuperGroup
 }
 
 let private createMessage from text : Funogram.Telegram.Types.Message =
@@ -63,6 +69,21 @@ let private createStickerMessage from emoji =
             MaskPosition = None
             IsAnimated = false
         }
+    }
+
+let private createPhoto() = seq {
+    { FileId = ""
+      Width = 0
+      Height = 0
+      FileSize = None
+    }
+}
+
+let private createPhotoMessage from =
+    { defaultMessage with
+        From = Some from
+        Chat = currentChat
+        Photo = Some <| createPhoto()
     }
 
 let private createMessageWithCaption from caption =
@@ -313,6 +334,23 @@ module ReadMessageTests =
 
         Assert.Equal(
             authoredTelegramMessage "@originalUser" "[Content with caption \"Original [https://example.com] text\"]",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readPhotoMessage() =
+        let message = createPhotoMessage originalUser
+        Assert.Equal(
+            authoredTelegramMessage "@originalUser" "[Photo]: https://t.me/test_room/1",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readPhotoWithCaptionMessage() =
+        let message = { createMessageWithCaption originalUser "test" with
+                            Photo = Some <| createPhoto() }
+        Assert.Equal(
+            authoredTelegramMessage "@originalUser" "[Photo with caption \"test\"]: https://t.me/test_room/1",
             readMessage message
         )
 

@@ -102,10 +102,23 @@ module MessageConverter =
         formatWithAuthor author text
         |> markAsQuote quoteSettings.linePrefix
 
+    let private getLinkToMessage (message: FunogramMessage) =
+        match message with
+        | { MessageId = id
+            Chat = { Type = SuperGroup
+                     Username = Some chatName } } ->
+            sprintf "https://t.me/%s/%d" chatName id
+        | _ -> "[DATA UNRECOGNIZED]"
+
     let private getAuthoredMessageBodyText (message: FunogramMessage) =
         let text =
             match message with
             | { Text = Some text } -> applyEntities message.Entities text
+            | { Photo = Some _; Caption = Some caption} ->
+                let caption = applyEntities message.CaptionEntities caption
+                sprintf "[Photo with caption \"%s\"]: %s" caption (getLinkToMessage message)
+            | { Photo = Some _ } ->
+                sprintf "[Photo]: %s" (getLinkToMessage message)
             | { Caption = Some caption } ->
                 let caption = applyEntities message.CaptionEntities caption
                 sprintf "[Content with caption \"%s\"]" caption
