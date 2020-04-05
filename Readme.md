@@ -1,4 +1,4 @@
-emulsion [![Appveyor Build][badge-appveyor]][build-appveyor] [![Travis Build][badge-travis]][build-travis] [![Status Ventis][status-ventis]][andivionian-status-classifier]
+emulsion [![Appveyor Build][badge-appveyor]][build-appveyor] [![Status Ventis][status-ventis]][andivionian-status-classifier]
 ========
 
 emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
@@ -59,12 +59,10 @@ $ docker run -d --name emulsion -v $PWD/emulsion.json:/app/emulsion.json:ro emul
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-ventis-
 [build-appveyor]: https://ci.appveyor.com/project/ForNeVeR/emulsion/branch/master
-[build-travis]: https://travis-ci.org/codingteam/emulsion
 [dotnet-core-runtime]: https://www.microsoft.com/net/download/core#/runtime
 [dotnet-core-sdk]: https://www.microsoft.com/net/download/core
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
 
 [badge-appveyor]: https://ci.appveyor.com/api/projects/status/dgrpxj0dx221ii89/branch/master?svg=true
-[badge-travis]: https://travis-ci.org/codingteam/emulsion.svg?branch=master
 [status-ventis]: https://img.shields.io/badge/status-ventis-yellow.svg
