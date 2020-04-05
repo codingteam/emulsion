@@ -6,7 +6,7 @@ emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
 Build
 -----
 
-Install [.NET Core SDK][dotnet-core-sdk] 3.0 or newer for your platform, then
+Install [.NET Core SDK][dotnet-core-sdk] 3.1 or newer for your platform, then
 run:
 
 ```console
@@ -30,7 +30,7 @@ $ dotnet test ./Emulsion.Tests
 Run
 ---
 
-Requires [.NET Core Runtime][dotnet-core-runtime] version 2.2+.
+Requires [.NET Core Runtime][dotnet-core-runtime] version 3.1 or newer.
 
 ```console
 $ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
