@@ -90,74 +90,6 @@ module MessageConverter =
                 pos <- linkEndOffset
             result.Append(text.Substring(pos, text.Length - pos)).ToString()
 
-    let private getQuotedMessage (quoteSettings: QuoteSettings) author text =
-        let formatWithAuthor author message =
-            sprintf "<%s> %s" author message
-
-        let markAsQuote prefix (text: string) =
-            text.Split("\n")
-            |> Seq.map (fun x -> prefix + x)
-            |> String.concat "\n"
-
-        formatWithAuthor author text
-        |> markAsQuote quoteSettings.linePrefix
-
-    let private getLinkToMessage (message: FunogramMessage) =
-        match message with
-        | { MessageId = id
-            Chat = { Type = SuperGroup
-                     Username = Some chatName } } ->
-            sprintf "https://t.me/%s/%d" chatName id
-        | _ -> "[DATA UNRECOGNIZED]"
-
-    let private getAuthoredMessageBodyText (message: FunogramMessage) =
-        let text =
-            match message with
-            | { Text = Some text } -> applyEntities message.Entities text
-            | { Photo = Some _; Caption = Some caption} ->
-                let caption = applyEntities message.CaptionEntities caption
-                sprintf "[Photo with caption \"%s\"]: %s" caption (getLinkToMessage message)
-            | { Photo = Some _ } ->
-                sprintf "[Photo]: %s" (getLinkToMessage message)
-            | { Caption = Some caption } ->
-                let caption = applyEntities message.CaptionEntities caption
-                sprintf "[Content with caption \"%s\"]" caption
-            | { Sticker = Some sticker } ->
-                let emoji = getEmoji sticker
-                sprintf "[Sticker %s]" emoji
-            | { Poll = Some poll } ->
-                let text = getPollText poll
-                sprintf "[Poll] %s" text
-            | _ -> "[DATA UNRECOGNIZED]"
-
-        if Option.isSome message.ForwardFrom
-        then getQuotedMessage DefaultQuoteSettings (getOptionalUserDisplayName message.ForwardFrom) text
-        else text
-
-    let private getEventMessageBodyText (message: FunogramMessage) =
-        match message with
-        | { From = Some originalUser; NewChatMembers = Some users } ->
-            let users = Seq.toArray users
-            match users with
-            | [| user |] when user = originalUser -> sprintf "%s has entered the chat" (getUserDisplayName user)
-            | [| user |] -> sprintf "%s has added %s to the chat" (getUserDisplayName originalUser) (getUserDisplayName user)
-            | [| user1; user2 |] ->
-                sprintf "%s has added %s and %s to the chat"
-                    (getUserDisplayName originalUser)
-                    (getUserDisplayName user1) (getUserDisplayName user2)
-            | _ ->
-                let builder = StringBuilder().AppendFormat("{0} has added ", getUserDisplayName originalUser)
-                for i = 0 to users.Length - 2 do
-                    builder.AppendFormat("{0}, ", getUserDisplayName users.[i]) |> ignore
-                builder
-                    .AppendFormat("and {0} to the chat", getUserDisplayName users.[users.Length - 1])
-                    .ToString()
-        | { From = Some originalUser; LeftChatMember = Some user } ->
-            if originalUser = user
-            then sprintf "%s has left the chat" (getUserDisplayName user)
-            else sprintf "%s has removed %s from the chat" (getUserDisplayName originalUser) (getUserDisplayName user)
-        | _ -> "[DATA UNRECOGNIZED]"
-
     let private applyLimits limits text =
         let applyMessageLengthLimit (original: {| text: string; wasLimited: bool |}) =
             match limits.messageLengthLimit with
@@ -193,13 +125,86 @@ module MessageConverter =
         then result.text + limits.dataRedactedMessage
         else result.text
 
-    let private addOriginalMessage quoteSettings originalMessage replyMessageBody =
-        let originalAuthorName = originalMessage.author
-        let originalMessageBody =
-            originalMessage.text
-            |> applyLimits quoteSettings.limits
+    let private getQuotedMessage (quoteSettings: QuoteSettings) originalMessage =
+        let addAuthorIfAvailable text =
+            match originalMessage with
+            | Authored msg -> sprintf "<%s> %s" msg.author text
+            | Event _ -> text
 
-        (getQuotedMessage quoteSettings originalAuthorName originalMessageBody) + "\n" + replyMessageBody
+        let markAsQuote prefix (text: string) =
+            text.Split("\n")
+            |> Seq.map (fun x -> prefix + x)
+            |> String.concat "\n"
+
+        originalMessage
+        |> Message.text
+        |> applyLimits quoteSettings.limits
+        |> addAuthorIfAvailable
+        |> markAsQuote quoteSettings.linePrefix
+
+    let private getLinkToMessage (message: FunogramMessage) =
+        match message with
+        | { MessageId = id
+            Chat = { Type = SuperGroup
+                     Username = Some chatName } } ->
+            sprintf "https://t.me/%s/%d" chatName id
+        | _ -> "[DATA UNRECOGNIZED]"
+
+    let private getAuthoredMessageBodyText (message: FunogramMessage) =
+        let text =
+            match message with
+            | { Text = Some text } -> applyEntities message.Entities text
+            | { Photo = Some _; Caption = Some caption} ->
+                let caption = applyEntities message.CaptionEntities caption
+                sprintf "[Photo with caption \"%s\"]: %s" caption (getLinkToMessage message)
+            | { Photo = Some _ } ->
+                sprintf "[Photo]: %s" (getLinkToMessage message)
+            | { Caption = Some caption } ->
+                let caption = applyEntities message.CaptionEntities caption
+                sprintf "[Content with caption \"%s\"]" caption
+            | { Sticker = Some sticker } ->
+                let emoji = getEmoji sticker
+                sprintf "[Sticker %s]" emoji
+            | { Poll = Some poll } ->
+                let text = getPollText poll
+                sprintf "[Poll] %s" text
+            | _ -> "[DATA UNRECOGNIZED]"
+
+        if Option.isSome message.ForwardFrom
+        then
+            let forwardFrom =
+                Authored
+                    { author = getOptionalUserDisplayName message.ForwardFrom
+                      text = text }
+            getQuotedMessage DefaultQuoteSettings forwardFrom
+        else text
+
+    let private getEventMessageBodyText (message: FunogramMessage) =
+        match message with
+        | { From = Some originalUser; NewChatMembers = Some users } ->
+            let users = Seq.toArray users
+            match users with
+            | [| user |] when user = originalUser -> sprintf "%s has entered the chat" (getUserDisplayName user)
+            | [| user |] -> sprintf "%s has added %s to the chat" (getUserDisplayName originalUser) (getUserDisplayName user)
+            | [| user1; user2 |] ->
+                sprintf "%s has added %s and %s to the chat"
+                    (getUserDisplayName originalUser)
+                    (getUserDisplayName user1) (getUserDisplayName user2)
+            | _ ->
+                let builder = StringBuilder().AppendFormat("{0} has added ", getUserDisplayName originalUser)
+                for i = 0 to users.Length - 2 do
+                    builder.AppendFormat("{0}, ", getUserDisplayName users.[i]) |> ignore
+                builder
+                    .AppendFormat("and {0} to the chat", getUserDisplayName users.[users.Length - 1])
+                    .ToString()
+        | { From = Some originalUser; LeftChatMember = Some user } ->
+            if originalUser = user
+            then sprintf "%s has left the chat" (getUserDisplayName user)
+            else sprintf "%s has removed %s from the chat" (getUserDisplayName originalUser) (getUserDisplayName user)
+        | _ -> "[DATA UNRECOGNIZED]"
+
+    let private addOriginalMessage quoteSettings originalMessage replyMessageBody =
+        sprintf "%s\n%s" (getQuotedMessage quoteSettings originalMessage) replyMessageBody
 
     let internal flatten (quotedLimits: QuoteSettings) (message: TelegramMessage): Message =
         match message.main with
@@ -208,12 +213,11 @@ module MessageConverter =
             let mainText = msg.text
             let text =
                 match message.replyTo with
-                | Some (Authored replyTo) ->
+                | Some replyTo ->
                     addOriginalMessage quotedLimits replyTo mainText
                 | _ -> mainText
-
             Authored { author = author; text = text }
-        | msg -> msg
+        | Event _ as msg -> msg
 
     let private isSelfMessage selfUserId (message: FunogramMessage) =
         match message.From with

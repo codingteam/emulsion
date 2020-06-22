@@ -471,6 +471,15 @@ module FlattenMessageTests =
         )
 
     [<Fact>]
+    let flattenReplyEventMessage() =
+        let originalMessage = eventTelegramMessage "@originalUser has entered the chat"
+        let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
+        Assert.Equal(
+            Authored { author = "@replyingUser"; text = ">> @originalUser has entered the chat\nReply text" },
+            flattenMessage replyMessage
+        )
+
+    [<Fact>]
     let flattenMultilineReplyMessage() =
         let originalMessage = authoredTelegramMessage "@originalUser" "1\n2\n3"
         let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
