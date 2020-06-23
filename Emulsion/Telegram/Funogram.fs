@@ -124,7 +124,7 @@ module MessageConverter =
                 sprintf "[Content with caption \"%s\"]" caption
             | { Sticker = Some sticker } ->
                 let emoji = getEmoji sticker
-                sprintf "[Sticker %s]" emoji
+                sprintf "[Sticker %s]: %s" emoji (getLinkToMessage message)
             | { Poll = Some poll } ->
                 let text = getPollText poll
                 sprintf "[Poll] %s" text

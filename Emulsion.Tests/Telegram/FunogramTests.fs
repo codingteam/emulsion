@@ -307,7 +307,7 @@ module ReadMessageTests =
     let readUnknownSticker(): unit =
         let message = createStickerMessage originalUser None
         Assert.Equal(
-            authoredTelegramMessage "@originalUser" "[Sticker UNKNOWN]",
+            authoredTelegramMessage "@originalUser" "[Sticker UNKNOWN]: https://t.me/test_room/1",
             readMessage message
         )
 
@@ -315,7 +315,7 @@ module ReadMessageTests =
     let readSticker(): unit =
         let message = createStickerMessage originalUser (Some "🐙")
         Assert.Equal(
-            authoredTelegramMessage "@originalUser" "[Sticker 🐙]",
+            authoredTelegramMessage "@originalUser" "[Sticker 🐙]: https://t.me/test_room/1",
             readMessage message
         )
 
