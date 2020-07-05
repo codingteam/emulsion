@@ -99,7 +99,7 @@ let ``enterRoom throws an exception in case of an error presence``(): unit =
         XmppClientFactory.create(
             addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
             joinMultiUserChat = fun roomJid nickname ->
-                sendPresence (createErrorPresence roomJid nickname "<test />") presenceHandlers
+                sendPresence (createErrorPresence roomJid nickname "<jid-malformed xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\" />") presenceHandlers
         )
     let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
     Lifetime.Using(fun lt ->
@@ -107,7 +107,7 @@ let ``enterRoom throws an exception in case of an error presence``(): unit =
             Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo |> ignore
         )
         let ex = Seq.exactlyOne ae.InnerExceptions
-        Assert.Contains("<test />", ex.Message)
+        Assert.Contains("<jid-malformed xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\" />", ex.Message)
     )
 
 [<Fact>]
@@ -195,14 +195,14 @@ let ``sendRoomMessage's result gets resolved with an error if an error response 
     let client =
         XmppClientFactory.create(
             addMessageHandler = (fun _ h -> messageHandler <- h),
-            send = fun m -> messageHandler(createErrorMessage m "<forbidden />")
+            send = fun m -> messageHandler(createErrorMessage m "<forbidden xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\" />")
         )
     let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
     Lifetime.Using(fun lt ->
         let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo
         let ae = Assert.Throws<AggregateException>(fun () -> Async.RunSynchronously deliveryInfo.Delivery)
         let ex = Seq.exactlyOne ae.InnerExceptions
-        Assert.Contains("<forbidden />", ex.Message)
+        Assert.Contains("<forbidden xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\" />", ex.Message)
     )
 
 [<Fact>]

@@ -29,7 +29,7 @@ open Attributes
 module Elements =
     let Body = XName.Get("body", Namespaces.JabberClient)
     let Delay = XName.Get("delay", "urn:xmpp:delay")
-    let Error = XName.Get "error"
+    let Error = XName.Get("error", Namespaces.JabberClient)
     let Nick = XName.Get("nick", Namespaces.StorageBookmarks)
     let Status = XName.Get("status", Namespaces.MucUser)
     let X = XName.Get("x", Namespaces.MucUser)
