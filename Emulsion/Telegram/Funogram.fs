@@ -1,6 +1,7 @@
 module Emulsion.Telegram.Funogram
 
 open System
+open System.Net.NetworkInformation
 open System.Text
 
 open Funogram.Telegram
@@ -148,32 +149,38 @@ module MessageConverter =
             Chat = { Type = SuperGroup
                      Username = Some chatName } } ->
             sprintf "https://t.me/%s/%d" chatName id
-        | _ -> "[DATA UNRECOGNIZED]"
+        | _ -> "[CANNOT RETRIEVE LINK]"
 
     let private getAuthoredMessageBodyText (message: FunogramMessage) =
+        let (|Text|_|) (message: FunogramMessage) = message.Text
+        let (|Poll|_|) (message: FunogramMessage) = message.Poll
+        let (|Content|_|) (message: FunogramMessage) =
+            let contentType =
+                match message with
+                | { Photo = Some _ } -> "Photo"
+                | { Animation = Some _ } -> "Animation"
+                | { Sticker = Some sticker } -> sprintf "Sticker %s" (getEmoji sticker)
+                | { Caption = Some _ } -> "Unknown content"
+                | _ -> String.Empty
+            if String.IsNullOrEmpty contentType
+            then None
+            else Some (contentType, message.Caption)
+
         let text =
             match message with
-            | { Text = Some text } -> applyEntities message.Entities text
-            | { Photo = Some _; Caption = Some caption} ->
-                let caption = applyEntities message.CaptionEntities caption
-                sprintf "[Photo with caption \"%s\"]: %s" caption (getLinkToMessage message)
-            | { Photo = Some _ } ->
-                sprintf "[Photo]: %s" (getLinkToMessage message)
-            | { Animation = Some _; Caption = Some caption} ->
-                let caption = applyEntities message.CaptionEntities caption
-                sprintf "[Animation with caption \"%s\"]: %s" caption (getLinkToMessage message)
-            | { Animation = Some _ } ->
-                sprintf "[Animation]: %s" (getLinkToMessage message)
-            | { Caption = Some caption } ->
-                let caption = applyEntities message.CaptionEntities caption
-                sprintf "[Content with caption \"%s\"]" caption
-            | { Sticker = Some sticker } ->
-                let emoji = getEmoji sticker
-                sprintf "[Sticker %s]: %s" emoji (getLinkToMessage message)
-            | { Poll = Some poll } ->
+            | Text text -> applyEntities message.Entities text
+            | Content (contentType, caption) ->
+                match caption with
+                | Some caption ->
+                    let text = applyEntities message.CaptionEntities caption
+                    sprintf "[%s with caption \"%s\"]: %s" contentType text (getLinkToMessage message)
+                | None ->
+                    sprintf "[%s]: %s" contentType (getLinkToMessage message)
+            | Poll poll ->
                 let text = getPollText poll
                 sprintf "[Poll] %s" text
-            | _ -> "[DATA UNRECOGNIZED]"
+            | _ ->
+                sprintf "[DATA UNRECOGNIZED]: %s" (getLinkToMessage message)
 
         if Option.isSome message.ForwardFrom
         then
