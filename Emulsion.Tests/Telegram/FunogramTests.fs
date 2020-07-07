@@ -183,7 +183,7 @@ module ReadMessageTests =
     [<Fact>]
     let readMessageWithoutText() =
         Assert.Equal(
-            authoredTelegramMessage "[UNKNOWN USER]" "[DATA UNRECOGNIZED]",
+            authoredTelegramMessage "[UNKNOWN USER]" "[DATA UNRECOGNIZED]: https://t.me/test_room/1",
             readMessage (createMessage None None)
         )
 
@@ -326,7 +326,7 @@ module ReadMessageTests =
     let readCaption(): unit =
         let message = createMessageWithCaption originalUser "test"
         Assert.Equal(
-            authoredTelegramMessage "@originalUser" "[Content with caption \"test\"]",
+            authoredTelegramMessage "@originalUser" "[Unknown content with caption \"test\"]: https://t.me/test_room/1",
             readMessage message
         )
 
@@ -336,7 +336,7 @@ module ReadMessageTests =
                             CaptionEntities = createEntities "text_link" 0L 8L "https://example.com" }
 
         Assert.Equal(
-            authoredTelegramMessage "@originalUser" "[Content with caption \"Original [https://example.com] text\"]",
+            authoredTelegramMessage "@originalUser" "[Unknown content with caption \"Original [https://example.com] text\"]: https://t.me/test_room/1",
             readMessage message
         )
 
