@@ -159,6 +159,11 @@ module MessageConverter =
                 sprintf "[Photo with caption \"%s\"]: %s" caption (getLinkToMessage message)
             | { Photo = Some _ } ->
                 sprintf "[Photo]: %s" (getLinkToMessage message)
+            | { Animation = Some _; Caption = Some caption} ->
+                let caption = applyEntities message.CaptionEntities caption
+                sprintf "[Animation with caption \"%s\"]: %s" caption (getLinkToMessage message)
+            | { Animation = Some _ } ->
+                sprintf "[Animation]: %s" (getLinkToMessage message)
             | { Caption = Some caption } ->
                 let caption = applyEntities message.CaptionEntities caption
                 sprintf "[Content with caption \"%s\"]" caption

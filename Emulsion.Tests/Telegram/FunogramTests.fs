@@ -79,12 +79,15 @@ let private createPhoto() = seq {
     }
 }
 
-let private createPhotoMessage from =
-    { defaultMessage with
-        From = Some from
-        Chat = currentChat
-        Photo = Some <| createPhoto()
-    }
+let private createAnimation() =
+    { FileId = ""
+      Width = 0
+      Height = 0
+      Duration = 0
+      Thumb = None
+      FileName = None
+      MimeType = None
+      FileSize = None }
 
 let private createMessageWithCaption from caption =
     { defaultMessage with
@@ -339,7 +342,8 @@ module ReadMessageTests =
 
     [<Fact>]
     let readPhotoMessage() =
-        let message = createPhotoMessage originalUser
+        let message = { createEmptyMessage originalUser with
+                            Photo = Some <| createPhoto() }
         Assert.Equal(
             authoredTelegramMessage "@originalUser" "[Photo]: https://t.me/test_room/1",
             readMessage message
@@ -351,6 +355,24 @@ module ReadMessageTests =
                             Photo = Some <| createPhoto() }
         Assert.Equal(
             authoredTelegramMessage "@originalUser" "[Photo with caption \"test\"]: https://t.me/test_room/1",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readAnimationMessage() =
+        let message = { createEmptyMessage originalUser with
+                            Animation = Some <| createAnimation() }
+        Assert.Equal(
+            authoredTelegramMessage "@originalUser" "[Animation]: https://t.me/test_room/1",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readAnimationWithCaptionMessage() =
+        let message = { createMessageWithCaption originalUser "test" with
+                            Animation = Some <| createAnimation() }
+        Assert.Equal(
+            authoredTelegramMessage "@originalUser" "[Animation with caption \"test\"]: https://t.me/test_room/1",
             readMessage message
         )
 
