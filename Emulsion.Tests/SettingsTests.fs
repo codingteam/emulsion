@@ -33,6 +33,7 @@ let private testConfiguration = {
         Login = "login"
         Password = "password"
         Room = "room"
+        RoomPassword = None
         Nickname = "nickname"
         MessageTimeout = TimeSpan.FromSeconds 30.0
     }

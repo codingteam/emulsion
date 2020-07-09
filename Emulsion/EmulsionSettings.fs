@@ -9,6 +9,7 @@ type XmppSettings = {
     Login: string
     Password: string
     Room: string
+    RoomPassword: string option
     Nickname: string
     MessageTimeout: TimeSpan
 }
@@ -35,6 +36,7 @@ let read (config : IConfiguration) : EmulsionSettings =
         Login = section.["login"]
         Password = section.["password"]
         Room = section.["room"]
+        RoomPassword = Option.ofObj section.["roomPassword"]
         Nickname = section.["nickname"]
         MessageTimeout =
             section.["messageTimeout"]

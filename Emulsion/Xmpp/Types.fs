@@ -14,6 +14,7 @@ type Presence = {
 type RoomInfo = {
     RoomJid: JID
     Nickname: string
+    Password: string option
 }
 
 type MessageInfo = {

@@ -82,11 +82,11 @@ let ``enterRoom function calls JoinMultiUserChat``(): unit =
     let client =
         XmppClientFactory.create(
             addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
-            joinMultiUserChat = fun roomJid nickname ->
+            joinMultiUserChat = fun roomJid nickname _ ->
                 called <- true
                 Seq.iter (fun h -> h (createSelfPresence roomJid nickname 110)) presenceHandlers
         )
-    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
+    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser"; Password = None }
     Lifetime.Using(fun lt ->
         Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo |> ignore
         Assert.True called
@@ -98,10 +98,10 @@ let ``enterRoom throws an exception in case of an error presence``(): unit =
     let client =
         XmppClientFactory.create(
             addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
-            joinMultiUserChat = fun roomJid nickname ->
+            joinMultiUserChat = fun roomJid nickname _ ->
                 sendPresence (createErrorPresence roomJid nickname "<jid-malformed xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\" />") presenceHandlers
         )
-    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
+    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser"; Password = None }
     Lifetime.Using(fun lt ->
         let ae = Assert.Throws<AggregateException>(fun () ->
             Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo |> ignore
@@ -116,10 +116,10 @@ let ``Lifetime returned from enterRoom terminates by a room leave presence``(): 
     let client =
         XmppClientFactory.create(
             addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
-            joinMultiUserChat = fun roomJid nickname ->
+            joinMultiUserChat = fun roomJid nickname _ ->
                 sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers
         )
-    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
+    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser"; Password = None }
     Lifetime.Using(fun lt ->
         let roomLt = Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo
         Assert.True roomLt.IsAlive
@@ -133,10 +133,10 @@ let ``Lifetime returned from enterRoom terminates by an external lifetime termin
     let client =
         XmppClientFactory.create(
             addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
-            joinMultiUserChat = fun roomJid nickname ->
+            joinMultiUserChat = fun roomJid nickname _ ->
                 sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers
         )
-    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser" }
+    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser"; Password = None }
     use ld = Lifetime.Define()
     let lt = ld.Lifetime
     let roomLt = Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo

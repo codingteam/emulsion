@@ -3,6 +3,7 @@
         "login": "hortomatic@example.org",
         "password": "my-super-password",
         "room": "xxxxx@conference.example.org",
+        "roomPassword": "// optional",
         "nickname": "хортолёт",
         "messageTimeout": "00:05:00"
     },

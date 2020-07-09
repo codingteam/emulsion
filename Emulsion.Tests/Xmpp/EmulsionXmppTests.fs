@@ -19,6 +19,7 @@ let private settings = {
     Login = "user@example.org"
     Password = "password"
     Room = "room@conference.example.org"
+    RoomPassword = None
     Nickname = "nickname"
     MessageTimeout = TimeSpan.FromSeconds 30.0
 }
@@ -57,7 +58,7 @@ type RunTests(outputHelper: ITestOutputHelper) =
         let client =
             XmppClientFactory.create(
                 addConnectionFailedHandler = (fun _ h -> connectionFailedHandler <- h),
-                joinMultiUserChat = (fun roomJid nickname ->
+                joinMultiUserChat = (fun roomJid nickname _ ->
                     joinRoomArgs <- (roomJid.FullJid, nickname)
                     disconnect()
                 )
@@ -83,7 +84,7 @@ type ReceiveMessageTests(outputHelper: ITestOutputHelper) =
             XmppClientFactory.create(
                 addConnectionFailedHandler = (fun _ h -> connectionFailedHandler <- h),
                 addMessageHandler = (fun _ h -> receiveHandlers.Add h),
-                joinMultiUserChat = fun _ _ ->
+                joinMultiUserChat = fun _ _ _ ->
                     sendMessage message
                     disconnect()
             )

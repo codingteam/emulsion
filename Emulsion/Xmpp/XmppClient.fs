@@ -10,12 +10,11 @@ open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.Elements
 
 open Emulsion
-open Emulsion.Lifetimes
 open Emulsion.Xmpp
 
 type IXmppClient =
     abstract member Connect: unit -> Async<unit>
-    abstract member JoinMultiUserChat: roomJid: JID -> nickname: string -> unit
+    abstract member JoinMultiUserChat: roomJid: JID -> nickname: string -> password: string option -> unit
     abstract member Send: XMPPMessage -> unit
     abstract member AddConnectionFailedHandler: Lifetime -> (ConnFailedArgs -> unit) -> unit
     abstract member AddSignedInHandler: Lifetime -> (SignedInArgs -> unit) -> unit
@@ -80,7 +79,7 @@ let enterRoom (client: IXmppClient) (lifetime: Lifetime) (roomInfo: RoomInfo): A
 
     try
         // Start the join process, wait for a result:
-        client.JoinMultiUserChat roomInfo.RoomJid roomInfo.Nickname
+        client.JoinMultiUserChat roomInfo.RoomJid roomInfo.Nickname roomInfo.Password
         do! Async.AwaitTask tcs.Task
         return roomLifetime
     with

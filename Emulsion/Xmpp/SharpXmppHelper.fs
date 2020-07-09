@@ -31,21 +31,31 @@ module Elements =
     let Delay = XName.Get("delay", "urn:xmpp:delay")
     let Error = XName.Get("error", Namespaces.JabberClient)
     let Nick = XName.Get("nick", Namespaces.StorageBookmarks)
+    let Password = XName.Get("password", Namespaces.StorageBookmarks)
     let Status = XName.Get("status", Namespaces.MucUser)
     let X = XName.Get("x", Namespaces.MucUser)
 
 open Elements
 
-let private bookmark (roomJid: string) (nickname: string): BookmarkedConference =
+let private bookmark (roomJid: string) (nickname: string) (password: string option): BookmarkedConference =
     let room = BookmarkedConference()
     room.SetAttributeValue(Jid, roomJid)
     let nickElement = XElement(Nick, Value = nickname)
     room.Add(nickElement)
+
     room
 
-let joinRoom (client: XmppClient) (roomJid: string) (nickname: string): unit =
-    let room = bookmark roomJid nickname
-    client.BookmarkManager.Join(room)
+let joinRoom (client: XmppClient) (roomJid: string) (nickname: string) (password: string option): unit =
+    let roomJid = JID(sprintf "%s/%s" roomJid nickname)
+    let presence = XMPPPresence(client.Capabilities, To = roomJid)
+    let mucXmlns = "http://jabber.org/protocol/muc"
+    let x = XElement(XName.Get("x", mucXmlns))
+    password |> Option.iter (fun p ->
+        let passwordElement = XElement(XName.Get("password", mucXmlns), Value = p)
+        x.Add passwordElement
+    )
+    presence.Add x
+    client.Send presence
 
 let message (id: string) (toAddr: string) (text: string): XMPPMessage =
     let m = XMPPMessage()

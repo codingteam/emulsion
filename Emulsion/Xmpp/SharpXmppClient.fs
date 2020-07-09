@@ -14,7 +14,7 @@ type Wrapper(client: XmppClient) =
             let! ct = Async.CancellationToken
             return! Async.AwaitTask(client.ConnectAsync ct)
         }
-        member _.JoinMultiUserChat roomJid nickname = SharpXmppHelper.joinRoom client roomJid.BareJid nickname
+        member _.JoinMultiUserChat roomJid nickname password = SharpXmppHelper.joinRoom client roomJid.BareJid nickname password
         member _.Send message = client.Send message
         member _.AddSignedInHandler lt handler =
             let handlerDelegate = XmppClient.SignedInHandler(fun _ args -> handler args)
