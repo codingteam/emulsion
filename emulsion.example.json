@@ -3,7 +3,8 @@
         "login": "hortomatic@example.org",
         "password": "my-super-password",
         "room": "xxxxx@conference.example.org",
-        "nickname": "хортолёт"
+        "nickname": "хортолёт",
+        "messageTimeout": "00:05:00"
     },
     "telegram": {
         "token": "999999999:aaaaaaaaaaaaaaaaaaaaaaaaa_777777777",

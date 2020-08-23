@@ -1,5 +1,6 @@
 module Emulsion.Tests.SettingsTests
 
+open System
 open System.IO
 open System.Threading.Tasks
 
@@ -7,7 +8,6 @@ open FSharp.Control.Tasks
 open Microsoft.Extensions.Configuration
 open Xunit
 
-open Emulsion
 open Emulsion.Settings
 
 let private testConfigText groupIdLiteral =
@@ -16,7 +16,8 @@ let private testConfigText groupIdLiteral =
        ""login"": ""login"",
        ""password"": ""password"",
        ""room"": ""room"",
-       ""nickname"": ""nickname""
+       ""nickname"": ""nickname"",
+       ""messageTimeout"": ""00:00:30""
    },
    ""telegram"": {
        ""token"": ""token"",
@@ -33,6 +34,7 @@ let private testConfiguration = {
         Password = "password"
         Room = "room"
         Nickname = "nickname"
+        MessageTimeout = TimeSpan.FromSeconds 30.0
     }
     Telegram = {
         Token = "token"

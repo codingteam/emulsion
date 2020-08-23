@@ -29,7 +29,7 @@ let private addMessageHandler (client: IXmppClient) lt settings receiver =
 let initializeLogging (logger: ILogger) (client: IXmppClient): IXmppClient =
     let lt = Lifetime.Eternal
     client.AddConnectionFailedHandler lt (fun e -> logger.Error(e.Exception, "Connection failed: {Message}", e.Message))
-    client.AddSignedInHandler lt (fun e -> logger.Information("Signed in to the server"))
+    client.AddSignedInHandler lt (fun _ -> logger.Information("Signed in to the server"))
     client.AddElementHandler lt (fun e ->
         let direction = if e.IsInput then "incoming" else "outgoing"
         logger.Verbose("XMPP stanza ({Direction}): {Stanza}", direction, e.Stanza)
@@ -73,7 +73,7 @@ let send (logger: ILogger)
         | Authored msg -> sprintf "<%s> %s" msg.author msg.text
         | Event msg -> sprintf "%s" msg.text
     let message = { RecipientJid = JID(settings.Room); Text = text }
-    let! deliveryInfo = XmppClient.sendRoomMessage client lifetime message
+    let! deliveryInfo = sendRoomMessage client lifetime settings.MessageTimeout message
     logger.Information("Message {MessageId} has been sent; awaiting delivery", deliveryInfo.MessageId)
     do! awaitMessageDelivery deliveryInfo
 }

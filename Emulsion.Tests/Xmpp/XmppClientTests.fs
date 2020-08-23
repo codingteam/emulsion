@@ -144,13 +144,16 @@ let ``Lifetime returned from enterRoom terminates by an external lifetime termin
     ld.Terminate()
     Assert.False roomLt.IsAlive
 
+let private sendRoomMessage client lt messageInfo =
+    XmppClient.sendRoomMessage client lt Emulsion.Settings.defaultMessageTimeout messageInfo
+
 [<Fact>]
 let ``sendRoomMessage calls Send method on the client``(): unit =
     let mutable message = Unchecked.defaultof<XMPPMessage>
     let client = XmppClientFactory.create(send = fun m -> message <- m)
     let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
     Lifetime.Using(fun lt ->
-        Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo |> ignore
+        Async.RunSynchronously <| sendRoomMessage client lt messageInfo |> ignore
         Assert.Equal(messageInfo.RecipientJid.FullJid, message.To.FullJid)
         Assert.Equal(messageInfo.Text, message.Text)
     )
@@ -166,7 +169,7 @@ let ``sendRoomMessage's result gets resolved after the message receival``(): uni
         )
     let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
     Lifetime.Using(fun lt ->
-        let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo
+        let deliveryInfo = Async.RunSynchronously <| sendRoomMessage client lt messageInfo
         Assert.Equal(message.ID, deliveryInfo.MessageId)
         let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
         Assert.False deliveryTask.IsCompleted
@@ -180,7 +183,7 @@ let ``sendRoomMessage's result doesn't get resolved after receiving other messag
     let client = XmppClientFactory.create(addMessageHandler = fun _ h -> messageHandler <- h)
     let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
     Lifetime.Using(fun lt ->
-        let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo
+        let deliveryInfo = Async.RunSynchronously <| sendRoomMessage client lt messageInfo
         let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
         Assert.False deliveryTask.IsCompleted
 
@@ -199,7 +202,7 @@ let ``sendRoomMessage's result gets resolved with an error if an error response 
         )
     let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
     Lifetime.Using(fun lt ->
-        let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo
+        let deliveryInfo = Async.RunSynchronously <| sendRoomMessage client lt messageInfo
         let ae = Assert.Throws<AggregateException>(fun () -> Async.RunSynchronously deliveryInfo.Delivery)
         let ex = Seq.exactlyOne ae.InnerExceptions
         Assert.Contains("<forbidden xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\" />", ex.Message)
@@ -211,7 +214,7 @@ let ``sendRoomMessage's result gets terminated after parent lifetime termination
     let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
     use ld = Lifetime.Define()
     let lt = ld.Lifetime
-    let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt messageInfo
+    let deliveryInfo = Async.RunSynchronously <| sendRoomMessage client lt messageInfo
     let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
     Assert.False deliveryTask.IsCompleted
     ld.Terminate()
@@ -223,3 +226,13 @@ let ``awaitMessageDelivery just returns an async from the delivery info``(): uni
     let deliveryInfo = { MessageId = ""; Delivery = async }
     let result = XmppClient.awaitMessageDelivery deliveryInfo
     Assert.True(Object.ReferenceEquals(async, result))
+
+[<Fact>]
+let ``awaitMessageDelivery should throw an error on timeout``(): unit =
+    let client = XmppClientFactory.create()
+    let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
+    use ld = Lifetime.Define()
+    let lt = ld.Lifetime
+    let deliveryInfo = Async.RunSynchronously <| XmppClient.sendRoomMessage client lt TimeSpan.Zero messageInfo
+    let deliveryTask = XmppClient.awaitMessageDelivery deliveryInfo
+    Assert.Throws<TimeoutException>(fun () -> Async.RunSynchronously deliveryTask) |> ignore

@@ -1,12 +1,17 @@
 module Emulsion.Settings
 
+open System
+open System.Globalization
+
 open Microsoft.Extensions.Configuration
 
-type XmppSettings =
-    { Login : string
-      Password : string
-      Room : string
-      Nickname : string }
+type XmppSettings = {
+    Login: string
+    Password: string
+    Room: string
+    Nickname: string
+    MessageTimeout: TimeSpan
+}
 
 type TelegramSettings = {
     Token: string
@@ -23,12 +28,20 @@ type EmulsionSettings = {
     Log: LogSettings
 }
 
+let defaultMessageTimeout = TimeSpan.FromMinutes 5.0
+
 let read (config : IConfiguration) : EmulsionSettings =
-    let readXmpp (section : IConfigurationSection) =
-        { Login = section.["login"]
-          Password = section.["password"]
-          Room = section.["room"]
-          Nickname = section.["nickname"] }
+    let readXmpp (section : IConfigurationSection) = {
+        Login = section.["login"]
+        Password = section.["password"]
+        Room = section.["room"]
+        Nickname = section.["nickname"]
+        MessageTimeout =
+            section.["messageTimeout"]
+            |> Option.ofObj
+            |> Option.map (fun s -> TimeSpan.Parse(s, CultureInfo.InvariantCulture))
+            |> Option.defaultValue defaultMessageTimeout
+    }
     let readTelegram (section : IConfigurationSection) = {
         Token = section.["token"]
         GroupId = int64 section.["groupId"]

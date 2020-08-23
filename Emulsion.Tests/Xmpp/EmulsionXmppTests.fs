@@ -10,7 +10,6 @@ open Xunit.Abstractions
 
 open Emulsion.Settings
 open Emulsion
-open Emulsion.Lifetimes
 open Emulsion.Tests.TestUtils
 open Emulsion.Tests.Xmpp
 open Emulsion.Xmpp
@@ -21,6 +20,7 @@ let private settings = {
     Password = "password"
     Room = "room@conference.example.org"
     Nickname = "nickname"
+    MessageTimeout = TimeSpan.FromSeconds 30.0
 }
 
 let private runClientSynchronously settings logger client onMessage =

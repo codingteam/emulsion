@@ -97,34 +97,43 @@ let private extractMessageException message =
     SharpXmppHelper.getMessageError message
     |> Option.map(fun e -> Exception(sprintf "Error: %A" e))
 
-let private awaitMessageReceival (client: IXmppClient) (lifetime: Lifetime) messageId =
+let private awaitMessageReceival (client: IXmppClient) (lifetime: Lifetime) (timeout: TimeSpan) messageId =
     // We need to perform this part synchronously to avoid the race condition between adding a message handler and
     // actually sending a message.
     let messageLifetimeDefinition = lifetime.CreateNested()
-    let messageLifetime = messageLifetimeDefinition.Lifetime
-    let messageReceivedTask = messageLifetime.CreateTaskCompletionSource()
-    client.AddMessageHandler lifetime (fun message ->
-        if hasMessageId messageId message then
-            match extractMessageException message with
-            | Some ex -> messageReceivedTask.SetException ex
-            | None -> messageReceivedTask.SetResult()
-    )
-    async {
-        try
-            do! Async.AwaitTask messageReceivedTask.Task
-        finally
-            messageLifetimeDefinition.Dispose()
-    }
+    try
+        let messageLifetime = messageLifetimeDefinition.Lifetime
+        let messageReceivedTask = messageLifetime.CreateTaskCompletionSource()
+        client.AddMessageHandler lifetime (fun message ->
+            if hasMessageId messageId message then
+                match extractMessageException message with
+                | Some ex -> messageReceivedTask.SetException ex
+                | None -> messageReceivedTask.SetResult()
+        )
+        async {
+            try
+                let! task = Async.StartChild(Async.AwaitTask messageReceivedTask.Task, int timeout.TotalMilliseconds)
+                do! task
+            finally
+                messageLifetimeDefinition.Dispose()
+        }
+    with
+    | _ ->
+        messageLifetimeDefinition.Dispose()
+        reraise()
 
 let private newMessageId(): string =
     Guid.NewGuid().ToString()
 
 /// Sends the message to the room. Returns an object that allows to track the message receival.
-let sendRoomMessage (client: IXmppClient) (lifetime: Lifetime) (messageInfo: MessageInfo): Async<MessageDeliveryInfo> =
+let sendRoomMessage (client: IXmppClient)
+                    (lifetime: Lifetime)
+                    (timeout: TimeSpan)
+                    (messageInfo: MessageInfo): Async<MessageDeliveryInfo> =
     async {
         let messageId = newMessageId()
         let message = SharpXmppHelper.message messageId messageInfo.RecipientJid.FullJid messageInfo.Text
-        let! delivery = Async.StartChild <| awaitMessageReceival client lifetime messageId
+        let! delivery = Async.StartChild <| awaitMessageReceival client lifetime timeout messageId
         client.Send message
         return {
             MessageId = messageId
