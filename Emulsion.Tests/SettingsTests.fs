@@ -55,12 +55,12 @@ let private mockConfiguration groupIdLiteral =
 let ``Settings read properly`` () =
     task {
         let! configuration = mockConfiguration "200600"
-        Assert.Equal(testConfiguration, Settings.read configuration)
+        Assert.Equal(testConfiguration, read configuration)
     }
 
 [<Fact>]
 let ``Settings read the group id as string``(): Task<unit> =
     task {
         let! configuration = mockConfiguration "\"200600\""
-        Assert.Equal(testConfiguration, Settings.read configuration)
+        Assert.Equal(testConfiguration, read configuration)
     }

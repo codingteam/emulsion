@@ -43,7 +43,7 @@ let run (settings: XmppSettings)
         (client: IXmppClient)
         (messageReceiver: IncomingMessageReceiver): Async<Async<unit>> = async {
     logger.Information "Connecting to the server"
-    let! sessionLifetime = XmppClient.connect client
+    let! sessionLifetime = connect client
     sessionLifetime.ThrowIfNotAlive()
     logger.Information "Connection succeeded"
 
@@ -53,7 +53,7 @@ let run (settings: XmppSettings)
 
     let roomInfo = { RoomJid = JID(settings.Room); Nickname = settings.Nickname }
     logger.Information("Entering the room {RoomInfo}", roomInfo)
-    let! roomLifetime = XmppClient.enterRoom client sessionLifetime roomInfo
+    let! roomLifetime = enterRoom client sessionLifetime roomInfo
     logger.Information "Entered the room"
 
     return async {
@@ -75,5 +75,5 @@ let send (logger: ILogger)
     let message = { RecipientJid = JID(settings.Room); Text = text }
     let! deliveryInfo = XmppClient.sendRoomMessage client lifetime message
     logger.Information("Message {MessageId} has been sent; awaiting delivery", deliveryInfo.MessageId)
-    do! XmppClient.awaitMessageDelivery deliveryInfo
+    do! awaitMessageDelivery deliveryInfo
 }

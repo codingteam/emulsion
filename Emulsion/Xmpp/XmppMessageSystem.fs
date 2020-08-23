@@ -5,7 +5,6 @@ open System.Threading
 open JetBrains.Lifetimes
 
 open Emulsion
-open Emulsion
 open Emulsion.MessageSystem
 open Emulsion.Settings
 
@@ -14,7 +13,7 @@ type XmppMessageSystem(ctx: ServiceContext, cancellationToken: CancellationToken
 
     let client = ref None
 
-    member private __.BaseRunAsync r = base.RunAsync r
+    member private _.BaseRunAsync r = base.RunAsync r
 
     override this.RunAsync receiver = async {
         // This overload essentially wraps a base method with a couple of "use" statements.
