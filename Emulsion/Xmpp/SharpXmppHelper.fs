@@ -19,7 +19,6 @@ module Attributes =
     let Code = XName.Get "code"
     let From = XName.Get "from"
     let Id = XName.Get "id"
-    let Jid = XName.Get "jid"
     let Stamp = XName.Get "stamp"
     let To = XName.Get "to"
     let Type = XName.Get "type"
@@ -38,24 +37,15 @@ module Elements =
 open Elements
 
 let private bookmark (roomJid: string) (nickname: string) (password: string option): BookmarkedConference =
-    let room = BookmarkedConference()
-    room.SetAttributeValue(Jid, roomJid)
+    let room = BookmarkedConference(JID = JID roomJid)
+    password |> Option.iter (fun p -> room.Password <- p)
     let nickElement = XElement(Nick, Value = nickname)
     room.Add(nickElement)
-
     room
 
 let joinRoom (client: XmppClient) (roomJid: string) (nickname: string) (password: string option): unit =
-    let roomJid = JID(sprintf "%s/%s" roomJid nickname)
-    let presence = XMPPPresence(client.Capabilities, To = roomJid)
-    let mucXmlns = "http://jabber.org/protocol/muc"
-    let x = XElement(XName.Get("x", mucXmlns))
-    password |> Option.iter (fun p ->
-        let passwordElement = XElement(XName.Get("password", mucXmlns), Value = p)
-        x.Add passwordElement
-    )
-    presence.Add x
-    client.Send presence
+    let room = bookmark roomJid nickname password
+    client.BookmarkManager.Join room
 
 let message (id: string) (toAddr: string) (text: string): XMPPMessage =
     let m = XMPPMessage()
