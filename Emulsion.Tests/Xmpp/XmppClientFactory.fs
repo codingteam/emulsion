@@ -22,6 +22,7 @@ type XmppClientFactory =
             member _.AddConnectionFailedHandler lt handler = addConnectionFailedHandler lt handler
             member _.AddSignedInHandler _ _ = ()
             member _.AddElementHandler _ _ = ()
+            member _.AddIqHandler _ _ = ()
             member _.AddPresenceHandler lt handler = addPresenceHandler lt handler
             member _.AddMessageHandler lt handler = addMessageHandler lt handler
         }

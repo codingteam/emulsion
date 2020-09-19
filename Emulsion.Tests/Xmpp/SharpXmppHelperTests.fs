@@ -74,3 +74,7 @@ let ``Message with text is not considered as empty``(): unit =
 let ``Message with proper type is a group chat message``(): unit =
     Assert.True(SharpXmppHelper.isGroupChatMessage(XmppMessageFactory.create(messageType = "groupchat")))
     Assert.False(SharpXmppHelper.isGroupChatMessage(XmppMessageFactory.create(messageType = "error")))
+
+[<Fact>]
+let ``isPong determines pong response according to the spec``(): unit =
+    Assert.False true

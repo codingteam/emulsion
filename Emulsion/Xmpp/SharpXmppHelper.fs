@@ -14,6 +14,7 @@ open Emulsion.Xmpp
 
 module Namespaces =
     let MucUser = "http://jabber.org/protocol/muc#user"
+    let Ping = "urn:xmpp:ping"
 
 module Attributes =
     let Code = XName.Get "code"
@@ -31,6 +32,7 @@ module Elements =
     let Error = XName.Get("error", Namespaces.JabberClient)
     let Nick = XName.Get("nick", Namespaces.StorageBookmarks)
     let Password = XName.Get("password", Namespaces.StorageBookmarks)
+    let Ping = XName.Get("ping", Namespaces.Ping)
     let Status = XName.Get("status", Namespaces.MucUser)
     let X = XName.Get("x", Namespaces.MucUser)
 
@@ -56,6 +58,17 @@ let message (id: string) (toAddr: string) (text: string): XMPPMessage =
     body.Value <- text
     m.Add(body)
     m
+
+let ping (roomInfo: RoomInfo) (id: string): XMPPIq =
+    let iq = XMPPIq()
+    iq.SetAttributeValue(Id, id)
+    iq.IqType <- XMPPIq.IqTypes.get
+    iq.To <- JID(roomInfo.RoomJid.BareJid, Resource = roomInfo.Nickname)
+    iq.Add(XElement(Ping))
+    iq
+
+let isPong (pingId: string) (iq: XMPPIq): bool =
+    failwith "TODO"
 
 let private getAttributeValue (element : XElement) attributeName =
     let attribute = element.Attribute(attributeName)

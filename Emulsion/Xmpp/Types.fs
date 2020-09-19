@@ -1,5 +1,6 @@
 namespace Emulsion.Xmpp
 
+open System
 open System.Xml.Linq
 
 open SharpXMPP.XMPP
@@ -15,6 +16,8 @@ type RoomInfo = {
     RoomJid: JID
     Nickname: string
     Password: string option
+    Ping: {| Interval: TimeSpan option
+             Timeout: TimeSpan |}
 }
 
 type MessageInfo = {
