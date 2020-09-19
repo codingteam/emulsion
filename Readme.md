@@ -16,7 +16,23 @@ $ dotnet build
 Configure
 ---------
 
-Copy `emulsion.example.json` to `emulsion.json` and set the settings.
+Copy `emulsion.example.json` to `emulsion.json` and set the settings. For some
+settings, there're defaults:
+
+```json
+{
+    "xmpp": {
+        "roomPassword": null,
+        "messageTimeout": "00:05:00",
+        "pingInterval": null,
+        "pingTimeout": "00:00:30"
+    }
+}
+```
+
+All the other settings are required.
+
+Note that `pingInterval` of `null` disables XMPP ping support.
 
 Test
 ----

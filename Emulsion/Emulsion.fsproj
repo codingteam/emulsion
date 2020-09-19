@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="EmulsionSettings.fs" />
+    <Compile Include="Settings.fs" />
     <Compile Include="Message.fs" />
     <Compile Include="MessageSender.fs" />
     <Compile Include="MessageSystem.fs" />

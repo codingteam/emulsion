@@ -22,6 +22,8 @@ let private settings = {
     RoomPassword = None
     Nickname = "nickname"
     MessageTimeout = TimeSpan.FromSeconds 30.0
+    PingInterval = None
+    PingTimeout = defaultPingTimeout
 }
 
 let private runClientSynchronously settings logger client onMessage =

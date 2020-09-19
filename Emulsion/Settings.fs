@@ -12,6 +12,8 @@ type XmppSettings = {
     RoomPassword: string option
     Nickname: string
     MessageTimeout: TimeSpan
+    PingInterval: TimeSpan option
+    PingTimeout: TimeSpan
 }
 
 type TelegramSettings = {
@@ -30,6 +32,16 @@ type EmulsionSettings = {
 }
 
 let defaultMessageTimeout = TimeSpan.FromMinutes 5.0
+let defaultPingTimeout = TimeSpan.FromSeconds 30.0
+
+let private readTimeSpanOpt key (section: IConfigurationSection) =
+    section.[key]
+    |> Option.ofObj
+    |> Option.map (fun s -> TimeSpan.Parse(s, CultureInfo.InvariantCulture))
+
+let private readTimeSpan defaultVal key section =
+    readTimeSpanOpt key section
+    |> Option.defaultValue defaultVal
 
 let read (config : IConfiguration) : EmulsionSettings =
     let readXmpp (section : IConfigurationSection) = {
@@ -38,11 +50,9 @@ let read (config : IConfiguration) : EmulsionSettings =
         Room = section.["room"]
         RoomPassword = Option.ofObj section.["roomPassword"]
         Nickname = section.["nickname"]
-        MessageTimeout =
-            section.["messageTimeout"]
-            |> Option.ofObj
-            |> Option.map (fun s -> TimeSpan.Parse(s, CultureInfo.InvariantCulture))
-            |> Option.defaultValue defaultMessageTimeout
+        MessageTimeout = readTimeSpan defaultMessageTimeout  "messageTimeout" section
+        PingInterval = readTimeSpanOpt "pingInterval" section
+        PingTimeout = readTimeSpan defaultPingTimeout "pingTimeout" section
     }
     let readTelegram (section : IConfigurationSection) = {
         Token = section.["token"]
