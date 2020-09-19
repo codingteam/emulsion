@@ -51,9 +51,15 @@ let run (settings: XmppSettings)
     addMessageHandler client sessionLifetime settings messageReceiver
     logger.Information "Client handler initialized"
 
-    let roomInfo = { RoomJid = JID(settings.Room); Nickname = settings.Nickname; Password = settings.RoomPassword }
+    let roomInfo = {
+        RoomJid = JID(settings.Room)
+        Nickname = settings.Nickname
+        Password = settings.RoomPassword
+        Ping = {| Interval = settings.PingInterval
+                  Timeout = settings.PingTimeout |}
+    }
     logger.Information("Entering the room {RoomInfo}", roomInfo)
-    let! roomLifetime = enterRoom client sessionLifetime roomInfo
+    let! roomLifetime = enterRoom logger client sessionLifetime roomInfo
     logger.Information "Entered the room"
 
     return async {

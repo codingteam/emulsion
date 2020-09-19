@@ -11,47 +11,13 @@ open SharpXMPP.XMPP.Client.Elements
 open Xunit
 
 open Emulsion.Xmpp
-open Emulsion.Xmpp.SharpXmppHelper.Attributes
 open Emulsion.Xmpp.SharpXmppHelper.Elements
 
-let private createPresenceFor (roomJid: JID) nickname =
-    let presence = XMPPPresence()
-    let participantJid = JID(roomJid.FullJid)
-    participantJid.Resource <- nickname
-    presence.SetAttributeValue(From, participantJid.FullJid)
-    presence
-
-let private createSelfPresence roomJid nickname (statusCode: int) =
-    let presence = createPresenceFor roomJid nickname
-    let x = XElement X
-    let status = XElement Status
-    status.SetAttributeValue(Code, statusCode)
-    x.Add status
-    presence.Add x
-    presence
-
-let private createErrorPresence roomJid nickname errorXml =
-    let presence = createPresenceFor roomJid nickname
-    presence.SetAttributeValue(Type, "error")
-    let error = XElement Error
-    let errorChild = XElement.Parse errorXml
-    error.Add errorChild
-    presence.Add error
-    presence
-
-let private createLeavePresence roomJid nickname =
-    let presence = createSelfPresence roomJid nickname 307
-    presence.SetAttributeValue(Type, "unavailable")
-    presence
-
-let private sendPresence presence handlers =
-    Seq.iter (fun h -> h presence) handlers
-
-let private createErrorMessage (message: XMPPMessage) errorXml =
+let private createErrorMessage (message: XElement) errorXml =
     // An error message is an exact copy of the original with the "error" element added:
     let errorMessage = XMPPMessage()
     message.Attributes() |> Seq.iter (fun a -> errorMessage.SetAttributeValue(a.Name, a.Value))
-    message.Elements() |> Seq.iter (fun e -> errorMessage.Add e)
+    message.Elements() |> Seq.iter errorMessage.Add
 
     let error = XElement Error
     let errorChild = XElement.Parse errorXml
@@ -75,82 +41,13 @@ let ``connect function returns a lifetime terminated whenever the ConnectionFail
     callback(ConnFailedArgs())
     Assert.False lt.IsAlive
 
-[<Fact>]
-let ``enterRoom function calls JoinMultiUserChat``(): unit =
-    let mutable called = false
-    let mutable presenceHandlers = ResizeArray()
-    let client =
-        XmppClientFactory.create(
-            addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
-            joinMultiUserChat = fun roomJid nickname _ ->
-                called <- true
-                Seq.iter (fun h -> h (createSelfPresence roomJid nickname 110)) presenceHandlers
-        )
-    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser"; Password = None }
-    Lifetime.Using(fun lt ->
-        Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo |> ignore
-        Assert.True called
-    )
-
-[<Fact>]
-let ``enterRoom throws an exception in case of an error presence``(): unit =
-    let mutable presenceHandlers = ResizeArray()
-    let client =
-        XmppClientFactory.create(
-            addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
-            joinMultiUserChat = fun roomJid nickname _ ->
-                sendPresence (createErrorPresence roomJid nickname "<jid-malformed xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\" />") presenceHandlers
-        )
-    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser"; Password = None }
-    Lifetime.Using(fun lt ->
-        let ae = Assert.Throws<AggregateException>(fun () ->
-            Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo |> ignore
-        )
-        let ex = Seq.exactlyOne ae.InnerExceptions
-        Assert.Contains("<jid-malformed xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\" />", ex.Message)
-    )
-
-[<Fact>]
-let ``Lifetime returned from enterRoom terminates by a room leave presence``(): unit =
-    let mutable presenceHandlers = ResizeArray()
-    let client =
-        XmppClientFactory.create(
-            addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
-            joinMultiUserChat = fun roomJid nickname _ ->
-                sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers
-        )
-    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser"; Password = None }
-    Lifetime.Using(fun lt ->
-        let roomLt = Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo
-        Assert.True roomLt.IsAlive
-        sendPresence (createLeavePresence roomInfo.RoomJid roomInfo.Nickname) presenceHandlers
-        Assert.False roomLt.IsAlive
-    )
-
-[<Fact>]
-let ``Lifetime returned from enterRoom terminates by an external lifetime termination``(): unit =
-    let mutable presenceHandlers = ResizeArray()
-    let client =
-        XmppClientFactory.create(
-            addPresenceHandler = (fun _ h -> presenceHandlers.Add h),
-            joinMultiUserChat = fun roomJid nickname _ ->
-                sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers
-        )
-    let roomInfo = { RoomJid = JID("room@conference.example.org"); Nickname = "testuser"; Password = None }
-    use ld = Lifetime.Define()
-    let lt = ld.Lifetime
-    let roomLt = Async.RunSynchronously <| XmppClient.enterRoom client lt roomInfo
-    Assert.True roomLt.IsAlive
-    ld.Terminate()
-    Assert.False roomLt.IsAlive
-
 let private sendRoomMessage client lt messageInfo =
     XmppClient.sendRoomMessage client lt Emulsion.Settings.defaultMessageTimeout messageInfo
 
 [<Fact>]
 let ``sendRoomMessage calls Send method on the client``(): unit =
     let mutable message = Unchecked.defaultof<XMPPMessage>
-    let client = XmppClientFactory.create(send = fun m -> message <- m)
+    let client = XmppClientFactory.create(send = fun m -> message <- m :?> XMPPMessage)
     let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
     Lifetime.Using(fun lt ->
         Async.RunSynchronously <| sendRoomMessage client lt messageInfo |> ignore
@@ -165,7 +62,7 @@ let ``sendRoomMessage's result gets resolved after the message receival``(): uni
     let client =
         XmppClientFactory.create(
             addMessageHandler = (fun _ h -> messageHandler <- h),
-            send = fun m -> message <- m
+            send = fun m -> message <- m :?> XMPPMessage
         )
     let messageInfo = { RecipientJid = JID("room@conference.example.org"); Text = "foo bar" }
     Lifetime.Using(fun lt ->
@@ -218,7 +115,7 @@ let ``sendRoomMessage's result gets terminated after parent lifetime termination
     let deliveryTask = Async.StartAsTask deliveryInfo.Delivery
     Assert.False deliveryTask.IsCompleted
     ld.Terminate()
-    Assert.Throws<TaskCanceledException>(fun () -> deliveryTask.GetAwaiter().GetResult()) |> ignore
+    Assert.Throws<TaskCanceledException>(deliveryTask.GetAwaiter().GetResult) |> ignore
 
 [<Fact>]
 let ``awaitMessageDelivery just returns an async from the delivery info``(): unit =
