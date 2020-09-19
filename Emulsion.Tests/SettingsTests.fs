@@ -17,7 +17,8 @@ let private testConfigText groupIdLiteral =
        ""password"": ""password"",
        ""room"": ""room"",
        ""nickname"": ""nickname"",
-       ""messageTimeout"": ""00:00:30""
+       ""messageTimeout"": ""00:00:30"",
+       ""pingTimeout"": ""00:00:30""
    },
    ""telegram"": {
        ""token"": ""token"",
@@ -36,6 +37,8 @@ let private testConfiguration = {
         RoomPassword = None
         Nickname = "nickname"
         MessageTimeout = TimeSpan.FromSeconds 30.0
+        PingInterval = None
+        PingTimeout = TimeSpan.FromSeconds 30.0
     }
     Telegram = {
         Token = "token"
