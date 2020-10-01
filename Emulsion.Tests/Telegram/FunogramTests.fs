@@ -188,6 +188,15 @@ module ReadMessageTests =
         )
 
     [<Fact>]
+    let readMessageWithoutTextAndLink() =
+        let privateChat = { currentChat with Type = ChatType.Private }
+        let expectedMessage = { createMessage None None with Chat = privateChat }
+        Assert.Equal(
+            authoredTelegramMessage "[UNKNOWN USER]" "[DATA UNRECOGNIZED]",
+            readMessage (expectedMessage)
+        )
+
+    [<Fact>]
     let readReplyMessage() =
         let originalMessage = createMessage (Some originalUser) (Some "Original text")
         let replyMessage = createReplyMessage (Some replyingUser) (Some "Reply text") originalMessage
@@ -373,6 +382,15 @@ module ReadMessageTests =
                             Animation = Some <| createAnimation() }
         Assert.Equal(
             authoredTelegramMessage "@originalUser" "[Animation with caption \"test\"]: https://t.me/test_room/1",
+            readMessage message
+        )
+
+    [<Fact>]
+    let readContentWithoutLink() =
+        let privateChat = { currentChat with Type = ChatType.Private }
+        let message = { createMessageWithCaption originalUser "test" with Chat = privateChat }
+        Assert.Equal(
+            authoredTelegramMessage "@originalUser" "[Unknown content with caption \"test\"]",
             readMessage message
         )
 
