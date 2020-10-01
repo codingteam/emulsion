@@ -6,8 +6,8 @@ open System.Xml.Linq
 
 open SharpXMPP
 open SharpXMPP.XMPP
-open SharpXMPP.XMPP.Client.MUC.Bookmarks.Elements
 open SharpXMPP.XMPP.Client.Elements
+open SharpXMPP.XMPP.Client.MUC.Bookmarks.Elements
 
 open Emulsion
 open Emulsion.Xmpp
@@ -59,16 +59,16 @@ let message (id: string) (toAddr: string) (text: string): XMPPMessage =
     m.Add(body)
     m
 
-let ping (roomInfo: RoomInfo) (id: string): XMPPIq =
+let ping (jid: JID) (id: string): XMPPIq =
     let iq = XMPPIq()
     iq.SetAttributeValue(Id, id)
     iq.IqType <- XMPPIq.IqTypes.get
-    iq.To <- JID(roomInfo.RoomJid.BareJid, Resource = roomInfo.Nickname)
+    iq.To <- jid
     iq.Add(XElement(Ping))
     iq
 
-let isPong (pingId: string) (iq: XMPPIq): bool =
-    failwith "TODO"
+let isPong (from: JID) (pingId: string) (iq: XMPPIq): bool =
+     iq.IqType = XMPPIq.IqTypes.result && iq.From.FullJid = from.FullJid && iq.ID = pingId
 
 let private getAttributeValue (element : XElement) attributeName =
     let attribute = element.Attribute(attributeName)

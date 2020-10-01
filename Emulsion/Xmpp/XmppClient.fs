@@ -39,14 +39,17 @@ let connect (client: IXmppClient): Async<Lifetime> = async {
     return connectionLifetime.Lifetime
 }
 
+let private botJid roomInfo =
+    sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
+
 let private isSelfPresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
     let presence = SharpXmppHelper.parsePresence presence
-    let expectedJid = sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
+    let expectedJid = botJid roomInfo
     presence.Type = None && presence.From = expectedJid && Array.contains 110 presence.States
 
 let private isLeavePresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
     let presence = SharpXmppHelper.parsePresence presence
-    let expectedJid = sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
+    let expectedJid = botJid roomInfo
     presence.From = expectedJid && presence.Type = Some "unavailable" && SharpXmppHelper.hasRemovalCode presence.States
 
 let private extractPresenceException (roomInfo: RoomInfo) (presence: XMPPPresence) =
@@ -60,7 +63,10 @@ let private extractPresenceException (roomInfo: RoomInfo) (presence: XMPPPresenc
 let private newMessageId(): string =
     Guid.NewGuid().ToString()
 
-let private startPingActivity (logger: ILogger) (client: IXmppClient) (roomLifetimeDefinition: LifetimeDefinition) roomInfo =
+let private startPingActivity (logger: ILogger)
+                              (client: IXmppClient)
+                              (roomLifetimeDefinition: LifetimeDefinition)
+                              roomInfo =
     roomInfo.Ping.Interval |> Option.iter (fun pingInterval ->
         let pingTimeout = roomInfo.Ping.Timeout
         if pingInterval <= pingTimeout then
@@ -69,11 +75,12 @@ let private startPingActivity (logger: ILogger) (client: IXmppClient) (roomLifet
             // terminated earlier than the ping timeout ends, which will break ping logic)
 
         let activityLifetime = roomLifetimeDefinition.Lifetime
+        let jid = JID(botJid roomInfo)
         Async.Start (async {
             while true do
                 try
                     let pingId = newMessageId()
-                    let pingMessage = SharpXmppHelper.ping roomInfo pingId
+                    let pingMessage = SharpXmppHelper.ping jid pingId
                     let mutable pongReceived = false
 
                     use pingLifetimeDefinition = activityLifetime.CreateNested()
@@ -90,7 +97,7 @@ let private startPingActivity (logger: ILogger) (client: IXmppClient) (roomLifet
                             )
 
                     client.AddIqHandler pingLifetime (fun iq ->
-                        if SharpXmppHelper.isPong pingId iq then
+                        if SharpXmppHelper.isPong jid pingId iq then
                             Volatile.Write(&pongReceived, true)
                             pingLifetimeDefinition.Terminate()
                     )

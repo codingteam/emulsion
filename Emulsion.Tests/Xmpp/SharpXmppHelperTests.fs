@@ -2,9 +2,12 @@ module Emulsion.Tests.Xmpp.SharpXmppHelperTests
 
 open System.Xml.Linq
 
+open SharpXMPP.XMPP
+open SharpXMPP.XMPP.Client.Elements
 open Xunit
 
 open Emulsion
+open Emulsion.Xmpp.SharpXmppHelper.Attributes
 open Emulsion.Tests.Xmpp
 open Emulsion.Xmpp
 
@@ -77,4 +80,9 @@ let ``Message with proper type is a group chat message``(): unit =
 
 [<Fact>]
 let ``isPong determines pong response according to the spec``(): unit =
-    Assert.False true
+    let jid = JID("room@conference.example.com/me")
+    let pongResponse = XMPPIq(XMPPIq.IqTypes.result, "myTest")
+    pongResponse.SetAttributeValue(From, jid.FullJid)
+
+    Assert.True(SharpXmppHelper.isPong jid "myTest" pongResponse)
+    Assert.False(SharpXmppHelper.isPong jid "thyTest" pongResponse)
