@@ -4,6 +4,7 @@ open System
 open System.Threading.Tasks
 open System.Xml.Linq
 
+open FSharp.Control.Tasks
 open JetBrains.Lifetimes
 open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.Elements
@@ -26,6 +27,11 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
         Ping = {| Interval = None
                   Timeout = Settings.defaultPingTimeout |}
     }
+
+    let roomInfoWithPing =
+        { testRoomInfo with
+             Ping = {| testRoomInfo.Ping with Interval = Some(TimeSpan.FromHours 1.0) |}
+        }
 
     let createPresenceFor (roomJid: JID) nickname =
         let presence = XMPPPresence()
@@ -60,6 +66,11 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
     let sendPresence presence handlers =
         Seq.iter (fun h -> h presence) handlers
 
+    let sendPong roomInfo id handlers =
+        let pong = XMPPIq(XMPPIq.IqTypes.result, id)
+        pong.SetAttributeValue(From, sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname)
+        Seq.iter (fun h -> h pong) handlers
+
     let createPresenceHandlingClient() =
         let mutable presenceHandlers = ResizeArray()
         XmppClientFactory.create(
@@ -68,10 +79,27 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                 sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers
         ), presenceHandlers
 
+    let pingWaitTime = TimeSpan.FromMilliseconds 100.0
+    let assertNoPingSent(iqMessages: ResizeArray<XMPPIq>) = async {
+        do! Async.Sleep(int pingWaitTime.TotalMilliseconds)
+        lock iqMessages (fun() ->
+            Assert.Empty iqMessages
+        )
+    }
+
+    let assertPingSent(iqMessages: ResizeArray<XMPPIq>) = async {
+        do! Async.Sleep(int pingWaitTime.TotalMilliseconds)
+        lock iqMessages (fun() ->
+            let iq = Seq.exactlyOne iqMessages
+            let ping = iq.Element Ping
+            Assert.NotNull ping
+        )
+    }
+
     [<Fact>]
     member _.``enterRoom function calls JoinMultiUserChat``(): unit =
         let mutable called = false
-        let mutable presenceHandlers = ResizeArray()
+        let presenceHandlers = ResizeArray()
         let client =
             XmppClientFactory.create(
                 addPresenceHandler = (fun _ -> presenceHandlers.Add),
@@ -122,24 +150,119 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
         Assert.False roomLt.IsAlive
 
     [<Fact>]
-    member _.``client sends a ping after room connection``(): Task =
-        let (client, _) = createPresenceHandlingClient()
+    member _.``Client sends a ping after room connection``(): Task =
+        let presenceHandlers = ResizeArray()
+        let iqMessages = ResizeArray()
+        let client =
+            XmppClientFactory.create(
+                addPresenceHandler = (fun _ -> presenceHandlers.Add),
+                joinMultiUserChat = (fun roomJid nickname _ ->
+                    sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers),
+                send = function
+                | :? XMPPIq as iq -> lock iqMessages (fun() -> iqMessages.Add iq)
+                | _ -> ()
+            )
+
         upcast Lifetime.UsingAsync(fun lt ->
             async {
-                let mutable pingSent = false
-                let! _ = XmppClient.enterRoom logger client lt testRoomInfo
-                Assert.True pingSent
+                let! _ = XmppClient.enterRoom logger client lt roomInfoWithPing
+                do! assertPingSent iqMessages
             } |> Async.StartAsTask
         )
 
     [<Fact>]
-    member _.``client doesn't send ping before finishing joining the room``(): unit =
-        Assert.True false
+    member _.``Client doesn't send ping before finishing joining the room``(): Task =
+        let presenceHandlers = ResizeArray()
+        let iqMessages = ResizeArray()
+        let mutable join = ref Unchecked.defaultof<_>
+        let client =
+            XmppClientFactory.create(
+                addPresenceHandler = (fun _ h -> lock presenceHandlers (fun() -> presenceHandlers.Add h)),
+                joinMultiUserChat = (fun roomJid nickname _ ->
+                    lock join (fun() ->
+                        join := fun () -> lock presenceHandlers (fun() ->
+                            sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers)
+                        )
+                    ),
+                send = function
+                | :? XMPPIq as iq -> lock iqMessages (fun() -> iqMessages.Add iq)
+                | _ -> ()
+            )
+        upcast Lifetime.UsingAsync(fun lt ->
+            async {
+                let! connection = Async.StartChild <| XmppClient.enterRoom logger client lt roomInfoWithPing
+                do! assertNoPingSent iqMessages
+                lock join !join // ha-ha
+                let! _ = connection
+                do! assertPingSent iqMessages
+            } |> Async.StartAsTask
+        )
 
     [<Fact>]
-    member _.``client disconnects on failing a ping request``(): unit =
-        Assert.True false
+    member _.``Client disconnects on failing a ping request``(): Task =
+        let timeout = TimeSpan.FromMilliseconds 500.0
+        let roomInfo = { roomInfoWithPing with Ping = {| roomInfoWithPing.Ping with Timeout = timeout |} }
+
+        let (client, _) = createPresenceHandlingClient()
+        upcast Lifetime.UsingAsync(fun lt ->
+            async {
+                let! lt = XmppClient.enterRoom logger client lt roomInfo
+                Assert.True lt.IsAlive
+                do! Async.Sleep(int (timeout * 2.0).TotalMilliseconds) // wait for two timeouts for test stability
+                Assert.False lt.IsAlive
+            } |> Async.StartAsTask
+        )
 
     [<Fact>]
-    member _.``client doesn't disconnect on successful ping request``(): unit =
-        Assert.True false
+    member _.``Client doesn't disconnect on successful ping request``(): Task =
+        let timeout = TimeSpan.FromMilliseconds 500.0
+        let roomInfo = { roomInfoWithPing with Ping = {| roomInfoWithPing.Ping with Timeout = timeout |} }
+
+        let presenceHandlers = ResizeArray()
+        let iqHandlers = ResizeArray()
+        let client =
+            XmppClientFactory.create(
+                addPresenceHandler = (fun _ -> presenceHandlers.Add),
+                joinMultiUserChat = (fun roomJid nickname _ ->
+                    sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers),
+                addIqHandler = (fun _-> iqHandlers.Add),
+                send = function
+                | :? XMPPIq as iq ->
+                    let pingId = iq.ID
+                    sendPong roomInfo pingId iqHandlers
+                | _ -> ()
+            )
+
+        upcast Lifetime.UsingAsync(fun lt ->
+            async {
+                let! lt = XmppClient.enterRoom logger client lt roomInfo
+                Assert.True lt.IsAlive
+                do! Async.Sleep(int (timeout * 2.0).TotalMilliseconds)
+                Assert.True lt.IsAlive
+            } |> Async.StartAsTask
+        )
+
+    [<Fact>]
+    member _.``Exception should be thrown if pingInterval < pingTimeout``(): Task =
+        let interval = TimeSpan.FromMilliseconds 300.0
+        let timeout = TimeSpan.FromMilliseconds 500.0
+        let roomInfo =
+            { roomInfoWithPing with
+                Ping = {| Interval = Some interval
+                          Timeout = timeout |}
+            }
+
+        let (client, _) = createPresenceHandlingClient()
+        upcast task {
+            let! ex = Assert.ThrowsAnyAsync(fun() ->
+                upcast Lifetime.UsingAsync(fun lt ->
+                    async {
+                        let! _ = XmppClient.enterRoom logger client lt roomInfo
+                        ()
+                    } |> Async.StartAsTask
+                )
+            )
+
+            let expectedMessage = sprintf "Ping interval of %A should be greater than ping timeout of %A" interval timeout
+            Assert.Equal(expectedMessage, ex.Message)
+        }
