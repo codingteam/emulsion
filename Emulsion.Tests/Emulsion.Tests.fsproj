@@ -18,11 +18,13 @@
     <Compile Include="MessageSystemTests\MessageSystemBaseTests.fs" />
     <Compile Include="Telegram\Html.fs" />
     <Compile Include="Telegram\FunogramTests.fs" />
+    <Compile Include="Xmpp\SharpXmppPingHandlerTests.fs" />
     <Compile Include="Xmpp\XmppClientFactory.fs" />
     <Compile Include="Xmpp\XmppMessageFactory.fs" />
     <Compile Include="Xmpp\XmppClientTests.fs" />
     <Compile Include="Xmpp\XmppClientRoomTests.fs" />
     <Compile Include="Xmpp\SharpXmppHelperTests.fs" />
+    <Compile Include="Xmpp\SharpXmppPingHandlerTests.fs" />
     <Compile Include="Xmpp\EmulsionXmppTests.fs" />
   </ItemGroup>
   <ItemGroup>

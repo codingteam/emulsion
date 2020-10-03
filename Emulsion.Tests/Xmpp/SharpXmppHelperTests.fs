@@ -8,6 +8,7 @@ open Xunit
 
 open Emulsion
 open Emulsion.Xmpp.SharpXmppHelper.Attributes
+open Emulsion.Xmpp.SharpXmppHelper.Elements
 open Emulsion.Tests.Xmpp
 open Emulsion.Xmpp
 
@@ -77,6 +78,15 @@ let ``Message with text is not considered as empty``(): unit =
 let ``Message with proper type is a group chat message``(): unit =
     Assert.True(SharpXmppHelper.isGroupChatMessage(XmppMessageFactory.create(messageType = "groupchat")))
     Assert.False(SharpXmppHelper.isGroupChatMessage(XmppMessageFactory.create(messageType = "error")))
+
+[<Fact>]
+let ``isPing determines ping IQ query according to the spec``(): unit =
+    let jid = JID("room@conference.example.com/me")
+    let ping = SharpXmppHelper.ping jid "myTest"
+    Assert.True(SharpXmppHelper.isPing ping)
+
+    ping.Element(Ping).Remove()
+    Assert.False(SharpXmppHelper.isPing ping)
 
 [<Fact>]
 let ``isPong determines pong response according to the spec``(): unit =
