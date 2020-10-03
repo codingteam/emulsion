@@ -47,7 +47,9 @@ type Wrapper(client: XmppClient) =
             lt.OnTermination(fun () -> client.remove_Message handlerDelegate) |> ignore
 
 let create (settings: XmppSettings): XmppClient =
-    new XmppClient(JID(settings.Login), settings.Password)
+    let client = new XmppClient(JID(settings.Login), settings.Password)
+    client.IqManager.PayloadHandlers.Add(SharpXmppPingHandler())
+    client
 
 let wrap(client: XmppClient): IXmppClient =
     upcast Wrapper client

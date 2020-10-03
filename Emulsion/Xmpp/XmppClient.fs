@@ -91,7 +91,7 @@ let private startPingActivity (logger: ILogger)
                            .OnTermination(fun () ->
                                 let pongReceived = Volatile.Read &pongReceived
                                 if not pongReceived then
-                                    logger.Warning("Ping message not received in {Time}: terminating room {Room}",
+                                    logger.Warning("Pong message not received in {Time}: terminating room {Room}",
                                                    roomInfo.Ping.Timeout,
                                                    roomInfo.RoomJid)
                                     roomLifetimeDefinition.Terminate()
@@ -100,6 +100,7 @@ let private startPingActivity (logger: ILogger)
                     client.SendIqQuery pingLifetime pingMessage (fun response ->
                         if SharpXmppHelper.isPong jid pingId response then
                             Volatile.Write(&pongReceived, true)
+                            use __ = pingLifetime.UsingAllowTerminationUnderExecution()
                             pingLifetimeDefinition.Terminate()
                     )
 

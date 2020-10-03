@@ -64,6 +64,10 @@ let ping (jid: JID) (id: string): XMPPIq =
     iq.Add(XElement(Ping))
     iq
 
+let isPing(iq: XMPPIq): bool =
+    if iq.IqType <> XMPPIq.IqTypes.get then false
+    else iq.Element Ping <> null
+
 let isPong (from: JID) (pingId: string) (iq: XMPPIq): bool =
      iq.IqType = XMPPIq.IqTypes.result && iq.From.FullJid = from.FullJid && iq.ID = pingId
 
