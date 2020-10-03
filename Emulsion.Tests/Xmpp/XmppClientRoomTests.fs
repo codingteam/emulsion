@@ -66,10 +66,10 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
     let sendPresence presence handlers =
         Seq.iter (fun h -> h presence) handlers
 
-    let sendPong roomInfo id handlers =
+    let sendPong roomInfo id handler =
         let pong = XMPPIq(XMPPIq.IqTypes.result, id)
         pong.SetAttributeValue(From, sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname)
-        Seq.iter (fun h -> h pong) handlers
+        handler pong
 
     let createPresenceHandlingClient() =
         let mutable presenceHandlers = ResizeArray()
@@ -158,9 +158,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                 addPresenceHandler = (fun _ -> presenceHandlers.Add),
                 joinMultiUserChat = (fun roomJid nickname _ ->
                     sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers),
-                send = function
-                | :? XMPPIq as iq -> lock iqMessages (fun() -> iqMessages.Add iq)
-                | _ -> ()
+                sendIqQuery = fun _ iq _ -> lock iqMessages (fun() -> iqMessages.Add iq)
             )
 
         upcast Lifetime.UsingAsync(fun lt ->
@@ -184,9 +182,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                             sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers)
                         )
                     ),
-                send = function
-                | :? XMPPIq as iq -> lock iqMessages (fun() -> iqMessages.Add iq)
-                | _ -> ()
+                sendIqQuery = fun _ iq _ -> lock iqMessages (fun() -> iqMessages.Add iq)
             )
         upcast Lifetime.UsingAsync(fun lt ->
             async {
@@ -219,18 +215,14 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
         let roomInfo = { roomInfoWithPing with Ping = {| roomInfoWithPing.Ping with Timeout = timeout |} }
 
         let presenceHandlers = ResizeArray()
-        let iqHandlers = ResizeArray()
         let client =
             XmppClientFactory.create(
                 addPresenceHandler = (fun _ -> presenceHandlers.Add),
                 joinMultiUserChat = (fun roomJid nickname _ ->
                     sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers),
-                addIqHandler = (fun _-> iqHandlers.Add),
-                send = function
-                | :? XMPPIq as iq ->
+                sendIqQuery = fun _ iq handler ->
                     let pingId = iq.ID
-                    sendPong roomInfo pingId iqHandlers
-                | _ -> ()
+                    sendPong roomInfo pingId handler
             )
 
         upcast Lifetime.UsingAsync(fun lt ->

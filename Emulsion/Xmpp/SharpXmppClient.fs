@@ -3,7 +3,6 @@ module Emulsion.Xmpp.SharpXmppClient
 
 open SharpXMPP
 open SharpXMPP.XMPP
-open SharpXMPP.XMPP.Client.Elements
 
 open Emulsion.Xmpp
 open Emulsion.Xmpp.XmppClient
@@ -22,6 +21,10 @@ type Wrapper(client: XmppClient) =
             lock socketWriterLock (fun () ->
                 client.Send message
             )
+        member this.SendIqQuery lt iq handler =
+            lock socketWriterLock (fun () ->
+                client.Query(iq, fun response -> lt.Execute(fun() -> handler response))
+            )
         member _.AddSignedInHandler lt handler =
             let handlerDelegate = XmppClient.SignedInHandler(fun _ -> handler)
             client.add_SignedIn handlerDelegate
@@ -30,13 +33,6 @@ type Wrapper(client: XmppClient) =
             let handlerDelegate = XmppClient.ElementHandler(fun _ -> handler)
             client.add_Element handlerDelegate
             lt.OnTermination(fun () -> client.remove_Element handlerDelegate) |> ignore
-        member this.AddIqHandler lt handler =
-            // TODO[F]: Make XmppConnection.Iq event public and get rid of type filter here
-            (this :> IXmppClient).AddElementHandler lt (fun e ->
-                match e.Stanza with
-                | :? XMPPIq as iq -> handler iq
-                | _ -> ()
-            )
         member _.AddConnectionFailedHandler lt handler =
             let handlerDelegate = XmppClient.ConnectionFailedHandler(fun _ -> handler)
             client.add_ConnectionFailed handlerDelegate

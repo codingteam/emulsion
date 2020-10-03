@@ -21,10 +21,11 @@ type IXmppClient =
     abstract member JoinMultiUserChat: roomJid: JID -> nickname: string -> password: string option -> unit
     /// Sends an XMPP message. Should be free-threaded.
     abstract member Send: XElement -> unit
+    /// Sends an IQ query and adds a handler for the query response. Should be free-threaded.
+    abstract member SendIqQuery: Lifetime -> XMPPIq -> (XMPPIq -> unit) -> unit
     abstract member AddConnectionFailedHandler: Lifetime -> (ConnFailedArgs -> unit) -> unit
     abstract member AddSignedInHandler: Lifetime -> (SignedInArgs -> unit) -> unit
     abstract member AddElementHandler: Lifetime -> (ElementArgs -> unit) -> unit
-    abstract member AddIqHandler: Lifetime -> (XMPPIq -> unit) -> unit
     abstract member AddPresenceHandler: Lifetime -> (XMPPPresence -> unit) -> unit
     abstract member AddMessageHandler: Lifetime -> (XMPPMessage -> unit) -> unit
 
@@ -96,13 +97,11 @@ let private startPingActivity (logger: ILogger)
                                     roomLifetimeDefinition.Terminate()
                             )
 
-                    client.AddIqHandler pingLifetime (fun iq ->
-                        if SharpXmppHelper.isPong jid pingId iq then
+                    client.SendIqQuery pingLifetime pingMessage (fun response ->
+                        if SharpXmppHelper.isPong jid pingId response then
                             Volatile.Write(&pongReceived, true)
                             pingLifetimeDefinition.Terminate()
                     )
-
-                    client.Send pingMessage
 
                     do! Async.Sleep(int pingInterval.TotalMilliseconds)
                 with
