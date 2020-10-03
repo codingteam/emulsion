@@ -60,10 +60,7 @@ let message (id: string) (toAddr: string) (text: string): XMPPMessage =
     m
 
 let ping (jid: JID) (id: string): XMPPIq =
-    let iq = XMPPIq()
-    iq.SetAttributeValue(Id, id)
-    iq.IqType <- XMPPIq.IqTypes.get
-    iq.To <- jid
+    let iq = XMPPIq(XMPPIq.IqTypes.get, id, To = jid)
     iq.Add(XElement(Ping))
     iq
 
