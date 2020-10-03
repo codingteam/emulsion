@@ -14,8 +14,6 @@ open SharpXMPP.XMPP.Client.Elements
 open Emulsion
 open Emulsion.Xmpp
 
-/// Note: all the subscription methods should be free-threaded, and should expect the lifetime to be terminated in a
-/// free-threaded way (i.e. lifetime termination may come from any thread in the system).
 type IXmppClient =
     abstract member Connect: unit -> Async<unit>
     abstract member JoinMultiUserChat: roomJid: JID -> nickname: string -> password: string option -> unit
