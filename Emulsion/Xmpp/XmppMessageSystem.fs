@@ -28,9 +28,9 @@ type XmppMessageSystem(ctx: ServiceContext, cancellationToken: CancellationToken
     }
 
     override _.RunUntilError receiver = async {
-        match !client with
+        match Volatile.Read client with
         | Some(client, _) -> return! EmulsionXmpp.run settings ctx.Logger client receiver
-        | _ -> return failwith "The system cannot be run: the connection is not established"
+        | None -> return failwith "The system cannot be run: the connection is not established"
     }
 
     override _.Send (OutgoingMessage message) = async {
