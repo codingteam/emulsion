@@ -149,7 +149,7 @@ module MessageConverter =
             Chat = { Type = SuperGroup
                      Username = Some chatName } } ->
             sprintf "https://t.me/%s/%d" chatName id
-        | _ -> "[CANNOT RETRIEVE LINK]"
+        | _ -> String.Empty
 
     let private getAuthoredMessageBodyText (message: FunogramMessage) =
         let (|Text|_|) (message: FunogramMessage) = message.Text
@@ -166,21 +166,28 @@ module MessageConverter =
             then None
             else Some (contentType, message.Caption)
 
+        let appendLink link text =
+            if String.IsNullOrEmpty link
+            then text
+            else sprintf "%s: %s" text link
+
         let text =
             match message with
             | Text text -> applyEntities message.Entities text
             | Content (contentType, caption) ->
-                match caption with
-                | Some caption ->
-                    let text = applyEntities message.CaptionEntities caption
-                    sprintf "[%s with caption \"%s\"]: %s" contentType text (getLinkToMessage message)
-                | None ->
-                    sprintf "[%s]: %s" contentType (getLinkToMessage message)
+                let contentInfo =
+                    match caption with
+                    | Some caption ->
+                        let text = applyEntities message.CaptionEntities caption
+                        sprintf "[%s with caption \"%s\"]" contentType text
+                    | None ->
+                        sprintf "[%s]" contentType
+                contentInfo |> appendLink (getLinkToMessage message)
             | Poll poll ->
                 let text = getPollText poll
                 sprintf "[Poll] %s" text
             | _ ->
-                sprintf "[DATA UNRECOGNIZED]: %s" (getLinkToMessage message)
+                "[DATA UNRECOGNIZED]" |> appendLink (getLinkToMessage message)
 
         if Option.isSome message.ForwardFrom
         then
