@@ -34,8 +34,8 @@ type XmppMessageSystem(ctx: ServiceContext, cancellationToken: CancellationToken
     }
 
     override _.Send (OutgoingMessage message) = async {
-         match Volatile.Read(client) with
-         | None -> failwith "Client is offline"
-         | Some (client, lt) ->
-             return! EmulsionXmpp.send ctx.Logger client lt settings message
+        match Volatile.Read(client) with
+        | None -> failwith "Client is offline"
+        | Some (client, lt) ->
+            return! EmulsionXmpp.send ctx.Logger client lt settings message
     }
