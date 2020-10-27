@@ -316,6 +316,33 @@ module ReadMessageTests =
         )
 
     [<Fact>]
+    let multilineForwardShouldBeUnlimited(): unit =
+        let messageLinesLimit = MessageConverter.DefaultMessageLinesLimit
+        let multilineMessage = String.init messageLinesLimit (fun _ -> "test\n") + "test"
+        let forwardedMessage = createMessage (Some originalUser) (Some multilineMessage)
+        let message = createForwardedMessage forwardingUser forwardedMessage
+        let quotedMultilineMessage = "test" + String.init messageLinesLimit (fun _ -> "\n>> test")
+        let telegramMessageText = sprintf ">> <@originalUser> %s" quotedMultilineMessage
+
+        Assert.Equal(
+            authoredTelegramMessage "@forwardingUser" telegramMessageText,
+            readMessage message
+        )
+
+    [<Fact>]
+    let longForwardShouldBeUnlimited(): unit =
+        let messageLengthLimit = MessageConverter.DefaultMessageLengthLimit
+        let longString = String.init (messageLengthLimit + 1) (fun _ -> "A")
+        let forwardedMessage = createMessage (Some originalUser) (Some longString)
+        let message = createForwardedMessage forwardingUser forwardedMessage
+        let telegramMessageText = sprintf ">> <@originalUser> %s" longString
+
+        Assert.Equal(
+            authoredTelegramMessage "@forwardingUser" telegramMessageText,
+            readMessage message
+        )
+
+    [<Fact>]
     let readUnknownSticker(): unit =
         let message = createStickerMessage originalUser None
         Assert.Equal(
