@@ -28,10 +28,13 @@ module MessageConverter =
         linePrefix: string
     }
 
+    let [<Literal>] DefaultMessageLengthLimit = 500
+    let [<Literal>] DefaultMessageLinesLimit = 3
+
     let DefaultQuoteSettings = {
         limits = {
-            messageLengthLimit = Some 500
-            messageLinesLimit = Some 3
+            messageLengthLimit = Some DefaultMessageLengthLimit
+            messageLinesLimit = Some DefaultMessageLinesLimit
             dataRedactedMessage = "[…]"
         }
         linePrefix = ">> "
@@ -195,7 +198,7 @@ module MessageConverter =
                 Authored
                     { author = getOptionalUserDisplayName message.ForwardFrom
                       text = text }
-            getQuotedMessage DefaultQuoteSettings forwardFrom
+            getQuotedMessage { DefaultQuoteSettings with limits = Unlimited } forwardFrom
         else text
 
     let private getEventMessageBodyText (message: FunogramMessage) =
