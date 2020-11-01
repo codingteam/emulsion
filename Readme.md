@@ -1,4 +1,4 @@
-emulsion [![Appveyor Build][badge-appveyor]][build-appveyor] [![Status Ventis][status-ventis]][andivionian-status-classifier]
+emulsion [![Docker Image][badge.docker]][docker-hub] [![Appveyor Build][badge-appveyor]][build-appveyor] [![Status Ventis][status-ventis]][andivionian-status-classifier]
 ========
 
 emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
@@ -40,7 +40,7 @@ Test
 To execute the tests:
 
 ```console
-$ dotnet test ./Emulsion.Tests
+$ dotnet test
 ```
 
 Run
@@ -52,33 +52,52 @@ Requires [.NET Core Runtime][dotnet-core-runtime] version 3.1 or newer.
 $ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
 ```
 
-Docker Compose
---------------
-
-To deploy the application using the provided Docker Compose configuration file,
-execute this:
-
-```console
-$ docker-compose --project-name emulsion up --build --force-recreate -d
-```
-
 Docker
 ------
+It is recommended to use Docker to deploy this project. To install the
+application from Docker, you may use the following Bash script:
 
-We also have a Dockerfile. To deploy it, first author a configuration file, and
-then:
+```bash
+NAME=emulsion
+EMULSION_VERSION=latest
+CONFIG=/opt/codingteam/emulsion/emulsion.json
+docker pull codingteam/emulsion:$EMULSION_VERSION
+docker rm -f $NAME
+docker run --name $NAME \
+    -v $CONFIG:/app/emulsion.json:ro \
+    --restart unless-stopped \
+    -d \
+    codingteam/emulsion:$EMULSION_VERSION
+```
+
+where
+
+- `$NAME` is the container name
+- `$EMULSION_VERSION` is the image version you want to deploy, or `latest` for
+  the latest available one
+- `$CONFIG` is the **absolute** path to the configuration file
+
+To build and push the container to Docker Hub, use the following commands:
 
 ```console
-$ docker build -t emulsion .
-$ docker run -d --name emulsion -v $PWD/emulsion.json:/app/emulsion.json:ro emulsion
+$ docker build -t codingteam/emulsion:$EMULSION_VERSION \
+    -t codingteam/emulsion:latest .
+
+$ docker login # if necessary
+$ docker push codingteam/emulsion:$EMULSION_VERSION
+$ docker push codingteam/emulsion:latest
 ```
+
+where `$EMULSION_VERSION` is the version of the image to publish.
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-ventis-
 [build-appveyor]: https://ci.appveyor.com/project/ForNeVeR/emulsion/branch/master
+[docker-hub]: https://hub.docker.com/r/codingteam/emulsion
 [dotnet-core-runtime]: https://www.microsoft.com/net/download/core#/runtime
 [dotnet-core-sdk]: https://www.microsoft.com/net/download/core
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
 
 [badge-appveyor]: https://ci.appveyor.com/api/projects/status/dgrpxj0dx221ii89/branch/master?svg=true
+[badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
 [status-ventis]: https://img.shields.io/badge/status-ventis-yellow.svg
