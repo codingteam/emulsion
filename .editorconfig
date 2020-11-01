@@ -14,3 +14,6 @@ insert_final_newline = false
 
 [*.md]
 max_line_length = 80
+
+[*.yml]
+indent_size = 2

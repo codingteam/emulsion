@@ -9,11 +9,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		emulsion.example.json = emulsion.example.json
-		appveyor.yml = appveyor.yml
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Tests", "Emulsion.Tests\Emulsion.Tests.fsproj", "{1B3B65DD-FD58-45FA-B6FF-8532B513A7D9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{973131E1-E645-4A50-A0D2-1886A1A8F0C6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{7D1ADF47-BF1C-4007-BB9B-08C283044467}"
+ProjectSection(SolutionItems) = preProject
+	.github\workflows\main.yml = .github\workflows\main.yml
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,5 +58,8 @@ Global
 		{1B3B65DD-FD58-45FA-B6FF-8532B513A7D9}.Release|x64.Build.0 = Release|x64
 		{1B3B65DD-FD58-45FA-B6FF-8532B513A7D9}.Release|x86.ActiveCfg = Release|x86
 		{1B3B65DD-FD58-45FA-B6FF-8532B513A7D9}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7D1ADF47-BF1C-4007-BB9B-08C283044467} = {973131E1-E645-4A50-A0D2-1886A1A8F0C6}
 	EndGlobalSection
 EndGlobal

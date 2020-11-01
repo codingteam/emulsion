@@ -1,0 +1,37 @@
+name: Main
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  main:
+    runs-on: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        environment:
+          - macos-10.15
+          - ubuntu-18.04
+          - windows-2019
+    env:
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      NUGET_PACKAGES: ${{ github.workspace }}/.github/nuget-packages
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1.4.0
+        with:
+          dotnet-version: '3.1.403'
+      - name: NuGet Cache
+        uses: actions/cache@v1.1.0
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}.nuget.${{ hashFiles('**/*.fsproj') }}
+      - name: Build
+        run: dotnet build
+      - name: Test
+        run: dotnet test

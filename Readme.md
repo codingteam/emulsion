@@ -1,4 +1,4 @@
-emulsion [![Docker Image][badge.docker]][docker-hub] [![Appveyor Build][badge-appveyor]][build-appveyor] [![Status Ventis][status-ventis]][andivionian-status-classifier]
+emulsion [![Docker Image][badge.docker]][docker-hub] [![Status Ventis][status-ventis]][andivionian-status-classifier]
 ========
 
 emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
@@ -91,13 +91,11 @@ $ docker push codingteam/emulsion:latest
 where `$EMULSION_VERSION` is the version of the image to publish.
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-ventis-
-[build-appveyor]: https://ci.appveyor.com/project/ForNeVeR/emulsion/branch/master
 [docker-hub]: https://hub.docker.com/r/codingteam/emulsion
 [dotnet-core-runtime]: https://www.microsoft.com/net/download/core#/runtime
 [dotnet-core-sdk]: https://www.microsoft.com/net/download/core
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
 
-[badge-appveyor]: https://ci.appveyor.com/api/projects/status/dgrpxj0dx221ii89/branch/master?svg=true
 [badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
 [status-ventis]: https://img.shields.io/badge/status-ventis-yellow.svg
