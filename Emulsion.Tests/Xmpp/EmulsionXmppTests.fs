@@ -5,6 +5,7 @@ open System.Threading.Tasks
 
 open JetBrains.Lifetimes
 open SharpXMPP
+open SharpXMPP.XMPP.Client.Elements
 open Xunit
 open Xunit.Abstractions
 
@@ -22,6 +23,8 @@ let private settings = {
     RoomPassword = None
     Nickname = "nickname"
     MessageTimeout = TimeSpan.FromSeconds 30.0
+    PingInterval = None
+    PingTimeout = defaultPingTimeout
 }
 
 let private runClientSynchronously settings logger client onMessage =
@@ -83,7 +86,7 @@ type ReceiveMessageTests(outputHelper: ITestOutputHelper) =
         let client =
             XmppClientFactory.create(
                 addConnectionFailedHandler = (fun _ h -> connectionFailedHandler <- h),
-                addMessageHandler = (fun _ h -> receiveHandlers.Add h),
+                addMessageHandler = (fun _ -> receiveHandlers.Add),
                 joinMultiUserChat = fun _ _ _ ->
                     sendMessage message
                     disconnect()
@@ -157,8 +160,10 @@ type SendTests(outputHelper: ITestOutputHelper) =
 
             let client =
                 XmppClientFactory.create(
-                    addMessageHandler = (fun _ h -> messageHandlers.Add h),
-                    send = fun m -> messageId.SetResult(Option.get <| SharpXmppHelper.getMessageId m)
+                    addMessageHandler = (fun _ -> messageHandlers.Add),
+                    send = fun m ->
+                        let message = m :?> XMPPMessage
+                        messageId.SetResult(Option.get <| SharpXmppHelper.getMessageId message)
                 )
             let outgoingMessage = Authored { author = "author"; text = "text" }
 

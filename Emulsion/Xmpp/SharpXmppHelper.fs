@@ -6,14 +6,15 @@ open System.Xml.Linq
 
 open SharpXMPP
 open SharpXMPP.XMPP
-open SharpXMPP.XMPP.Client.MUC.Bookmarks.Elements
 open SharpXMPP.XMPP.Client.Elements
+open SharpXMPP.XMPP.Client.MUC.Bookmarks.Elements
 
 open Emulsion
 open Emulsion.Xmpp
 
 module Namespaces =
     let MucUser = "http://jabber.org/protocol/muc#user"
+    let Ping = "urn:xmpp:ping"
 
 module Attributes =
     let Code = XName.Get "code"
@@ -31,6 +32,7 @@ module Elements =
     let Error = XName.Get("error", Namespaces.JabberClient)
     let Nick = XName.Get("nick", Namespaces.StorageBookmarks)
     let Password = XName.Get("password", Namespaces.StorageBookmarks)
+    let Ping = XName.Get("ping", Namespaces.Ping)
     let Status = XName.Get("status", Namespaces.MucUser)
     let X = XName.Get("x", Namespaces.MucUser)
 
@@ -56,6 +58,18 @@ let message (id: string) (toAddr: string) (text: string): XMPPMessage =
     body.Value <- text
     m.Add(body)
     m
+
+let ping (jid: JID) (id: string): XMPPIq =
+    let iq = XMPPIq(XMPPIq.IqTypes.get, id, To = jid)
+    iq.Add(XElement(Ping))
+    iq
+
+let isPing(iq: XMPPIq): bool =
+    if iq.IqType <> XMPPIq.IqTypes.get then false
+    else iq.Element Ping <> null
+
+let isPong (from: JID) (pingId: string) (iq: XMPPIq): bool =
+     iq.IqType = XMPPIq.IqTypes.result && iq.From.FullJid = from.FullJid && iq.ID = pingId
 
 let private getAttributeValue (element : XElement) attributeName =
     let attribute = element.Attribute(attributeName)
