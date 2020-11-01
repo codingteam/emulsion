@@ -1,4 +1,4 @@
-emulsion [![Docker Image][badge.docker]][docker-hub] [![Status Ventis][status-ventis]][andivionian-status-classifier]
+emulsion [![Docker Image][badge.docker]][docker-hub] [![Status Aquana][status-aquana]][andivionian-status-classifier]
 ========
 
 emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
@@ -90,7 +90,7 @@ $ docker push codingteam/emulsion:latest
 
 where `$EMULSION_VERSION` is the version of the image to publish.
 
-[andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-ventis-
+[andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-aquana-
 [docker-hub]: https://hub.docker.com/r/codingteam/emulsion
 [dotnet-core-runtime]: https://www.microsoft.com/net/download/core#/runtime
 [dotnet-core-sdk]: https://www.microsoft.com/net/download/core
@@ -98,4 +98,4 @@ where `$EMULSION_VERSION` is the version of the image to publish.
 [xmpp]: https://xmpp.org/
 
 [badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
-[status-ventis]: https://img.shields.io/badge/status-ventis-yellow.svg
+[status-aquana]: https://img.shields.io/badge/status-aquana-yellowgreen.svg
