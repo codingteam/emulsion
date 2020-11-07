@@ -343,6 +343,29 @@ module ReadMessageTests =
         )
 
     [<Fact>]
+    let forwardFromHiddenUser(): unit =
+        let message = { createEmptyMessage forwardingUser with
+                            ForwardSenderName = Some "Hidden user"
+                            Text = Some "test" }
+
+        Assert.Equal(
+            authoredTelegramMessage "@forwardingUser" ">> <Hidden user> test",
+            readMessage message
+        )
+
+    [<Fact>]
+    let forwardFromChat(): unit =
+        let message = { createEmptyMessage forwardingUser with
+                            ForwardFromChat = Some currentChat
+                            Text = Some "test" }
+
+        Assert.Equal(
+            authoredTelegramMessage "@forwardingUser" ">> <@test_room> test",
+            readMessage message
+        )
+
+
+    [<Fact>]
     let readUnknownSticker(): unit =
         let message = createStickerMessage originalUser None
         Assert.Equal(

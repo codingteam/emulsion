@@ -52,9 +52,11 @@ module MessageConverter =
         | { LastName = Some lastName } -> sprintf "%s %s" user.FirstName lastName
         | _ -> user.FirstName
 
-    let private getOptionalUserDisplayName: User option -> string = function
-    | Some user -> getUserDisplayName user
-    | None -> "[UNKNOWN USER]"
+    let private getChatDisplayName (chat: Chat) =
+        match chat with
+        | { Username = Some username } -> sprintf "@%s" username
+        | { Title = Some title } -> sprintf "%s" title
+        | _ -> "[UNKNOWN CHAT]"
 
     let private getTextLinkEntity = function
     | { Type = "text_link"; Url = Some url; Offset = o; Length = l }
@@ -169,6 +171,13 @@ module MessageConverter =
             then None
             else Some (contentType, message.Caption)
 
+        let (|ForwardFrom|_|) (message: FunogramMessage) =
+            match message with
+            | { ForwardFrom = Some user } -> Some (getUserDisplayName user)
+            | { ForwardSenderName = Some sender } -> Some sender
+            | { ForwardFromChat = Some chat } -> Some (getChatDisplayName chat)
+            | _ -> None
+
         let appendLink link text =
             if String.IsNullOrEmpty link
             then text
@@ -192,14 +201,11 @@ module MessageConverter =
             | _ ->
                 "[DATA UNRECOGNIZED]" |> appendLink (getLinkToMessage message)
 
-        if Option.isSome message.ForwardFrom
-        then
-            let forwardFrom =
-                Authored
-                    { author = getOptionalUserDisplayName message.ForwardFrom
-                      text = text }
+        match message with
+        | ForwardFrom author ->
+            let forwardFrom = Authored { author = author; text = text }
             getQuotedMessage { DefaultQuoteSettings with limits = Unlimited } forwardFrom
-        else text
+        | _ -> text
 
     let private getEventMessageBodyText (message: FunogramMessage) =
         match message with
@@ -256,7 +262,10 @@ module MessageConverter =
         | EventFunogramMessage msg ->
             Event { text = getEventMessageBodyText msg }
         | _ ->
-            let mainAuthor = getOptionalUserDisplayName message.From
+            let mainAuthor =
+                message.From
+                |> Option.map getUserDisplayName
+                |> Option.defaultValue "[UNKNOWN USER]"
             let mainBody = getAuthoredMessageBodyText message
             Authored { author = mainAuthor; text = mainBody }
 

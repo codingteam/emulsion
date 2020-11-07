@@ -33,8 +33,8 @@
   <ItemGroup>
     <PackageReference Include="Akka" Version="1.3.12" />
     <PackageReference Include="FSharpx.Collections" Version="2.0.0" />
-    <PackageReference Include="Funogram" Version="2.0.2" />
-    <PackageReference Include="Funogram.Telegram" Version="4.4.2.1" />
+    <PackageReference Include="Funogram" Version="2.0.3" />
+    <PackageReference Include="Funogram.Telegram" Version="4.4.2.3" />
     <PackageReference Include="JetBrains.Lifetimes" Version="2020.2.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.1.2" />
