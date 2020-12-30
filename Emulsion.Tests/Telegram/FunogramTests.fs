@@ -556,7 +556,7 @@ module FlattenMessageTests =
         let originalMessage = authoredTelegramMessage "@originalUser" "Original text"
         let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
         Assert.Equal(
-            Authored { author = "@replyingUser"; text = ">> <@originalUser> Original text\nReply text" },
+            Authored { author = "@replyingUser"; text = ">> <@originalUser> Original text\n\nReply text" },
             flattenMessage replyMessage
         )
 
@@ -565,7 +565,7 @@ module FlattenMessageTests =
         let originalMessage = eventTelegramMessage "@originalUser has entered the chat"
         let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
         Assert.Equal(
-            Authored { author = "@replyingUser"; text = ">> @originalUser has entered the chat\nReply text" },
+            Authored { author = "@replyingUser"; text = ">> @originalUser has entered the chat\n\nReply text" },
             flattenMessage replyMessage
         )
 
@@ -574,7 +574,7 @@ module FlattenMessageTests =
         let originalMessage = authoredTelegramMessage "@originalUser" "1\n2\n3"
         let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
         Assert.Equal(
-            Authored { author = "@replyingUser"; text = ">> <@originalUser> 1\n>> 2\n>> 3\nReply text" },
+            Authored { author = "@replyingUser"; text = ">> <@originalUser> 1\n>> 2\n>> 3\n\nReply text" },
             flattenMessage replyMessage
         )
 
@@ -583,7 +583,7 @@ module FlattenMessageTests =
         let originalMessage = authoredTelegramMessage "@originalUser" "1\n2\n3\n4"
         let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
         Assert.Equal(
-            Authored { author = "@replyingUser"; text = ">> <@originalUser> 1\n>> 2\n>> […]\nReply text" },
+            Authored { author = "@replyingUser"; text = ">> <@originalUser> 1\n>> 2\n>> […]\n\nReply text" },
             flattenMessage replyMessage
         )
 
@@ -593,7 +593,7 @@ module FlattenMessageTests =
         let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
 
         Assert.Equal(
-            Authored { author = "@replyingUser"; text = ">> <@originalUser> 12[…]\nReply text" },
+            Authored { author = "@replyingUser"; text = ">> <@originalUser> 12[…]\n\nReply text" },
             flattenMessageLineLimit 5 replyMessage
         )
 
