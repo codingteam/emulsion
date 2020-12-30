@@ -31,6 +31,8 @@ jobs:
         with:
           path: ${{ env.NUGET_PACKAGES }}
           key: ${{ runner.os }}.nuget.${{ hashFiles('**/*.fsproj') }}
+      - name: Fix "Unable to find package FSharp.Core"
+        run: dotnet clean Emulsion.sln && dotnet nuget locals all --clear
       - name: Build
         run: dotnet build
       - name: Test
