@@ -232,7 +232,7 @@ module MessageConverter =
         | _ -> "[DATA UNRECOGNIZED]"
 
     let private addOriginalMessage quoteSettings originalMessage replyMessageBody =
-        sprintf "%s\n%s" (getQuotedMessage quoteSettings originalMessage) replyMessageBody
+        sprintf "%s\n\n%s" (getQuotedMessage quoteSettings originalMessage) replyMessageBody
 
     let internal flatten (quotedLimits: QuoteSettings) (message: TelegramMessage): Message =
         match message.main with
