@@ -75,7 +75,7 @@ let private startPingActivity (logger: ILogger)
 
         let activityLifetime = roomLifetimeDefinition.Lifetime
         let jid = JID(botJid roomInfo)
-        Async.Start (async {
+        Async.StartAsTask(async {
             while true do
                 try
                     let pingId = newMessageId()
@@ -107,7 +107,7 @@ let private startPingActivity (logger: ILogger)
                 | ex ->
                     logger.Error(ex, "Exception in ping activity for {Room}: {Message}", roomInfo.RoomJid, ex.Message)
                     roomLifetimeDefinition.Terminate()
-        }, activityLifetime.ToCancellationToken())
+        }, cancellationToken = activityLifetime.ToCancellationToken()) |> ignore
     )
 
 /// Enter the room, returning the in-room lifetime. Will terminate if kicked or left the room.
