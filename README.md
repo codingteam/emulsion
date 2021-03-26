@@ -90,10 +90,18 @@ $ docker push codingteam/emulsion:latest
 
 where `$EMULSION_VERSION` is the version of the image to publish.
 
+Documentation
+-------------
+
+- [Changelog][changelog]
+- [License (MIT)][license]
+
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-aquana-
+[changelog]: ./CHANGELOG.md
 [docker-hub]: https://hub.docker.com/r/codingteam/emulsion
 [dotnet-core-runtime]: https://www.microsoft.com/net/download/core#/runtime
 [dotnet-core-sdk]: https://www.microsoft.com/net/download/core
+[license]: ./LICENSE.md
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
 
