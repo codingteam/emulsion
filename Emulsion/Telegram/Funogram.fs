@@ -1,7 +1,6 @@
 module Emulsion.Telegram.Funogram
 
 open System
-open System.Net.NetworkInformation
 open System.Text
 
 open Funogram.Telegram
@@ -10,11 +9,10 @@ open Funogram.Api
 open Funogram.Types
 open Serilog
 
-open System.Text
 open Emulsion
 open Emulsion.Settings
 
-type private FunogramMessage = Funogram.Telegram.Types.Message
+type private FunogramMessage = Types.Message
 
 module MessageConverter =
     type MessageLimits = {
@@ -48,14 +46,14 @@ module MessageConverter =
 
     let private getUserDisplayName (user: User) =
         match user with
-        | { Username = Some username } -> sprintf "@%s" username
-        | { LastName = Some lastName } -> sprintf "%s %s" user.FirstName lastName
+        | { Username = Some username } -> $"@{username}"
+        | { LastName = Some lastName } -> $"{user.FirstName} {lastName}"
         | _ -> user.FirstName
 
     let private getChatDisplayName (chat: Chat) =
         match chat with
-        | { Username = Some username } -> sprintf "@%s" username
-        | { Title = Some title } -> sprintf "%s" title
+        | { Username = Some username } -> $"@{username}"
+        | { Title = Some title } -> title
         | _ -> "[UNKNOWN CHAT]"
 
     let private getTextLinkEntity = function
@@ -134,7 +132,7 @@ module MessageConverter =
     let private getQuotedMessage (quoteSettings: QuoteSettings) originalMessage =
         let addAuthorIfAvailable text =
             match originalMessage with
-            | Authored msg -> sprintf "<%s> %s" msg.author text
+            | Authored msg -> $"<{msg.author}> {text}"
             | Event _ -> text
 
         let markAsQuote prefix (text: string) =
@@ -153,7 +151,7 @@ module MessageConverter =
         | { MessageId = id
             Chat = { Type = SuperGroup
                      Username = Some chatName } } ->
-            sprintf "https://t.me/%s/%d" chatName id
+            $"https://t.me/{chatName}/{id}"
         | _ -> String.Empty
 
     let private getAuthoredMessageBodyText (message: FunogramMessage) =
@@ -164,7 +162,7 @@ module MessageConverter =
                 match message with
                 | { Photo = Some _ } -> "Photo"
                 | { Animation = Some _ } -> "Animation"
-                | { Sticker = Some sticker } -> sprintf "Sticker %s" (getEmoji sticker)
+                | { Sticker = Some sticker } -> $"Sticker {getEmoji sticker}"
                 | { Caption = Some _ } -> "Unknown content"
                 | _ -> String.Empty
             if String.IsNullOrEmpty contentType
@@ -181,7 +179,7 @@ module MessageConverter =
         let appendLink link text =
             if String.IsNullOrEmpty link
             then text
-            else sprintf "%s: %s" text link
+            else $"{text}: {link}"
 
         let text =
             match message with
@@ -191,13 +189,13 @@ module MessageConverter =
                     match caption with
                     | Some caption ->
                         let text = applyEntities message.CaptionEntities caption
-                        sprintf "[%s with caption \"%s\"]" contentType text
+                        $"[{contentType} with caption \"{text}\"]"
                     | None ->
-                        sprintf "[%s]" contentType
+                        $"[{contentType}]"
                 contentInfo |> appendLink (getLinkToMessage message)
             | Poll poll ->
                 let text = getPollText poll
-                sprintf "[Poll] %s" text
+                $"[Poll] {text}"
             | _ ->
                 "[DATA UNRECOGNIZED]" |> appendLink (getLinkToMessage message)
 
@@ -212,7 +210,7 @@ module MessageConverter =
         | { From = Some originalUser; NewChatMembers = Some users } ->
             let users = Seq.toArray users
             match users with
-            | [| user |] when user = originalUser -> sprintf "%s has entered the chat" (getUserDisplayName user)
+            | [| user |] when user = originalUser -> $"{getUserDisplayName user} has entered the chat"
             | [| user |] -> sprintf "%s has added %s to the chat" (getUserDisplayName originalUser) (getUserDisplayName user)
             | [| user1; user2 |] ->
                 sprintf "%s has added %s and %s to the chat"
@@ -328,7 +326,7 @@ let private updateArrived groupId (logger: ILogger) onMessage (ctx: Bot.UpdateCo
 
 let internal prepareHtmlMessage: Message -> string = function
 | Authored {author = author; text = text} -> sprintf "<b>%s</b>\n%s" (Html.escape author) (Html.escape text)
-| Event {text = text} -> sprintf "%s" (Html.escape text)
+| Event {text = text} -> Html.escape text
 
 let send (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =
     let sendHtmlMessage groupId text =

@@ -193,7 +193,7 @@ module ReadMessageTests =
         let expectedMessage = { createMessage None None with Chat = privateChat }
         Assert.Equal(
             authoredTelegramMessage "[UNKNOWN USER]" "[DATA UNRECOGNIZED]",
-            readMessage (expectedMessage)
+            readMessage expectedMessage
         )
 
     [<Fact>]
@@ -322,7 +322,7 @@ module ReadMessageTests =
         let forwardedMessage = createMessage (Some originalUser) (Some multilineMessage)
         let message = createForwardedMessage forwardingUser forwardedMessage
         let quotedMultilineMessage = "test" + String.init messageLinesLimit (fun _ -> "\n>> test")
-        let telegramMessageText = sprintf ">> <@originalUser> %s" quotedMultilineMessage
+        let telegramMessageText = $">> <@originalUser> {quotedMultilineMessage}"
 
         Assert.Equal(
             authoredTelegramMessage "@forwardingUser" telegramMessageText,
@@ -335,7 +335,7 @@ module ReadMessageTests =
         let longString = String.init (messageLengthLimit + 1) (fun _ -> "A")
         let forwardedMessage = createMessage (Some originalUser) (Some longString)
         let message = createForwardedMessage forwardingUser forwardedMessage
-        let telegramMessageText = sprintf ">> <@originalUser> %s" longString
+        let telegramMessageText = $">> <@originalUser> {longString}"
 
         Assert.Equal(
             authoredTelegramMessage "@forwardingUser" telegramMessageText,
@@ -611,6 +611,6 @@ module PrepareMessageTests =
     [<Fact>]
     let prepareMessageEscapesHtml() =
         Assert.Equal(
-            "<b>user &lt;3</b>\nmymessage &lt;&amp;&gt;",
-            Funogram.prepareHtmlMessage (Authored { author = "user <3"; text = "mymessage <&>" })
+            "<b>user &lt;3</b>\nmy_message &lt;&amp;&gt;",
+            Funogram.prepareHtmlMessage (Authored { author = "user <3"; text = "my_message <&>" })
         )
