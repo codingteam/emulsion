@@ -3,11 +3,11 @@ module Emulsion.Tests.Telegram.Client
 open System
 
 open Funogram.Telegram.Types
+open Funogram.Types
 open Xunit
 
 open Emulsion
 open Emulsion.Telegram
-open Emulsion.Telegram.Funogram
 
 [<Literal>]
 let private selfUserId = 100500L
@@ -140,7 +140,7 @@ let private replyingUser = createUser (Some "replyingUser") "" None
 let private forwardingUser = createUser (Some "forwardingUser") "" None
 
 module ReadMessageTests =
-    let readMessage = MessageConverter.read selfUserId
+    let readMessage = Funogram.MessageConverter.read selfUserId
 
     [<Fact>]
     let readMessageWithUnknownUser() =
@@ -317,7 +317,7 @@ module ReadMessageTests =
 
     [<Fact>]
     let multilineForwardShouldBeUnlimited(): unit =
-        let messageLinesLimit = MessageConverter.DefaultMessageLinesLimit
+        let messageLinesLimit = Funogram.MessageConverter.DefaultMessageLinesLimit
         let multilineMessage = String.init messageLinesLimit (fun _ -> "test\n") + "test"
         let forwardedMessage = createMessage (Some originalUser) (Some multilineMessage)
         let message = createForwardedMessage forwardingUser forwardedMessage
@@ -331,7 +331,7 @@ module ReadMessageTests =
 
     [<Fact>]
     let longForwardShouldBeUnlimited(): unit =
-        let messageLengthLimit = MessageConverter.DefaultMessageLengthLimit
+        let messageLengthLimit = Funogram.MessageConverter.DefaultMessageLengthLimit
         let longString = String.init (messageLengthLimit + 1) (fun _ -> "A")
         let forwardedMessage = createMessage (Some originalUser) (Some longString)
         let message = createForwardedMessage forwardingUser forwardedMessage
@@ -542,6 +542,16 @@ module ProcessMessageTests =
         let message = { createMessage (Some originalUser) (Some "test") with
                           Chat = defaultChat }
         Assert.Equal(None, processMessage message)
+
+module ProcessSendResultTests =
+    [<Fact>]
+    let processResultShouldDoNothingOnOk(): unit =
+        Assert.Equal((), Funogram.processSendResult(Ok()))
+
+    [<Fact>]
+    let processResultShouldThrowOnError(): unit =
+        let result = Error({ ErrorCode = 502; Description = "Error" })
+        Assert.ThrowsAny<Exception>(fun () -> Funogram.processSendResult result) |> ignore
 
 module FlattenMessageTests =
     let private flattenMessage = Funogram.MessageConverter.flatten Funogram.MessageConverter.DefaultQuoteSettings

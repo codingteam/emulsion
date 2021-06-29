@@ -16,4 +16,4 @@ type Client(ctx: ServiceContext, cancellationToken: CancellationToken, settings:
     }
 
     override _.Send message =
-        Funogram.send ctx.Logger settings botConfig message
+        Funogram.send settings botConfig message
