@@ -6,6 +6,7 @@ Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Changed
+- Runtime: upgrade to .NET 5
 - XMPP: improve the ping activity stability (get rid of `Async.Start` calls)
 
 ## [1.6.1] - 2020-12-30

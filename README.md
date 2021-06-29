@@ -6,7 +6,7 @@ emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
 Build
 -----
 
-Install [.NET Core SDK][dotnet-core-sdk] 3.1 or newer for your platform, then
+Install [.NET SDK][dotnet-sdk] 5.0 or newer for your platform, then
 run:
 
 ```console
@@ -46,7 +46,7 @@ $ dotnet test
 Run
 ---
 
-Requires [.NET Core Runtime][dotnet-core-runtime] version 3.1 or newer.
+Requires [.NET Runtime][dotnet-runtime] version 5.0 or newer.
 
 ```console
 $ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
@@ -99,8 +99,8 @@ Documentation
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-aquana-
 [changelog]: ./CHANGELOG.md
 [docker-hub]: https://hub.docker.com/r/codingteam/emulsion
-[dotnet-core-runtime]: https://www.microsoft.com/net/download/core#/runtime
-[dotnet-core-sdk]: https://www.microsoft.com/net/download/core
+[dotnet-runtime]: https://www.microsoft.com/net/download/core#/runtime
+[dotnet-sdk]: https://www.microsoft.com/net/download/core
 [license]: ./LICENSE.md
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
