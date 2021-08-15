@@ -87,7 +87,9 @@ let internal receiver (ctx: MessageSenderContext) (inbox: Sender): Async<unit> =
     loop State.initial
 
 let startActivity(ctx: MessageSenderContext, token: CancellationToken): Sender =
-    MailboxProcessor.Start(receiver ctx, token)
+    let processor = MailboxProcessor.Start(receiver ctx, token)
+    processor.Error.Add(fun ex -> ctx.Logger.Error(ex, "Error observed by the message sender mailbox"))
+    processor
 
 let setReadyToAcceptMessages(activity: Sender): bool -> unit = SetReceiveStatus >> activity.Post
 let send(activity: Sender): OutgoingMessage -> unit = QueueMessage >> activity.Post
