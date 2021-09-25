@@ -8,6 +8,9 @@ Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 ### Changed
 - Additional logging for mailbox processor errors
 
+### Added
+- XMPP: connection timeout support ([#141](https://github.com/codingteam/emulsion/issues/141))
+
 ## [1.7.0] - 2021-06-29
 ### Changed
 - Runtime: upgrade to .NET 5
