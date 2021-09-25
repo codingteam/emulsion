@@ -11,6 +11,7 @@ type XmppSettings = {
     Room: string
     RoomPassword: string option
     Nickname: string
+    ConnectionTimeout: TimeSpan
     MessageTimeout: TimeSpan
     PingInterval: TimeSpan option
     PingTimeout: TimeSpan
@@ -31,6 +32,7 @@ type EmulsionSettings = {
     Log: LogSettings
 }
 
+let defaultConnectionTimeout = TimeSpan.FromMinutes 5.0
 let defaultMessageTimeout = TimeSpan.FromMinutes 5.0
 let defaultPingTimeout = TimeSpan.FromSeconds 30.0
 
@@ -50,6 +52,7 @@ let read (config : IConfiguration) : EmulsionSettings =
         Room = section.["room"]
         RoomPassword = Option.ofObj section.["roomPassword"]
         Nickname = section.["nickname"]
+        ConnectionTimeout = readTimeSpan defaultConnectionTimeout "connectionTimeout" section
         MessageTimeout = readTimeSpan defaultMessageTimeout  "messageTimeout" section
         PingInterval = readTimeSpanOpt "pingInterval" section
         PingTimeout = readTimeSpan defaultPingTimeout "pingTimeout" section

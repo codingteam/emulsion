@@ -23,6 +23,7 @@ settings, there're defaults:
 {
     "xmpp": {
         "roomPassword": null,
+        "connectionTimeout": "00:05:00",
         "messageTimeout": "00:05:00",
         "pingInterval": null,
         "pingTimeout": "00:00:30"

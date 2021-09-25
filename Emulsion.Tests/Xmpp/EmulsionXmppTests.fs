@@ -1,6 +1,8 @@
 module Emulsion.Tests.Xmpp.EmulsionXmppTests
 
 open System
+open System.Diagnostics
+open System.Threading
 open System.Threading.Tasks
 
 open JetBrains.Lifetimes
@@ -22,6 +24,7 @@ let private settings = {
     Room = "room@conference.example.org"
     RoomPassword = None
     Nickname = "nickname"
+    ConnectionTimeout = TimeSpan.FromSeconds 30.0
     MessageTimeout = TimeSpan.FromSeconds 30.0
     PingInterval = None
     PingTimeout = defaultPingTimeout
@@ -69,6 +72,43 @@ type RunTests(outputHelper: ITestOutputHelper) =
         Assert.ThrowsAny<Exception>(fun() -> runClientSynchronously settings logger client ignore)
         |> ignore
         Assert.Equal((settings.Room, settings.Nickname), joinRoomArgs)
+
+    [<Fact>]
+    member _.``EmulsionXmpp cancels the connection after timeout``(): unit =
+        let timeout = TimeSpan.FromSeconds 1.0
+        let settings = {
+            settings with
+                ConnectionTimeout = timeout
+        }
+        let client =
+            XmppClientFactory.create(
+                connect = fun () -> async {
+                    do! Async.Sleep(timeout * 10.0)
+                }
+            )
+        let sw = Stopwatch.StartNew()
+        Assert.Throws<TimeoutException>(fun () -> runClientSynchronously settings logger client ignore)
+        |> ignore
+        Assert.True(sw.Elapsed < timeout * 2.0)
+
+    [<Fact>]
+    member _.``EmulsionXmpp forcibly terminates the connection after timeout * 3``(): unit =
+        let timeout = TimeSpan.FromSeconds 1.0
+        let settings = {
+            settings with
+                ConnectionTimeout = timeout
+        }
+        let client =
+            XmppClientFactory.create(
+                connect = fun () -> async {
+                    Thread.Sleep(timeout * 10.0) // non-cancellable
+                }
+            )
+        let sw = Stopwatch.StartNew()
+        Assert.Throws<OperationCanceledException>(fun () -> runClientSynchronously settings logger client ignore)
+        |> ignore
+        Assert.True(sw.Elapsed > timeout)
+        Assert.True(sw.Elapsed < timeout * 6.0)
 
 type ReceiveMessageTests(outputHelper: ITestOutputHelper) =
     let logger = Logging.xunitLogger outputHelper

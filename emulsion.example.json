@@ -5,6 +5,7 @@
         "room": "xxxxx@conference.example.org",
         "roomPassword": "// optional",
         "nickname": "хортолёт",
+        "connectionTimeout": "00:05:00",
         "messageTimeout": "00:05:00",
         "pingInterval": "00:01:00",
         "pingTimeout": "00:00:05"

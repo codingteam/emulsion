@@ -1,6 +1,8 @@
 /// Main business logic for an XMPP part of the Emulsion application.
 module Emulsion.Xmpp.EmulsionXmpp
 
+open System
+
 open JetBrains.Lifetimes
 open Serilog
 open SharpXMPP.XMPP
@@ -36,14 +38,49 @@ let initializeLogging (logger: ILogger) (client: IXmppClient): IXmppClient =
     )
     client
 
+let private withTimeout title (logger: ILogger) workflow (timeout: TimeSpan) = async {
+    logger.Information("Starting \"{Title}\" with timeout {Timeout}.", title, timeout)
+    let! child = Async.StartChild(workflow, int timeout.TotalMilliseconds)
+
+    let! childWaiter = Async.StartChild(async {
+        let! _ = child
+        return Some true
+    })
+
+    let waitTime = timeout * 1.5
+    let timeoutWaiter = async {
+        do! Async.Sleep waitTime
+        return Some false
+    }
+
+    let! completedInTime = Async.Choice [| childWaiter; timeoutWaiter |]
+    match completedInTime with
+    | Some true -> return! child
+    | _ ->
+        logger.Information(
+            "Task {Title} neither complete nor cancelled in {Timeout}. Entering extended wait mode.",
+            title,
+            waitTime
+        )
+        let! completedInTime = Async.Choice [| childWaiter; timeoutWaiter |]
+        match completedInTime with
+        | Some true -> return! child
+        | _ ->
+            logger.Warning(
+                "Task {Title} neither complete nor cancelled in another {Timeout}. Trying to cancel forcibly by terminating the client.",
+                title,
+                waitTime
+            )
+            return raise <| OperationCanceledException($"Operation \"%s{title}\" forcibly cancelled")
+}
+
 /// Outer async will establish a connection and enter the room, inner async will await for the room session
 /// termination.
 let run (settings: XmppSettings)
         (logger: ILogger)
         (client: IXmppClient)
         (messageReceiver: IncomingMessageReceiver): Async<Async<unit>> = async {
-    logger.Information "Connecting to the server"
-    let! sessionLifetime = connect client
+    let! sessionLifetime = withTimeout "server connection" logger (connect client) settings.ConnectionTimeout
     sessionLifetime.ThrowIfNotAlive()
     logger.Information "Connection succeeded"
 

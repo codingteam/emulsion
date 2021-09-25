@@ -36,6 +36,7 @@ let private testConfiguration = {
         Room = "room"
         RoomPassword = None
         Nickname = "nickname"
+        ConnectionTimeout = TimeSpan.FromMinutes 5.0
         MessageTimeout = TimeSpan.FromSeconds 30.0
         PingInterval = None
         PingTimeout = TimeSpan.FromSeconds 30.0
