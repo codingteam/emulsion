@@ -43,19 +43,19 @@ let private withTimeout title (logger: ILogger) workflow (timeout: TimeSpan) = a
     let! child = Async.StartChild(workflow, int timeout.TotalMilliseconds)
 
     let! childWaiter = Async.StartChild(async {
-        let! _ = child
-        return Some true
+        let! result = child
+        return Some(ValueSome result)
     })
 
     let waitTime = timeout * 1.5
     let timeoutWaiter = async {
         do! Async.Sleep waitTime
-        return Some false
+        return Some ValueNone
     }
 
     let! completedInTime = Async.Choice [| childWaiter; timeoutWaiter |]
     match completedInTime with
-    | Some true -> return! child
+    | Some(ValueSome r) -> return r
     | _ ->
         logger.Information(
             "Task {Title} neither complete nor cancelled in {Timeout}. Entering extended wait mode.",
@@ -64,7 +64,7 @@ let private withTimeout title (logger: ILogger) workflow (timeout: TimeSpan) = a
         )
         let! completedInTime = Async.Choice [| childWaiter; timeoutWaiter |]
         match completedInTime with
-        | Some true -> return! child
+        | Some(ValueSome r) -> return r
         | _ ->
             logger.Warning(
                 "Task {Title} neither complete nor cancelled in another {Timeout}. Trying to cancel forcibly by terminating the client.",
