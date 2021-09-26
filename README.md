@@ -94,15 +94,22 @@ where `$EMULSION_VERSION` is the version of the image to publish.
 Documentation
 -------------
 
-- [Changelog][changelog]
-- [License (MIT)][license]
+Common documentation:
+
+- [Changelog][docs.changelog]
+- [License (MIT)][docs.license]
+
+Developer documentation:
+
+- [How to Create a Database Migration][docs.create-migration]
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-aquana-
-[changelog]: ./CHANGELOG.md
 [docker-hub]: https://hub.docker.com/r/codingteam/emulsion
+[docs.changelog]: ./CHANGELOG.md
+[docs.create-migration]: ./docs/create-migration.md
+[docs.license]: ./LICENSE.md
 [dotnet-runtime]: https://www.microsoft.com/net/download/core#/runtime
 [dotnet-sdk]: https://www.microsoft.com/net/download/core
-[license]: ./LICENSE.md
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
 

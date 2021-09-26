@@ -26,6 +26,18 @@ ProjectSection(SolutionItems) = preProject
 	.github\workflows\docker.yml = .github\workflows\docker.yml
 EndProjectSection
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Database", "Emulsion.Database\Emulsion.Database.fsproj", "{0111F688-1AE2-4B5D-BF46-D60B64078788}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".config", ".config", "{D03C4F4A-9806-46AA-8654-14363DFB3FBE}"
+ProjectSection(SolutionItems) = preProject
+	.config\dotnet-tools.json = .config\dotnet-tools.json
+EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{12336258-82C7-4C09-A73F-8D0B146578B2}"
+ProjectSection(SolutionItems) = preProject
+	docs\create-migration.md = docs\create-migration.md
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +75,18 @@ Global
 		{1B3B65DD-FD58-45FA-B6FF-8532B513A7D9}.Release|x64.Build.0 = Release|x64
 		{1B3B65DD-FD58-45FA-B6FF-8532B513A7D9}.Release|x86.ActiveCfg = Release|x86
 		{1B3B65DD-FD58-45FA-B6FF-8532B513A7D9}.Release|x86.Build.0 = Release|x86
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Debug|x64.Build.0 = Debug|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Debug|x86.Build.0 = Debug|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Release|x64.ActiveCfg = Release|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Release|x64.Build.0 = Release|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Release|x86.ActiveCfg = Release|Any CPU
+		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7D1ADF47-BF1C-4007-BB9B-08C283044467} = {973131E1-E645-4A50-A0D2-1886A1A8F0C6}
