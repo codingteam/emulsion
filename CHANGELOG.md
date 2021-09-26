@@ -4,7 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.8.0] - 2021-09-26
 ### Changed
 - Additional logging for mailbox processor errors
 
@@ -99,4 +99,5 @@ runtime 2.2.
 [1.6.0]: https://github.com/codingteam/emulsion/compare/v1.5.0...v1.6.0
 [1.6.1]: https://github.com/codingteam/emulsion/compare/v1.6.0...v1.6.1
 [1.7.0]: https://github.com/codingteam/emulsion/compare/v1.6.1...v1.7.0
-[Unreleased]: https://github.com/codingteam/emulsion/compare/v1.7.0...HEAD
+[1.8.0]: https://github.com/codingteam/emulsion/compare/v1.7.0...v1.8.0
+[Unreleased]: https://github.com/codingteam/emulsion/compare/v1.8.0...HEAD
