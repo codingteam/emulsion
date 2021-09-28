@@ -13,6 +13,11 @@ open Emulsion
 open Emulsion.Settings
 
 type private FunogramMessage = Types.Message
+[<Struct>]
+type internal ThreadMessage = {
+    main: Message
+    replyTo: Message option
+}
 
 module MessageConverter =
     type MessageLimits = {
@@ -232,7 +237,7 @@ module MessageConverter =
     let private addOriginalMessage quoteSettings originalMessage replyMessageBody =
         sprintf "%s\n\n%s" (getQuotedMessage quoteSettings originalMessage) replyMessageBody
 
-    let internal flatten (quotedLimits: QuoteSettings) (message: TelegramMessage): Message =
+    let internal flatten (quotedLimits: QuoteSettings) (message: ThreadMessage): Message =
         match message.main with
         | Authored msg ->
             let author = msg.author
@@ -284,7 +289,7 @@ module MessageConverter =
                 let messageText = text.Substring messageTextOffset
                 Authored { author = authorName; text = messageText }
 
-    let internal read (selfUserId: int64) (message: FunogramMessage): TelegramMessage =
+    let internal read (selfUserId: int64) (message: FunogramMessage): ThreadMessage =
         let mainMessage = extractMessageContent message
         match message.ReplyToMessage with
         | None -> { main = mainMessage; replyTo = None }
@@ -302,9 +307,13 @@ let internal processSendResult(result: Result<'a, ApiResponseError>): unit =
         failwith $"Telegram API Call processing error {e.ErrorCode}: {e.Description}"
 
 let internal processMessage (context: {| SelfUserId: int64; GroupId: int64 |})
-                            (message: FunogramMessage): TelegramMessage option =
+                            (message: FunogramMessage): Message option =
     if context.GroupId = message.Chat.Id
-    then Some <| MessageConverter.read context.SelfUserId message
+    then
+        message
+        |> MessageConverter.read context.SelfUserId
+        |> MessageConverter.flatten MessageConverter.DefaultQuoteSettings
+        |> Some
     else None
 
 let private updateArrived groupId (logger: ILogger) onMessage (ctx: Bot.UpdateContext) =

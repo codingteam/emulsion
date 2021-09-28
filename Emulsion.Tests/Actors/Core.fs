@@ -30,12 +30,12 @@ type CoreTests(testOutput: ITestOutputHelper) as this =
 
     [<Fact>]
     member this.``Core actor should spawn successfully``() =
-        let core = spawnCore()
+        let _core = spawnCore()
         this.ExpectNoMsg()
 
     [<Fact>]
     member this.``Core creates one XMPP actor and one Telegram actor``() =
-        let core = spawnCore()
+        let _core = spawnCore()
         this.ExpectNoMsg()
         Assert.Equal(2, actorsCreated)
 
@@ -48,5 +48,5 @@ type CoreTests(testOutput: ITestOutputHelper) as this =
     [<Fact>]
     member this.``Core sends Telegram message to XMPP actor``() =
         let core = spawnCore()
-        core.Tell(TelegramMessage { main = Authored { author = "Telegram user"; text = "x" }; replyTo = None })
+        core.Tell(TelegramMessage(Authored { author = "Telegram user"; text = "x" }))
         xmppActor.ExpectMsg(OutgoingMessage (Authored { author = "Telegram user"; text = "x" }))

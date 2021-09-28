@@ -4,7 +4,6 @@ open Akka.Actor
 open Serilog
 
 open Emulsion
-open Emulsion.Telegram
 
 type CoreActor(logger: ILogger, factories: ActorFactories) as this =
     inherit ReceiveActor()
@@ -23,9 +22,7 @@ type CoreActor(logger: ILogger, factories: ActorFactories) as this =
 
     member this.OnMessage(message : IncomingMessage) : unit =
         match message with
-        | TelegramMessage msg ->
-            let message = Funogram.MessageConverter.flatten Funogram.MessageConverter.DefaultQuoteSettings msg
-            xmpp.Tell(OutgoingMessage message, this.Self)
+        | TelegramMessage msg -> xmpp.Tell(OutgoingMessage msg, this.Self)
         | XmppMessage msg -> telegram.Tell(OutgoingMessage msg, this.Self)
 
 let spawn (logger: ILogger) (factories: ActorFactories) (system: IActorRefFactory) (name: string): IActorRef =
