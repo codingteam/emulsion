@@ -12,7 +12,7 @@ open Emulsion.MessageSystem
 open Emulsion.Settings
 open Emulsion.Xmpp
 
-let private getConfiguration directory fileName =
+let private getConfiguration directory (fileName: string) =
     let config =
         ConfigurationBuilder()
             .SetBasePath(directory)
