@@ -15,6 +15,7 @@
     <Compile Include="Lifetimes.fs" />
     <Compile Include="ExceptionUtils.fs" />
     <Compile Include="Telegram\Html.fs" />
+    <Compile Include="Telegram\LinkGenerator.fs" />
     <Compile Include="Telegram\Funogram.fs" />
     <Compile Include="Telegram\Client.fs" />
     <Compile Include="Xmpp\Types.fs" />

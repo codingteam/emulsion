@@ -141,7 +141,9 @@ let private replyingUser = createUser (Some "replyingUser") "" None
 let private forwardingUser = createUser (Some "forwardingUser") "" None
 
 module ReadMessageTests =
-    let private readMessage = MessageConverter.read selfUserId
+    let private readMessage m =
+        let links = LinkGenerator.gatherLinks m
+        MessageConverter.read selfUserId (m, links)
 
     [<Fact>]
     let readMessageWithUnknownUser() =

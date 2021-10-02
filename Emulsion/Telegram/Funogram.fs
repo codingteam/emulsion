@@ -11,6 +11,7 @@ open Serilog
 
 open Emulsion
 open Emulsion.Settings
+open Emulsion.Telegram.LinkGenerator
 
 type private FunogramMessage = Types.Message
 [<Struct>]
@@ -151,15 +152,7 @@ module MessageConverter =
         |> addAuthorIfAvailable
         |> markAsQuote quoteSettings.linePrefix
 
-    let private getLinkToMessage (message: FunogramMessage) =
-        match message with
-        | { MessageId = id
-            Chat = { Type = SuperGroup
-                     Username = Some chatName } } ->
-            $"https://t.me/{chatName}/{id}"
-        | _ -> String.Empty
-
-    let private getAuthoredMessageBodyText (message: FunogramMessage) =
+    let private getAuthoredMessageBodyText (message: FunogramMessage) link =
         let (|Text|_|) (message: FunogramMessage) = message.Text
         let (|Poll|_|) (message: FunogramMessage) = message.Poll
         let (|Content|_|) (message: FunogramMessage) =
@@ -181,10 +174,10 @@ module MessageConverter =
             | { ForwardFromChat = Some chat } -> Some (getChatDisplayName chat)
             | _ -> None
 
-        let appendLink link text =
-            if String.IsNullOrEmpty link
-            then text
-            else $"{text}: {link}"
+        let appendLinkTo text =
+            match link with
+            | Some link -> $"{text}: {link}"
+            | None -> text
 
         let text =
             match message with
@@ -197,12 +190,12 @@ module MessageConverter =
                         $"[{contentType} with caption \"{text}\"]"
                     | None ->
                         $"[{contentType}]"
-                contentInfo |> appendLink (getLinkToMessage message)
+                appendLinkTo contentInfo
             | Poll poll ->
                 let text = getPollText poll
                 $"[Poll] {text}"
             | _ ->
-                "[DATA UNRECOGNIZED]" |> appendLink (getLinkToMessage message)
+                appendLinkTo "[DATA UNRECOGNIZED]"
 
         match message with
         | ForwardFrom author ->
@@ -260,7 +253,7 @@ module MessageConverter =
         then Some message
         else None
 
-    let private extractMessageContent(message: FunogramMessage): Message =
+    let private extractMessageContent(message: FunogramMessage) link: Message =
         match message with
         | EventFunogramMessage msg ->
             Event { text = getEventMessageBodyText msg }
@@ -269,18 +262,18 @@ module MessageConverter =
                 message.From
                 |> Option.map getUserDisplayName
                 |> Option.defaultValue "[UNKNOWN USER]"
-            let mainBody = getAuthoredMessageBodyText message
+            let mainBody = getAuthoredMessageBodyText message link
             Authored { author = mainAuthor; text = mainBody }
 
     /// For messages from the bot, the first bold section of the message will contain the nickname of the author.
     /// Everything else is the message text.
-    let private extractSelfMessageContent(message: FunogramMessage): Message =
+    let private extractSelfMessageContent(message: FunogramMessage) link: Message =
         match (message.Entities, message.Text) with
-        | None, _ | _, None -> extractMessageContent message
+        | None, _ | _, None -> extractMessageContent message link
         | Some entities, Some text ->
             let boldEntity = Seq.tryFind (fun (e: MessageEntity) -> e.Type = "bold") entities
             match boldEntity with
-            | None -> extractMessageContent message
+            | None -> extractMessageContent message link
             | Some section ->
                 let authorNameOffset = Math.Clamp(int32 section.Offset, 0, text.Length)
                 let authorNameLength = Math.Clamp(int32 section.Length, 0, text.Length - authorNameOffset)
@@ -289,15 +282,15 @@ module MessageConverter =
                 let messageText = text.Substring messageTextOffset
                 Authored { author = authorName; text = messageText }
 
-    let internal read (selfUserId: int64) (message: FunogramMessage): ThreadMessage =
-        let mainMessage = extractMessageContent message
+    let internal read (selfUserId: int64) (message: FunogramMessage, links: TelegramThreadLinks): ThreadMessage =
+        let mainMessage = extractMessageContent message links.ContentLink
         match message.ReplyToMessage with
         | None -> { main = mainMessage; replyTo = None }
         | Some replyTo ->
             let replyToMessage =
                 if isSelfMessage selfUserId replyTo
-                then extractSelfMessageContent replyTo
-                else extractMessageContent replyTo
+                then extractSelfMessageContent replyTo links.ReplyToContentLink
+                else extractMessageContent replyTo links.ReplyToContentLink
             { main = mainMessage; replyTo = Some replyToMessage }
 
 let internal processSendResult(result: Result<'a, ApiResponseError>): unit =
@@ -306,11 +299,15 @@ let internal processSendResult(result: Result<'a, ApiResponseError>): unit =
     | Error e ->
         failwith $"Telegram API Call processing error {e.ErrorCode}: {e.Description}"
 
+let private extractLinkData message =
+    message, gatherLinks message
+
 let internal processMessage (context: {| SelfUserId: int64; GroupId: int64 |})
                             (message: FunogramMessage): Message option =
     if context.GroupId = message.Chat.Id
     then
         message
+        |> extractLinkData
         |> MessageConverter.read context.SelfUserId
         |> MessageConverter.flatten MessageConverter.DefaultQuoteSettings
         |> Some
