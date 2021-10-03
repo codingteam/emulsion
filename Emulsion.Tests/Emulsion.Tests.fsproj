@@ -18,6 +18,7 @@
     <Compile Include="MessageSystemTests\MessageSystemBaseTests.fs" />
     <Compile Include="Telegram\Html.fs" />
     <Compile Include="Telegram\FunogramTests.fs" />
+    <Compile Include="Telegram\LinkGeneratorTests.fs" />
     <Compile Include="Xmpp\SharpXmppPingHandlerTests.fs" />
     <Compile Include="Xmpp\XmppClientFactory.fs" />
     <Compile Include="Xmpp\XmppMessageFactory.fs" />
