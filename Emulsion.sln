@@ -38,6 +38,8 @@ ProjectSection(SolutionItems) = preProject
 	docs\create-migration.md = docs\create-migration.md
 EndProjectSection
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.ContentProxy", "Emulsion.ContentProxy\Emulsion.ContentProxy.fsproj", "{A520FD41-A1CB-4062-AFBC-62A8BED12E81}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,18 @@ Global
 		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Release|x64.Build.0 = Release|Any CPU
 		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Release|x86.ActiveCfg = Release|Any CPU
 		{0111F688-1AE2-4B5D-BF46-D60B64078788}.Release|x86.Build.0 = Release|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Debug|x64.Build.0 = Debug|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Debug|x86.Build.0 = Debug|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Release|x64.ActiveCfg = Release|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Release|x64.Build.0 = Release|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Release|x86.ActiveCfg = Release|Any CPU
+		{A520FD41-A1CB-4062-AFBC-62A8BED12E81}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7D1ADF47-BF1C-4007-BB9B-08C283044467} = {973131E1-E645-4A50-A0D2-1886A1A8F0C6}
