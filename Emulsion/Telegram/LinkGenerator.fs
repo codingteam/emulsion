@@ -23,7 +23,7 @@ let private gatherMessageLink(message: FunogramMessage) =
     | { Text = Some _} | { Poll = Some _ } -> None
     | _ -> getMessageLink message
 
-let gatherLinks(message: FunogramMessage): Async<TelegramThreadLinks> = async {
+let gatherLinks (databaseSettings: Unit) (message: FunogramMessage): Async<TelegramThreadLinks> = async {
     return {
         ContentLink = gatherMessageLink message
         ReplyToContentLink = message.ReplyToMessage |> Option.bind gatherMessageLink

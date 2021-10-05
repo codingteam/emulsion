@@ -1,9 +1,11 @@
 ﻿namespace Emulsion.Database.Models
 
-open System
 open System.ComponentModel.DataAnnotations
 
 [<CLIMutable>]
 type TelegramContent = {
-    [<Key>] Id: Guid
+    [<Key>] Id: string
+    ChatUsername: string
+    MessageId: int64
+    FileId: string
 }

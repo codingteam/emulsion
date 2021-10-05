@@ -9,6 +9,7 @@
         <Compile Include="EmulsionDbContext.fs" />
         <Compile Include="Migrations\*.fs" />
         <Compile Include="Initializer.fs" />
+        <Compile Include="DataStorage.fs" />
     </ItemGroup>
 
     <ItemGroup>
