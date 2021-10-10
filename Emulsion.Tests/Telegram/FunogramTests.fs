@@ -142,7 +142,7 @@ let private forwardingUser = createUser (Some "forwardingUser") "" None
 
 module ReadMessageTests =
     let private readMessage m =
-        let links = Async.RunSynchronously(LinkGenerator.gatherLinks () m)
+        let links = Async.RunSynchronously(LinkGenerator.gatherLinks None m)
         MessageConverter.read selfUserId (m, links)
 
     [<Fact>]

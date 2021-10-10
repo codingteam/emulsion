@@ -44,4 +44,7 @@
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
     <PackageReference Include="SharpXMPP" Version="0.3.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Emulsion.ContentProxy\Emulsion.ContentProxy.fsproj" />
+  </ItemGroup>
 </Project>

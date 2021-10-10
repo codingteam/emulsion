@@ -300,7 +300,7 @@ let internal processSendResult(result: Result<'a, ApiResponseError>): unit =
         failwith $"Telegram API Call processing error {e.ErrorCode}: {e.Description}"
 
 let private extractLinkData message =
-    message, Async.RunSynchronously(gatherLinks () message)
+    message, Async.RunSynchronously(gatherLinks (Some()) message)
 
 let internal processMessage (context: {| SelfUserId: int64; GroupId: int64 |})
                             (message: FunogramMessage): Message option =
