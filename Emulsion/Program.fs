@@ -20,12 +20,10 @@ let private getConfiguration directory (fileName: string) =
             .Build()
     Settings.read config
 
-let private createClient logger clientFactory cancellationToken config =
-    let serviceContext = {
-        RestartCooldown = TimeSpan.FromSeconds(30.0) // TODO[F]: Customize through the config.
-        Logger = logger
-    }
-    clientFactory(serviceContext, cancellationToken, config)
+let private serviceContext logger = {
+    RestartCooldown = TimeSpan.FromSeconds(30.0) // TODO[F]: Customize through the config.
+    Logger = logger
+}
 
 let private startMessageSystem (logger: ILogger) (system: IMessageSystem) receiver =
     Async.StartChild <| async {
@@ -48,8 +46,11 @@ let private startApp config =
             let telegramLogger = Logging.telegramLogger logger
 
             let! cancellationToken = Async.CancellationToken
-            let xmpp = createClient xmppLogger XmppMessageSystem cancellationToken config.Xmpp
-            let telegram = createClient telegramLogger Telegram.Client cancellationToken config.Telegram
+            let xmpp = XmppMessageSystem(serviceContext xmppLogger, cancellationToken, config.Xmpp)
+            let telegram = Telegram.Client(serviceContext telegramLogger,
+                                           cancellationToken,
+                                           config.Telegram,
+                                           config.Database)
             let factories = { xmppFactory = Xmpp.spawn xmppLogger xmpp
                               telegramFactory = Telegram.spawn telegramLogger telegram }
             logger.Information "Core preparation…"

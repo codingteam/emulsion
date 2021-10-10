@@ -6,7 +6,7 @@ open Xunit
 open Emulsion.Database
 open Emulsion.Telegram
 
-let private databaseSettings = ()
+let private databaseSettings = { DataSource = ":memory:" }
 let private linkBase = "https://example.com"
 let private chatName = "test_chat"
 let private fileId = "123456"

@@ -2,6 +2,7 @@
 module Emulsion.Telegram.LinkGenerator
 
 open Emulsion.ContentProxy
+open Emulsion.Database
 open Funogram.Telegram.Types
 
 type FunogramMessage = Funogram.Telegram.Types.Message
@@ -39,20 +40,21 @@ let private getMessageIdentity message: ContentStorage.MessageIdentity option =
     }
 
 // TODO: right type for the databaseSettings
-let gatherLinks (databaseSettings: Unit option) (message: FunogramMessage): Async<TelegramThreadLinks> = async {
+let gatherLinks (databaseSettings: DatabaseSettings option) (message: FunogramMessage): Async<TelegramThreadLinks> = async {
     let getMessageBodyLink message =
         match databaseSettings with
         | None ->
             let link = gatherMessageLink message
             async.Return link
-        | Some _ ->
+        | Some settings ->
             let identity = getMessageIdentity message
             match identity with
             | None -> async.Return None
             | Some id ->
                 async {
-                    use context = failwith "TODO: Create EmulsionDbContext"
-                    let! content = ContentStorage.getOrCreateMessageRecord context id
+                    let! content = DataStorage.transaction settings (fun ctx ->
+                        ContentStorage.getOrCreateMessageRecord ctx id
+                    )
                     return Some content.Id
                 }
 

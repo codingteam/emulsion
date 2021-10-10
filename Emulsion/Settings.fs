@@ -5,6 +5,8 @@ open System.Globalization
 
 open Microsoft.Extensions.Configuration
 
+open Emulsion.Database
+
 type XmppSettings = {
     Login: string
     Password: string
@@ -27,9 +29,10 @@ type LogSettings = {
 }
 
 type EmulsionSettings = {
-    Xmpp : XmppSettings
-    Telegram : TelegramSettings
+    Xmpp: XmppSettings
+    Telegram: TelegramSettings
     Log: LogSettings
+    Database: DatabaseSettings option
 }
 
 let defaultConnectionTimeout = TimeSpan.FromMinutes 5.0
@@ -64,7 +67,12 @@ let read (config : IConfiguration) : EmulsionSettings =
     let readLog(section: IConfigurationSection) = {
         Directory = section.["directory"]
     }
+    let readDatabase(section: IConfigurationSection) =
+        section.["dataSource"]
+        |> Option.ofObj
+        |> Option.map(fun dataSource -> { DataSource = dataSource })
 
     { Xmpp = readXmpp <| config.GetSection("xmpp")
       Telegram = readTelegram <| config.GetSection("telegram")
-      Log = readLog <| config.GetSection "log" }
+      Log = readLog <| config.GetSection "log"
+      Database = readDatabase <| config.GetSection "database" }

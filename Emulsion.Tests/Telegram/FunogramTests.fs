@@ -538,7 +538,7 @@ module ReadMessageTests =
         )
 
 module ProcessMessageTests =
-    let private processMessage = Funogram.processMessage {| SelfUserId = selfUserId; GroupId = groupId |}
+    let private processMessage = Funogram.processMessage None {| SelfUserId = selfUserId; GroupId = groupId |}
 
     [<Fact>]
     let messageFromOtherChatShouldBeIgnored(): unit =
