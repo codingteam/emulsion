@@ -5,10 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nanoid" Version="2.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Include="ContentStorage.fs" />
   </ItemGroup>
 

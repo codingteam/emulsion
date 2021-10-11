@@ -17,3 +17,9 @@ let transaction<'a> (settings: DatabaseSettings) (action: EmulsionDbContext -> A
     do! Async.AwaitTask(tran.CommitAsync())
     return result
 }
+
+let addAsync<'a when 'a : not struct> (dbSet: DbSet<'a>) (entity: 'a): Async<unit> = async {
+    let! ct = Async.CancellationToken
+    let! _ = Async.AwaitTask(dbSet.AddAsync(entity, ct).AsTask())
+    return ()
+}

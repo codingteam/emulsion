@@ -32,14 +32,17 @@ let private getFileId(message: FunogramMessage) =
 
 let private getMessageIdentity message: ContentStorage.MessageIdentity option =
     let fileId = getFileId message
-    match fileId with
-    | None -> None
-    | Some fileId -> Some {
-        MessageId = message.MessageId
-        FileId = fileId
-    }
+    match fileId, message.Chat with
+    | Some fileId, { Type = SuperGroup
+                     Username = Some chatName } ->
+        Some {
+            ChatUserName = chatName
+            MessageId = message.MessageId
+            FileId = fileId
+        }
+    | _, _ -> None
 
-// TODO: right type for the databaseSettings
+// TODO: right type for the hostingSettings
 let gatherLinks (databaseSettings: DatabaseSettings option) (message: FunogramMessage): Async<TelegramThreadLinks> = async {
     let getMessageBodyLink message =
         match databaseSettings with
@@ -55,7 +58,7 @@ let gatherLinks (databaseSettings: DatabaseSettings option) (message: FunogramMe
                     let! content = DataStorage.transaction settings (fun ctx ->
                         ContentStorage.getOrCreateMessageRecord ctx id
                     )
-                    return Some content.Id
+                    return Some(failwithf "TODO: Generate URL from hosting settings")
                 }
 
     let! contentLink = getMessageBodyLink message

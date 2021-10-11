@@ -28,6 +28,7 @@
     <Compile Include="Xmpp\SharpXmppPingHandlerTests.fs" />
     <Compile Include="Xmpp\EmulsionXmppTests.fs" />
     <Compile Include="Database\InitializerTests.fs" />
+    <Compile Include="ContentProxy\ContentStorageTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.TestKit" Version="1.3.12" />

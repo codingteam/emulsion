@@ -4,7 +4,7 @@ open System.ComponentModel.DataAnnotations
 
 [<CLIMutable>]
 type TelegramContent = {
-    [<Key>] Id: string
+    [<Key>] Id: int64
     ChatUsername: string
     MessageId: int64
     FileId: string
