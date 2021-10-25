@@ -22,7 +22,7 @@ let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageIdentity):
     | None ->
         let newItem = {
             Id = 0L
-            ChatUsername = id.ChatUserName
+            ChatUserName = id.ChatUserName
             MessageId = id.MessageId
             FileId = id.FileId
         }

@@ -130,7 +130,7 @@ let private doDatabaseLinkTest fileId message =
         let! content = DataStorage.getById databaseSettings id
 
         Assert.Equal(message.MessageId, content.MessageId)
-        Assert.Equal(message.Chat.Username, Some content.ChatUsername)
+        Assert.Equal(message.Chat.Username, Some content.ChatUserName)
         Assert.Equal(fileId, content.FileId)
     }
 
