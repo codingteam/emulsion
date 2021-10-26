@@ -1,12 +1,12 @@
 ﻿module Emulsion.Tests.Telegram.LinkGeneratorTests
 
+open Emulsion.Tests.TestUtils
 open Funogram.Telegram.Types
 open Xunit
 
 open Emulsion.Database
 open Emulsion.Telegram
 
-let private databaseSettings = { DataSource = ":memory:" }
 let private linkBase = "https://example.com"
 let private chatName = "test_chat"
 let private fileId = "123456"
@@ -122,17 +122,19 @@ let private doBasicLinkTest message =
     Assert.Equal(Some $"https://t.me/{chatName}/{message.MessageId}", links.ContentLink)
 
 let private doDatabaseLinkTest fileId message =
-    Async.RunSynchronously <| async {
-        let! links = LinkGenerator.gatherLinks (Some databaseSettings) message
-        let link = Option.get links.ContentLink
-        Assert.StartsWith(linkBase, link)
-        let id = link.Substring(linkBase.Length + 1)
-        let! content = DataStorage.getById databaseSettings id
+    Async.RunSynchronously <| TestDataStorage.doWithDatabase(fun databaseSettings ->
+        async {
+            let! links = LinkGenerator.gatherLinks (Some databaseSettings) message
+            let link = Option.get links.ContentLink
+            Assert.StartsWith(linkBase, link)
+            let id = link.Substring(linkBase.Length + 1)
+            let! content = DataStorage.getById databaseSettings id
 
-        Assert.Equal(message.MessageId, content.MessageId)
-        Assert.Equal(message.Chat.Username, Some content.ChatUserName)
-        Assert.Equal(fileId, content.FileId)
-    }
+            Assert.Equal(message.MessageId, content.MessageId)
+            Assert.Equal(message.Chat.Username, Some content.ChatUserName)
+            Assert.Equal(fileId, content.FileId)
+        }
+    )
 
 [<Fact>]
 let documentLinkTest(): unit = doBasicLinkTest messageWithDocument

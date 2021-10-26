@@ -1,17 +1,17 @@
 ﻿module Emulsion.Tests.TestUtils.TestDataStorage
 
-open Microsoft.Data.Sqlite
-open Microsoft.EntityFrameworkCore
+open System.IO
 
 open Emulsion.Database
 
-let doWithDatabase<'a>(action: IDatabaseSettings -> Async<'a>): Async<'a> = async {
-    use connection = new SqliteConnection("Data Source=:memory:")
-    let settings =
-        { new IDatabaseSettings with
-            member _.ContextOptions =
-                DbContextOptionsBuilder()
-                    .UseSqlite(connection)
-                    .Options }
+let doWithDatabase<'a>(action: DatabaseSettings -> Async<'a>): Async<'a> = async {
+    let databasePath = Path.GetTempFileName()
+    let settings = { DataSource = databasePath }
+
+    do! async {
+        use context = new EmulsionDbContext(settings.ContextOptions)
+        return! Initializer.initializeDatabase context
+    }
+
     return! action settings
 }

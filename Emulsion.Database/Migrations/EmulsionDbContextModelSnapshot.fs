@@ -20,10 +20,19 @@ type EmulsionDbContextModelSnapshot() =
 
         modelBuilder.Entity("Emulsion.Database.Models.TelegramContent", (fun b ->
 
-            b.Property<Guid>("Id")
+            b.Property<Int64>("Id")
                 .IsRequired(true)
                 .ValueGeneratedOnAdd()
+                .HasColumnType("INTEGER") |> ignore
+            b.Property<string>("ChatUserName")
+                .IsRequired(false)
                 .HasColumnType("TEXT") |> ignore
+            b.Property<string>("FileId")
+                .IsRequired(false)
+                .HasColumnType("TEXT") |> ignore
+            b.Property<Int64>("MessageId")
+                .IsRequired(true)
+                .HasColumnType("INTEGER") |> ignore
 
             b.HasKey("Id") |> ignore
 

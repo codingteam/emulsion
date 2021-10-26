@@ -10,8 +10,8 @@ open Microsoft.EntityFrameworkCore.Migrations
 open Microsoft.EntityFrameworkCore.Storage.ValueConversion
 
 [<DbContext(typeof<EmulsionDbContext>)>]
-[<Migration("20210926114410_Initialize")>]
-type Initialize() =
+[<Migration("20211026164449_Initial")>]
+type Initial() =
     inherit Migration()
 
     override this.Up(migrationBuilder:MigrationBuilder) =
@@ -20,8 +20,23 @@ type Initialize() =
             ,columns = (fun table -> 
             {|
                 Id =
-                    table.Column<Guid>(
+                    table.Column<Int64>(
                         nullable = false
+                        ,``type`` = "INTEGER"
+                    ).Annotation("Sqlite:Autoincrement", true)
+                ChatUserName =
+                    table.Column<string>(
+                        nullable = true
+                        ,``type`` = "TEXT"
+                    )
+                MessageId =
+                    table.Column<Int64>(
+                        nullable = false
+                        ,``type`` = "INTEGER"
+                    )
+                FileId =
+                    table.Column<string>(
+                        nullable = true
                         ,``type`` = "TEXT"
                     )
             |})
@@ -45,10 +60,19 @@ type Initialize() =
 
         modelBuilder.Entity("Emulsion.Database.Models.TelegramContent", (fun b ->
 
-            b.Property<Guid>("Id")
+            b.Property<Int64>("Id")
                 .IsRequired(true)
                 .ValueGeneratedOnAdd()
+                .HasColumnType("INTEGER") |> ignore
+            b.Property<string>("ChatUserName")
+                .IsRequired(false)
                 .HasColumnType("TEXT") |> ignore
+            b.Property<string>("FileId")
+                .IsRequired(false)
+                .HasColumnType("TEXT") |> ignore
+            b.Property<Int64>("MessageId")
+                .IsRequired(true)
+                .HasColumnType("INTEGER") |> ignore
 
             b.HasKey("Id") |> ignore
 
