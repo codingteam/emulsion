@@ -1,9 +1,11 @@
 ﻿/// A module that generates links to various content from Telegram.
 module Emulsion.Telegram.LinkGenerator
 
+open Funogram.Telegram.Types
+
 open Emulsion.ContentProxy
 open Emulsion.Database
-open Funogram.Telegram.Types
+open Emulsion.Settings
 
 type FunogramMessage = Funogram.Telegram.Types.Message
 
@@ -42,8 +44,9 @@ let private getMessageIdentity message: ContentStorage.MessageIdentity option =
         }
     | _, _ -> None
 
-// TODO: right type for the hostingSettings
-let gatherLinks (databaseSettings: DatabaseSettings option) (message: FunogramMessage): Async<TelegramThreadLinks> = async {
+let gatherLinks (databaseSettings: DatabaseSettings option)
+                (hostingSettings: HostingSettings option)
+                (message: FunogramMessage): Async<TelegramThreadLinks> = async {
     let getMessageBodyLink message =
         match databaseSettings with
         | None ->

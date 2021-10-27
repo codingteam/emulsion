@@ -28,11 +28,16 @@ type LogSettings = {
     Directory: string
 }
 
+type HostingSettings = {
+    BaseUri: Uri
+}
+
 type EmulsionSettings = {
     Xmpp: XmppSettings
     Telegram: TelegramSettings
     Log: LogSettings
     Database: DatabaseSettings option
+    Hosting: HostingSettings option
 }
 
 let defaultConnectionTimeout = TimeSpan.FromMinutes 5.0
@@ -71,8 +76,14 @@ let read (config : IConfiguration) : EmulsionSettings =
         section.["dataSource"]
         |> Option.ofObj
         |> Option.map(fun dataSource -> { DataSource = dataSource })
+    let readHosting(section: IConfigurationSection) =
+        section.["baseUri"]
+        |> Option.ofObj
+        |> Option.map(fun baseUri -> { BaseUri = Uri baseUri })
 
     { Xmpp = readXmpp <| config.GetSection("xmpp")
       Telegram = readTelegram <| config.GetSection("telegram")
       Log = readLog <| config.GetSection "log"
-      Database = readDatabase <| config.GetSection "database" }
+      Database = readDatabase <| config.GetSection "database"
+      Hosting = readHosting <| config.GetSection "hosting" }
+    // TODO: Document the new settings

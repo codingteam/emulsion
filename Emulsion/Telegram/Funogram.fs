@@ -300,22 +300,28 @@ let internal processSendResult(result: Result<'a, ApiResponseError>): unit =
     | Error e ->
         failwith $"Telegram API Call processing error {e.ErrorCode}: {e.Description}"
 
-let private extractLinkData settings message =
-    message, Async.RunSynchronously(gatherLinks settings message)
+let private extractLinkData databaseSettings hostingSettings message =
+    message, Async.RunSynchronously(gatherLinks databaseSettings hostingSettings message)
 
-let internal processMessage (settings: DatabaseSettings option)
+let internal processMessage (databaseSettings: DatabaseSettings option)
+                            (hostingSettings: HostingSettings option)
                             (context: {| SelfUserId: int64; GroupId: int64 |})
                             (message: FunogramMessage): Message option =
     if context.GroupId = message.Chat.Id
     then
         message
-        |> extractLinkData settings
+        |> extractLinkData databaseSettings hostingSettings
         |> MessageConverter.read context.SelfUserId
         |> MessageConverter.flatten MessageConverter.DefaultQuoteSettings
         |> Some
     else None
 
-let private updateArrived databaseSettings groupId (logger: ILogger) onMessage (ctx: Bot.UpdateContext) =
+let private updateArrived databaseSettings
+                          hostingSettings
+                          groupId
+                          (logger: ILogger)
+                          onMessage
+                          (ctx: Bot.UpdateContext) =
     let readContext = {|
         SelfUserId = ctx.Me.Id
         GroupId = groupId
@@ -325,7 +331,7 @@ let private updateArrived databaseSettings groupId (logger: ILogger) onMessage (
             match ctx.Update.Message with
             | Some msg ->
                 logger.Information("Incoming Telegram message: {Message}", msg)
-                match processMessage databaseSettings readContext msg with
+                match processMessage databaseSettings hostingSettings readContext msg with
                 | Some m -> onMessage(TelegramMessage m)
                 | None -> logger.Warning "Message from unidentified source ignored"
                 true
@@ -350,6 +356,9 @@ let send (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage co
 let run (logger: ILogger)
         (telegramSettings: TelegramSettings)
         (databaseSettings: DatabaseSettings option)
+        (hostingSettings: HostingSettings option)
         (botConfig: BotConfig)
         (onMessage: IncomingMessage -> unit): Async<unit> =
-    Bot.startBot botConfig (updateArrived databaseSettings telegramSettings.GroupId logger onMessage) None
+    Bot.startBot botConfig
+                 (updateArrived databaseSettings hostingSettings telegramSettings.GroupId logger onMessage)
+                 None

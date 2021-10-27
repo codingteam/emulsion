@@ -142,7 +142,7 @@ let private forwardingUser = createUser (Some "forwardingUser") "" None
 
 module ReadMessageTests =
     let private readMessage m =
-        let links = Async.RunSynchronously(LinkGenerator.gatherLinks None m)
+        let links = Async.RunSynchronously(LinkGenerator.gatherLinks None None m)
         MessageConverter.read selfUserId (m, links)
 
     [<Fact>]
@@ -538,7 +538,7 @@ module ReadMessageTests =
         )
 
 module ProcessMessageTests =
-    let private processMessage = Funogram.processMessage None {| SelfUserId = selfUserId; GroupId = groupId |}
+    let private processMessage = Funogram.processMessage None None {| SelfUserId = selfUserId; GroupId = groupId |}
 
     [<Fact>]
     let messageFromOtherChatShouldBeIgnored(): unit =

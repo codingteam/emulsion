@@ -49,6 +49,7 @@ let private testConfiguration = {
         Directory = "/tmp/"
     }
     Database = None
+    Hosting = None
 }
 
 let private mockConfiguration groupIdLiteral =

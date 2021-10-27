@@ -50,7 +50,8 @@ let private startApp config =
             let telegram = Telegram.Client(serviceContext telegramLogger,
                                            cancellationToken,
                                            config.Telegram,
-                                           config.Database)
+                                           config.Database,
+                                           config.Hosting)
             let factories = { xmppFactory = Xmpp.spawn xmppLogger xmpp
                               telegramFactory = Telegram.spawn telegramLogger telegram }
             logger.Information "Core preparation…"

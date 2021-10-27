@@ -118,13 +118,13 @@ let private messageWithVideoNote =
     }
 
 let private doBasicLinkTest message =
-    let links = Async.RunSynchronously(LinkGenerator.gatherLinks None message)
+    let links = Async.RunSynchronously(LinkGenerator.gatherLinks None None message)
     Assert.Equal(Some $"https://t.me/{chatName}/{message.MessageId}", links.ContentLink)
 
 let private doDatabaseLinkTest fileId message =
     Async.RunSynchronously <| TestDataStorage.doWithDatabase(fun databaseSettings ->
         async {
-            let! links = LinkGenerator.gatherLinks (Some databaseSettings) message
+            let! links = LinkGenerator.gatherLinks (Some databaseSettings) None message
             let link = Option.get links.ContentLink
             Assert.StartsWith(linkBase, link)
             let id = link.Substring(linkBase.Length + 1)
