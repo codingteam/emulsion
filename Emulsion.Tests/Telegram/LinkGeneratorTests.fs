@@ -1,13 +1,20 @@
 ﻿module Emulsion.Tests.Telegram.LinkGeneratorTests
 
-open Emulsion.Tests.TestUtils
+open System
+
+open Emulsion.ContentProxy
 open Funogram.Telegram.Types
 open Xunit
 
 open Emulsion.Database
+open Emulsion.Settings
 open Emulsion.Telegram
+open Emulsion.Tests.TestUtils
 
-let private linkBase = "https://example.com"
+let private hostingSettings = {
+    BaseUri = Uri "https://example.com"
+    HashIdSalt = "mysalt"
+}
 let private chatName = "test_chat"
 let private fileId = "123456"
 
@@ -119,16 +126,20 @@ let private messageWithVideoNote =
 
 let private doBasicLinkTest message =
     let links = Async.RunSynchronously(LinkGenerator.gatherLinks None None message)
-    Assert.Equal(Some $"https://t.me/{chatName}/{message.MessageId}", links.ContentLink)
+    Assert.Equal(Some <| Uri $"https://t.me/{chatName}/{message.MessageId}", links.ContentLink)
 
 let private doDatabaseLinkTest fileId message =
     Async.RunSynchronously <| TestDataStorage.doWithDatabase(fun databaseSettings ->
         async {
-            let! links = LinkGenerator.gatherLinks (Some databaseSettings) None message
-            let link = Option.get links.ContentLink
-            Assert.StartsWith(linkBase, link)
-            let id = link.Substring(linkBase.Length + 1)
-            let! content = DataStorage.getById databaseSettings id
+            let! links = LinkGenerator.gatherLinks (Some databaseSettings) (Some hostingSettings) message
+            let link = (Option.get links.ContentLink).ToString()
+            let baseUri = hostingSettings.BaseUri.ToString()
+            Assert.StartsWith(baseUri, link)
+            let emptyLinkLength = (Proxy.getLink hostingSettings.BaseUri "").ToString().Length
+            let id = link.Substring(emptyLinkLength)
+            let! content = DataStorage.transaction databaseSettings (fun context ->
+                ContentStorage.getById context (Proxy.decodeHashId hostingSettings.HashIdSalt id)
+            )
 
             Assert.Equal(message.MessageId, content.MessageId)
             Assert.Equal(message.Chat.Username, Some content.ChatUserName)

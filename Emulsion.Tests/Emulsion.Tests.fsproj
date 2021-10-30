@@ -30,6 +30,7 @@
     <Compile Include="Xmpp\EmulsionXmppTests.fs" />
     <Compile Include="Database\InitializerTests.fs" />
     <Compile Include="ContentProxy\ContentStorageTests.fs" />
+    <Compile Include="ContentProxy\ProxyTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.TestKit" Version="1.3.12" />

@@ -1,6 +1,8 @@
 ﻿/// A module that generates links to various content from Telegram.
 module Emulsion.Telegram.LinkGenerator
 
+open System
+
 open Funogram.Telegram.Types
 
 open Emulsion.ContentProxy
@@ -10,8 +12,8 @@ open Emulsion.Settings
 type FunogramMessage = Funogram.Telegram.Types.Message
 
 type TelegramThreadLinks = {
-    ContentLink: string option
-    ReplyToContentLink: string option
+    ContentLink: Uri option
+    ReplyToContentLink: Uri option
 }
 
 let private getMessageLink (message: FunogramMessage) =
@@ -19,7 +21,7 @@ let private getMessageLink (message: FunogramMessage) =
     | { MessageId = id
         Chat = { Type = SuperGroup
                  Username = Some chatName } } ->
-        Some $"https://t.me/{chatName}/{id}"
+        Some <| Uri $"https://t.me/{chatName}/{id}"
     | _ -> None
 
 let private gatherMessageLink(message: FunogramMessage) =
@@ -48,21 +50,23 @@ let gatherLinks (databaseSettings: DatabaseSettings option)
                 (hostingSettings: HostingSettings option)
                 (message: FunogramMessage): Async<TelegramThreadLinks> = async {
     let getMessageBodyLink message =
-        match databaseSettings with
-        | None ->
-            let link = gatherMessageLink message
-            async.Return link
-        | Some settings ->
+        match databaseSettings, hostingSettings with
+        | Some databaseSettings, Some hostingSettings ->
             let identity = getMessageIdentity message
             match identity with
             | None -> async.Return None
             | Some id ->
                 async {
-                    let! content = DataStorage.transaction settings (fun ctx ->
+                    let! content = DataStorage.transaction databaseSettings (fun ctx ->
                         ContentStorage.getOrCreateMessageRecord ctx id
                     )
-                    return Some(failwithf "TODO: Generate URL from hosting settings")
+
+                    let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt content.Id
+                    return Some <| Proxy.getLink hostingSettings.BaseUri hashId
                 }
+        | _ ->
+            let link = gatherMessageLink message
+            async.Return link
 
     let! contentLink = getMessageBodyLink message
     let! replyToContentLink =

@@ -13,3 +13,8 @@ let tryExactlyOneAsync<'a>(source: IQueryable<'a>): Async<'a option> = async {
     | null -> return None
     | _ -> return Some item
 }
+
+let exactlyOneAsync<'a>(source: IQueryable<'a>): Async<'a> = async {
+    let! ct = Async.CancellationToken
+    return! Async.AwaitTask(EntityFrameworkQueryableExtensions.SingleAsync(source, ct))
+}

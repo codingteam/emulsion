@@ -30,6 +30,7 @@ type LogSettings = {
 
 type HostingSettings = {
     BaseUri: Uri
+    HashIdSalt: string
 }
 
 type EmulsionSettings = {
@@ -77,9 +78,16 @@ let read (config : IConfiguration) : EmulsionSettings =
         |> Option.ofObj
         |> Option.map(fun dataSource -> { DataSource = dataSource })
     let readHosting(section: IConfigurationSection) =
-        section.["baseUri"]
-        |> Option.ofObj
-        |> Option.map(fun baseUri -> { BaseUri = Uri baseUri })
+        let baseUri = Option.ofObj section.["baseUri"]
+        let hashIdSalt = Option.ofObj section.["hashIdSalt"]
+        match baseUri, hashIdSalt with
+        | Some baseUri, Some hashIdSalt ->
+            Some {
+                BaseUri = Uri baseUri
+                HashIdSalt = hashIdSalt
+            }
+        | None, None -> None
+        | other -> failwith $"Pair {other} is not valid for hosting settings"
 
     { Xmpp = readXmpp <| config.GetSection("xmpp")
       Telegram = readTelegram <| config.GetSection("telegram")

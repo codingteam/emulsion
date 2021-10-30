@@ -5,11 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Proxy.fs" />
     <Compile Include="ContentStorage.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Emulsion.Database\Emulsion.Database.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hashids.net" Version="1.4.1" />
   </ItemGroup>
 
 </Project>
