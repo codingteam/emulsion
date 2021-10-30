@@ -9,7 +9,8 @@ let transaction<'a> (settings: DatabaseSettings) (action: EmulsionDbContext -> A
     let! ct = Async.CancellationToken
     use! tran = Async.AwaitTask(context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct))
     let! result = action context
-    do! Async.AwaitTask(tran.CommitAsync())
+    do! Async.AwaitTask(tran.CommitAsync(ct))
+    let! _ = Async.AwaitTask(context.SaveChangesAsync(ct))
     return result
 }
 

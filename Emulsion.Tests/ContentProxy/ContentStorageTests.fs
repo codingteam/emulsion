@@ -18,6 +18,14 @@ let private executeQuery settings =
     )
 
 [<Fact>]
+let ``getOrCreateMessageRecord returns an nonzero id``(): unit =
+    TestDataStorage.doWithDatabase(fun settings -> async {
+        let! newItem = executeQuery settings
+        Assert.NotEqual(0L, newItem.Id)
+    }) |> Async.RunSynchronously
+
+
+[<Fact>]
 let ``getOrCreateMessageRecord returns a new record``(): unit =
     TestDataStorage.doWithDatabase(fun settings -> async {
         let! item = executeQuery settings

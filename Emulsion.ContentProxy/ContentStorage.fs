@@ -17,6 +17,7 @@ let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageIdentity):
             for content in context.TelegramContents do
             where (content.MessageId = id.MessageId && content.FileId = id.FileId)
         } |> tryExactlyOneAsync
+    // TODO: Make sure the duplicates are impossible with the database constraints.
     match existingItem with
     | None ->
         let newItem = {
