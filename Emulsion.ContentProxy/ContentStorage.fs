@@ -5,13 +5,13 @@ open Emulsion.Database.DataStorage
 open Emulsion.Database.Models
 open Emulsion.Database.QueryableEx
 
-type MessageIdentity = {
+type MessageContentIdentity = {
     ChatUserName: string
     MessageId: int64
     FileId: string
 }
 
-let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageIdentity): Async<TelegramContent> = async {
+let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageContentIdentity): Async<TelegramContent> = async {
     let! existingItem =
         query {
             for content in context.TelegramContents do

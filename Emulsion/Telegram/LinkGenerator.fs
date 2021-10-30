@@ -12,8 +12,8 @@ open Emulsion.Settings
 type FunogramMessage = Funogram.Telegram.Types.Message
 
 type TelegramThreadLinks = {
-    ContentLink: Uri option
-    ReplyToContentLink: Uri option
+    ContentLinks: Uri seq
+    ReplyToContentLinks: Uri seq
 }
 
 let private getMessageLink (message: FunogramMessage) =
@@ -29,53 +29,71 @@ let private gatherMessageLink(message: FunogramMessage) =
     | { Text = Some _} | { Poll = Some _ } -> None
     | _ -> getMessageLink message
 
-let private getFileId(message: FunogramMessage) =
-    match message with
-    | { Animation = Some { FileId = fileId } } -> Some fileId
-    | _ -> None
+let private getFileIds(message: FunogramMessage): string seq =
+    let allFileIds = ResizeArray()
+    let inline extractFileId(o: ^a option) =
+        Option.iter(fun o -> allFileIds.Add((^a) : (member FileId: string) o)) o
 
-let private getMessageIdentity message: ContentStorage.MessageIdentity option =
-    let fileId = getFileId message
-    match fileId, message.Chat with
-    | Some fileId, { Type = SuperGroup
-                     Username = Some chatName } ->
-        Some {
-            ChatUserName = chatName
-            MessageId = message.MessageId
-            FileId = fileId
-        }
-    | _, _ -> None
+    let extractPhotoFileIds: PhotoSize seq option -> unit =
+        Option.iter(Seq.iter(fun photoSize -> allFileIds.Add(photoSize.FileId)))
+
+    extractFileId message.Document
+    extractFileId message.Audio
+    extractFileId message.Animation
+    extractPhotoFileIds message.Photo
+    extractFileId message.Sticker
+    extractFileId message.Video
+    extractFileId message.Voice
+    extractFileId message.VideoNote
+
+    upcast allFileIds
+
+let private getContentIdentities message: ContentStorage.MessageContentIdentity seq =
+    match message.Chat with
+    | { Type = SuperGroup
+        Username = Some chatName } ->
+        getFileIds message
+        |> Seq.map (fun fileId ->
+            {
+                ChatUserName = chatName
+                MessageId = message.MessageId
+                FileId = fileId
+            }
+       )
+    | _ -> Seq.empty
 
 let gatherLinks (databaseSettings: DatabaseSettings option)
                 (hostingSettings: HostingSettings option)
                 (message: FunogramMessage): Async<TelegramThreadLinks> = async {
-    let getMessageBodyLink message =
+    let getMessageBodyLinks message: Async<Uri seq> =
         match databaseSettings, hostingSettings with
         | Some databaseSettings, Some hostingSettings ->
-            let identity = getMessageIdentity message
-            match identity with
-            | None -> async.Return None
-            | Some id ->
-                async {
-                    let! content = DataStorage.transaction databaseSettings (fun ctx ->
-                        ContentStorage.getOrCreateMessageRecord ctx id
-                    )
+            async {
+                let! links =
+                    getContentIdentities message
+                    |> Seq.map(fun identity -> async {
+                        let! content = DataStorage.transaction databaseSettings (fun ctx ->
+                            ContentStorage.getOrCreateMessageRecord ctx identity
+                        )
 
-                    let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt content.Id
-                    return Some <| Proxy.getLink hostingSettings.BaseUri hashId
-                }
+                        let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt content.Id
+                        return Proxy.getLink hostingSettings.BaseUri hashId
+                    })
+                    |> Async.Parallel
+                return upcast links
+            }
         | _ ->
             let link = gatherMessageLink message
-            async.Return link
+            async.Return(upcast Option.toList link)
 
-    let! contentLink = getMessageBodyLink message
+    let! contentLink = getMessageBodyLinks message
     let! replyToContentLink =
         match message.ReplyToMessage with
-        | None -> async.Return None
-        | Some m -> getMessageBodyLink m
+        | None -> async.Return Seq.empty
+        | Some replyTo -> getMessageBodyLinks replyTo
 
     return {
-        ContentLink = contentLink
-        ReplyToContentLink = replyToContentLink
+        ContentLinks = contentLink
+        ReplyToContentLinks = replyToContentLink
     }
 }

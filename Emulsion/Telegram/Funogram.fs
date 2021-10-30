@@ -153,7 +153,7 @@ module MessageConverter =
         |> addAuthorIfAvailable
         |> markAsQuote quoteSettings.linePrefix
 
-    let private getAuthoredMessageBodyText (message: FunogramMessage) link =
+    let private getAuthoredMessageBodyText (message: FunogramMessage) links =
         let (|Text|_|) (message: FunogramMessage) = message.Text
         let (|Poll|_|) (message: FunogramMessage) = message.Poll
         let (|Content|_|) (message: FunogramMessage) =
@@ -176,9 +176,13 @@ module MessageConverter =
             | _ -> None
 
         let appendLinkTo text =
-            match link with
-            | Some link -> $"{text}: {link}"
-            | None -> text
+            let addedLinks =
+                links
+                |> Seq.map(fun uri -> uri.ToString())
+                |> String.concat "\n"
+            match addedLinks with
+            | "" -> text
+            | _ -> $"{text}: {addedLinks}"
 
         let text =
             match message with
@@ -254,7 +258,7 @@ module MessageConverter =
         then Some message
         else None
 
-    let private extractMessageContent(message: FunogramMessage) link: Message =
+    let private extractMessageContent(message: FunogramMessage) links: Message =
         match message with
         | EventFunogramMessage msg ->
             Event { text = getEventMessageBodyText msg }
@@ -263,7 +267,7 @@ module MessageConverter =
                 message.From
                 |> Option.map getUserDisplayName
                 |> Option.defaultValue "[UNKNOWN USER]"
-            let mainBody = getAuthoredMessageBodyText message link
+            let mainBody = getAuthoredMessageBodyText message links
             Authored { author = mainAuthor; text = mainBody }
 
     /// For messages from the bot, the first bold section of the message will contain the nickname of the author.
@@ -284,14 +288,14 @@ module MessageConverter =
                 Authored { author = authorName; text = messageText }
 
     let internal read (selfUserId: int64) (message: FunogramMessage, links: TelegramThreadLinks): ThreadMessage =
-        let mainMessage = extractMessageContent message links.ContentLink
+        let mainMessage = extractMessageContent message links.ContentLinks
         match message.ReplyToMessage with
         | None -> { main = mainMessage; replyTo = None }
         | Some replyTo ->
             let replyToMessage =
                 if isSelfMessage selfUserId replyTo
-                then extractSelfMessageContent replyTo links.ReplyToContentLink
-                else extractMessageContent replyTo links.ReplyToContentLink
+                then extractSelfMessageContent replyTo links.ReplyToContentLinks
+                else extractMessageContent replyTo links.ReplyToContentLinks
             { main = mainMessage; replyTo = Some replyToMessage }
 
 let internal processSendResult(result: Result<'a, ApiResponseError>): unit =
