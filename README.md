@@ -132,9 +132,9 @@ Developer documentation:
 [docs.license]: ./LICENSE.md
 [dotnet-runtime]: https://www.microsoft.com/net/download/core#/runtime
 [dotnet-sdk]: https://www.microsoft.com/net/download/core
+[hashids.net]: https://github.com/ullmark/hashids.net
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
-[hashids.net]: https://github.com/ullmark/hashids.net
 
 [badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
 [status-aquana]: https://img.shields.io/badge/status-aquana-yellowgreen.svg
