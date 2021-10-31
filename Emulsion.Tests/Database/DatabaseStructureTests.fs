@@ -1,6 +1,5 @@
 ﻿module Emulsion.Tests.Database.DatabaseStructureTests
 
-open System
 open Microsoft.Data.Sqlite
 open Xunit
 
@@ -11,7 +10,7 @@ open Emulsion.Tests.TestUtils
 [<Fact>]
 let ``Unique constraint should hold``(): unit =
     Async.RunSynchronously <| TestDataStorage.doWithDatabase(fun settings -> async {
-        let addNewContent (ctx: EmulsionDbContext) =
+        let addNewContent(ctx: EmulsionDbContext) =
             let newContent = {
                 Id = 0L
                 ChatUserName = "testChat"
@@ -24,9 +23,8 @@ let ``Unique constraint should hold``(): unit =
                 return newContent.Id
             }
 
-
-        let! id1 = DataStorage.transaction settings addNewContent
-        Assert.NotEqual(0L, id1)
+        let! id = DataStorage.transaction settings addNewContent
+        Assert.NotEqual(0L, id)
 
         let! ex = Async.AwaitTask(Assert.ThrowsAnyAsync(fun() ->
             upcast Async.StartAsTask(DataStorage.transaction settings addNewContent)
