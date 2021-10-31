@@ -4,6 +4,10 @@ open System.Data
 
 open Microsoft.EntityFrameworkCore
 
+let initializeDatabase(context: EmulsionDbContext): Async<unit> = async {
+    do! Async.AwaitTask(context.Database.MigrateAsync())
+}
+
 let transaction<'a> (settings: DatabaseSettings) (action: EmulsionDbContext -> Async<'a>): Async<'a> = async {
     use context = new EmulsionDbContext(settings.ContextOptions)
     let! ct = Async.CancellationToken

@@ -8,7 +8,6 @@
         <Compile Include="Models.fs" />
         <Compile Include="EmulsionDbContext.fs" />
         <Compile Include="Migrations\*.fs" />
-        <Compile Include="Initializer.fs" />
         <Compile Include="DatabaseSettings.fs" />
         <Compile Include="DataStorage.fs" />
         <Compile Include="QueryableEx.fs" />

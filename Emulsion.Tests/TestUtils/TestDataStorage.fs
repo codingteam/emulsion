@@ -10,7 +10,7 @@ let doWithDatabase<'a>(action: DatabaseSettings -> Async<'a>): Async<'a> = async
 
     do! async {
         use context = new EmulsionDbContext(settings.ContextOptions)
-        return! Initializer.initializeDatabase context
+        return! DataStorage.initializeDatabase context
     }
 
     return! action settings

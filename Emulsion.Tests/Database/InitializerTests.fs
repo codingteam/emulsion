@@ -1,8 +1,10 @@
 ﻿module Emulsion.Tests.Database.InitializerTests
 
 open System.IO
-open Emulsion.Database
+
 open Xunit
+
+open Emulsion.Database
 
 [<Fact>]
 let ``Database initialization``(): unit =
@@ -11,5 +13,5 @@ let ``Database initialization``(): unit =
         let settings = { DataSource = databasePath }
         use context = new EmulsionDbContext(settings.ContextOptions)
         let! _ = Async.AwaitTask(context.Database.EnsureDeletedAsync())
-        do! Initializer.initializeDatabase context
+        do! DataStorage.initializeDatabase context
     } |> Async.RunSynchronously

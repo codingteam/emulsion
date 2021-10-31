@@ -8,6 +8,7 @@ open Microsoft.Extensions.Configuration
 open Serilog
 
 open Emulsion.Actors
+open Emulsion.Database
 open Emulsion.MessageSystem
 open Emulsion.Settings
 open Emulsion.Xmpp
@@ -18,7 +19,14 @@ let private getConfiguration directory (fileName: string) =
             .SetBasePath(directory)
             .AddJsonFile(fileName)
             .Build()
-    Settings.read config
+    read config
+
+let private migrateDatabase (logger: ILogger) (settings: DatabaseSettings) = async {
+    logger.Information("Migrating the database {DataSource}…", settings.DataSource)
+    use context = new EmulsionDbContext(settings.ContextOptions)
+    do! DataStorage.initializeDatabase context
+    logger.Information "Database migration completed."
+}
 
 let private serviceContext logger = {
     RestartCooldown = TimeSpan.FromSeconds(30.0) // TODO[F]: Customize through the config.
@@ -38,6 +46,10 @@ let private startApp config =
     async {
         let logger = Logging.createRootLogger config.Log
         try
+            match config.Database with
+            | Some dbSettings -> do! migrateDatabase logger dbSettings
+            | None -> ()
+
             logger.Information "Actor system preparation…"
             use system = ActorSystem.Create("emulsion")
             logger.Information "Clients preparation…"
@@ -88,5 +100,5 @@ let main = function
         |> startApp
         |> runApp
     | _ ->
-        printfn "Arguments: [config file name] (%s by default)" defaultConfigFileName
+        printfn $"Arguments: [config file name] ({defaultConfigFileName} by default)"
         0
