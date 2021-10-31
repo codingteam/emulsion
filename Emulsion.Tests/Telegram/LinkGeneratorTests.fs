@@ -4,6 +4,7 @@ open System
 
 open Emulsion.ContentProxy
 open Funogram.Telegram.Types
+open Serilog.Core
 open Xunit
 
 open Emulsion.Database
@@ -136,14 +137,14 @@ let private messageWithVideoNote =
     }
 
 let private doBasicLinkTest message =
-    let links = Async.RunSynchronously(LinkGenerator.gatherLinks None None message)
+    let links = Async.RunSynchronously(LinkGenerator.gatherLinks Logger.None None None message)
     let expectedUri = Seq.singleton <| Uri $"https://t.me/{chatName}/{message.MessageId}"
     Assert.Equal<Uri>(expectedUri, links.ContentLinks)
 
 let private doDatabaseLinksTest (fileIds: string[]) message =
     Async.RunSynchronously <| TestDataStorage.doWithDatabase(fun databaseSettings ->
         async {
-            let! links = LinkGenerator.gatherLinks (Some databaseSettings) (Some hostingSettings) message
+            let! links = LinkGenerator.gatherLinks Logger.None (Some databaseSettings) (Some hostingSettings) message
             let contentLinks = Seq.toArray links.ContentLinks
             for fileId, link in Seq.zip fileIds contentLinks do
                 let link = link.ToString()

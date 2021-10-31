@@ -8,6 +8,7 @@ open Funogram.Telegram.Types
 open Emulsion.ContentProxy
 open Emulsion.Database
 open Emulsion.Settings
+open Serilog
 
 type FunogramMessage = Funogram.Telegram.Types.Message
 
@@ -62,7 +63,8 @@ let private getContentIdentities message: ContentStorage.MessageContentIdentity 
        )
     | _ -> Seq.empty
 
-let gatherLinks (databaseSettings: DatabaseSettings option)
+let gatherLinks (logger: ILogger)
+                (databaseSettings: DatabaseSettings option)
                 (hostingSettings: HostingSettings option)
                 (message: FunogramMessage): Async<TelegramThreadLinks> = async {
     let getMessageBodyLinks message: Async<Uri seq> =
@@ -86,14 +88,21 @@ let gatherLinks (databaseSettings: DatabaseSettings option)
             let link = gatherMessageLink message
             async.Return(upcast Option.toList link)
 
-    let! contentLink = getMessageBodyLinks message
-    let! replyToContentLink =
-        match message.ReplyToMessage with
-        | None -> async.Return Seq.empty
-        | Some replyTo -> getMessageBodyLinks replyTo
-
-    return {
-        ContentLinks = contentLink
-        ReplyToContentLinks = replyToContentLink
-    }
+    try
+        let! contentLink = getMessageBodyLinks message
+        let! replyToContentLink =
+            match message.ReplyToMessage with
+            | None -> async.Return Seq.empty
+            | Some replyTo -> getMessageBodyLinks replyTo
+        return {
+            ContentLinks = contentLink
+            ReplyToContentLinks = replyToContentLink
+        }
+    with
+    | ex ->
+        logger.Error(ex, "Error while trying to generate links for message.")
+        return {
+            ContentLinks = Seq.empty
+            ReplyToContentLinks = Seq.empty
+        }
 }

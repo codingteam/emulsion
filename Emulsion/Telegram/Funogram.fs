@@ -304,17 +304,18 @@ let internal processSendResult(result: Result<'a, ApiResponseError>): unit =
     | Error e ->
         failwith $"Telegram API Call processing error {e.ErrorCode}: {e.Description}"
 
-let private extractLinkData databaseSettings hostingSettings message =
-    message, Async.RunSynchronously(gatherLinks databaseSettings hostingSettings message)
+let private extractLinkData logger databaseSettings hostingSettings message =
+    message, Async.RunSynchronously(gatherLinks logger databaseSettings hostingSettings message)
 
-let internal processMessage (databaseSettings: DatabaseSettings option)
+let internal processMessage (logger: ILogger)
+                            (databaseSettings: DatabaseSettings option)
                             (hostingSettings: HostingSettings option)
                             (context: {| SelfUserId: int64; GroupId: int64 |})
                             (message: FunogramMessage): Message option =
     if context.GroupId = message.Chat.Id
     then
         message
-        |> extractLinkData databaseSettings hostingSettings
+        |> extractLinkData logger databaseSettings hostingSettings
         |> MessageConverter.read context.SelfUserId
         |> MessageConverter.flatten MessageConverter.DefaultQuoteSettings
         |> Some
@@ -335,7 +336,7 @@ let private updateArrived databaseSettings
             match ctx.Update.Message with
             | Some msg ->
                 logger.Information("Incoming Telegram message: {Message}", msg)
-                match processMessage databaseSettings hostingSettings readContext msg with
+                match processMessage logger databaseSettings hostingSettings readContext msg with
                 | Some m -> onMessage(TelegramMessage m)
                 | None -> logger.Warning "Message from unidentified source ignored"
                 true
