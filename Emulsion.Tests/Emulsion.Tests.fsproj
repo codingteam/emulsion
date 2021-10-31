@@ -8,6 +8,7 @@
     <Compile Include="TestUtils\Logging.fs" />
     <Compile Include="TestUtils\Waiter.fs" />
     <Compile Include="TestUtils\TestDataStorage.fs" />
+    <Compile Include="TestUtils\Exceptions.fs" />
     <Compile Include="ExceptionUtilsTests.fs" />
     <Compile Include="LifetimesTests.fs" />
     <Compile Include="MessageSenderTests.fs" />
@@ -28,7 +29,8 @@
     <Compile Include="Xmpp\SharpXmppHelperTests.fs" />
     <Compile Include="Xmpp\SharpXmppPingHandlerTests.fs" />
     <Compile Include="Xmpp\EmulsionXmppTests.fs" />
-    <Compile Include="Database\InitializerTests.fs" />
+    <Compile Include="Database\DataStorageTests.fs" />
+    <Compile Include="Database\DatabaseStructureTests.fs" />
     <Compile Include="ContentProxy\ContentStorageTests.fs" />
     <Compile Include="ContentProxy\ProxyTests.fs" />
   </ItemGroup>

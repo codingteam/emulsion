@@ -1,4 +1,4 @@
-﻿namespace Emulsion.Database.Models
+﻿namespace Emulsion.Database.Entities
 
 open System.ComponentModel.DataAnnotations
 

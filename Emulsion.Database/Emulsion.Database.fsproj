@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Models.fs" />
+        <Compile Include="Entities.fs" />
         <Compile Include="EmulsionDbContext.fs" />
         <Compile Include="Migrations\*.fs" />
         <Compile Include="DatabaseSettings.fs" />

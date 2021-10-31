@@ -5,15 +5,25 @@ open System
 open Emulsion.Database
 open Microsoft.EntityFrameworkCore
 open Microsoft.EntityFrameworkCore.Infrastructure
-open Microsoft.EntityFrameworkCore.Metadata
 open Microsoft.EntityFrameworkCore.Migrations
-open Microsoft.EntityFrameworkCore.Storage.ValueConversion
 
 [<DbContext(typeof<EmulsionDbContext>)>]
-type EmulsionDbContextModelSnapshot() =
-    inherit ModelSnapshot()
+[<Migration("20211031102019_TelegramContentUniqueConstraint")>]
+type TelegramContentUniqueConstraint() =
+    inherit Migration()
 
-    override this.BuildModel(modelBuilder: ModelBuilder) =
+    override this.Up(migrationBuilder:MigrationBuilder) =
+        migrationBuilder.Sql @"
+            create unique index TelegramContents_Unique
+            on TelegramContents(ChatUserName, MessageId, FileId)
+        " |> ignore
+
+    override this.Down(migrationBuilder:MigrationBuilder) =
+        migrationBuilder.Sql @"
+            drop index TelegramContents_Unique
+        " |> ignore
+
+    override this.BuildTargetModel(modelBuilder: ModelBuilder) =
         modelBuilder
             .HasAnnotation("ProductVersion", "5.0.10")
             |> ignore

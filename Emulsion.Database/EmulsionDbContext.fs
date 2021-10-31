@@ -1,13 +1,14 @@
 ﻿namespace Emulsion.Database
 
-open Emulsion.Database.Models
 open Microsoft.EntityFrameworkCore
 open Microsoft.EntityFrameworkCore.Design
+
+open Emulsion.Database.Entities
 
 type EmulsionDbContext(options: DbContextOptions) =
     inherit DbContext(options)
 
-    [<DefaultValue>] val mutable telegramContents: DbSet<TelegramContent>
+    [<DefaultValue>] val mutable private telegramContents: DbSet<TelegramContent>
     member this.TelegramContents with get() = this.telegramContents and set v = this.telegramContents <- v
 
 /// This type is used by the EFCore infrastructure when creating a new migration.

@@ -2,7 +2,7 @@
 
 open Emulsion.Database
 open Emulsion.Database.DataStorage
-open Emulsion.Database.Models
+open Emulsion.Database.Entities
 open Emulsion.Database.QueryableEx
 
 type MessageContentIdentity = {
@@ -15,9 +15,10 @@ let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageContentIde
     let! existingItem =
         query {
             for content in context.TelegramContents do
-            where (content.MessageId = id.MessageId && content.FileId = id.FileId)
+            where (content.ChatUserName = id.ChatUserName
+                   && content.MessageId = id.MessageId
+                   && content.FileId = id.FileId)
         } |> tryExactlyOneAsync
-    // TODO: Make sure the duplicates are impossible with the database constraints.
     match existingItem with
     | None ->
         let newItem = {
