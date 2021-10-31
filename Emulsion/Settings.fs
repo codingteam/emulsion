@@ -94,4 +94,3 @@ let read (config : IConfiguration) : EmulsionSettings =
       Log = readLog <| config.GetSection "log"
       Database = readDatabase <| config.GetSection "database"
       Hosting = readHosting <| config.GetSection "hosting" }
-    // TODO: Document the new settings

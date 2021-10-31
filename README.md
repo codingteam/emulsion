@@ -31,9 +31,31 @@ settings, there're defaults:
 }
 ```
 
-All the other settings are required.
+All the other settings are required, except the `database` and `hosting` sections.
 
 Note that `pingInterval` of `null` disables XMPP ping support.
+
+### Telegram Content Proxy
+
+There's **unfinished** Telegram content proxy support. To enable it, configure the `database` and `hosting` configuration file sections:
+
+```json
+{
+    "database": {
+        "dataSource": "sqliteDatabase.db"
+    },
+    "hosting": {
+        "baseUri": "https://example.com/api/content",
+        "hashIdSalt": "test"
+    }
+}
+```
+
+`dataSource` may be a path to the SQLite database file on disk. If set, Emulsion will automatically apply necessary migrations to this database on startup.
+
+If all the parameters are set, then Emulsion will save the incoming messages into the database, and will then insert links to `{baseUri}/content/{contentId}` instead of links to `https://t.me/{messageId}`.
+
+The content identifiers in question are generated from the database ones using the [hashids.net][hashids.net] library, `hashIdSalt` is used in generation. This should complicate guessing of content ids for any external party not reading the chat directly.
 
 Test
 ----
@@ -112,6 +134,7 @@ Developer documentation:
 [dotnet-sdk]: https://www.microsoft.com/net/download/core
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
+[hashids.net]: https://github.com/ullmark/hashids.net
 
 [badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
 [status-aquana]: https://img.shields.io/badge/status-aquana-yellowgreen.svg

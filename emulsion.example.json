@@ -16,5 +16,12 @@
     },
     "log": {
         "directory": "./logs/"
+    },
+    "database": {
+        "dataSource": "sqliteDatabase.db"
+    },
+    "hosting": {
+        "baseUri": "https://example.com/api/content",
+        "hashIdSalt": "test"
     }
 }
