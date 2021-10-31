@@ -4,11 +4,11 @@ module Emulsion.Telegram.LinkGenerator
 open System
 
 open Funogram.Telegram.Types
+open Serilog
 
 open Emulsion.ContentProxy
 open Emulsion.Database
 open Emulsion.Settings
-open Serilog
 
 type FunogramMessage = Funogram.Telegram.Types.Message
 
