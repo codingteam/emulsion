@@ -10,7 +10,7 @@ open Xunit
 
 open Emulsion.Settings
 
-let private testConfigText groupIdLiteral =
+let private testConfigText groupIdLiteral extendedLiteral =
     sprintf @"{
    ""xmpp"": {
        ""login"": ""login"",
@@ -26,9 +26,10 @@ let private testConfigText groupIdLiteral =
    },
    ""log"": {
        ""directory"": ""/tmp/""
-   }
-}" <| groupIdLiteral
+   }%s
+}" <| groupIdLiteral <| extendedLiteral
 
+let private testGroupId = 200600L
 let private testConfiguration = {
     Xmpp = {
         Login = "login"
@@ -43,7 +44,7 @@ let private testConfiguration = {
     }
     Telegram = {
         Token = "token"
-        GroupId = 200600L
+        GroupId = testGroupId
     }
     Log = {
         Directory = "/tmp/"
@@ -52,10 +53,10 @@ let private testConfiguration = {
     Hosting = None
 }
 
-let private mockConfiguration groupIdLiteral =
+let private mockConfiguration groupIdLiteral extendedJson =
     let path = Path.GetTempFileName()
     task {
-        do! File.WriteAllTextAsync(path, testConfigText groupIdLiteral)
+        do! File.WriteAllTextAsync(path, testConfigText groupIdLiteral extendedJson)
         return ConfigurationBuilder().AddJsonFile(path).Build()
     }
 
@@ -63,13 +64,36 @@ let private mockConfiguration groupIdLiteral =
 [<Fact>]
 let ``Settings read properly`` () =
     task {
-        let! configuration = mockConfiguration "200600"
+        let! configuration = mockConfiguration (string testGroupId) ""
         Assert.Equal(testConfiguration, read configuration)
     }
 
 [<Fact>]
 let ``Settings read the group id as string``(): Task<unit> =
     task {
-        let! configuration = mockConfiguration "\"200600\""
+        let! configuration = mockConfiguration "\"200600\"" ""
         Assert.Equal(testConfiguration, read configuration)
     }
+
+[<Fact>]
+let ``Extended settings read properly``(): Task = upcast task {
+    let! configuration = mockConfiguration (string testGroupId) @",
+   ""database"": {
+       ""dataSource"": "":memory:""
+   },
+   ""hosting"": {
+       ""baseUri"": ""https://example.com"",
+       ""hashIdSalt"": ""123123123""
+   }"
+    let expectedConfiguration =
+        { testConfiguration with
+            Database = Some {
+                DataSource = ":memory:"
+            }
+            Hosting = Some {
+                BaseUri = Uri("https://example.com")
+                HashIdSalt = "123123123"
+            }
+        }
+    Assert.Equal(expectedConfiguration, read configuration)
+}
