@@ -224,8 +224,8 @@ module ReadMessageTests =
     [<Fact>]
     let readMultipleTextLinksMessage() =
         let message = { createMessage (Some originalUser) (Some "Original text") with
-                            Entities = Some <| upcast [| createEntity "text_link" 0L 8L "https://example.com/1"
-                                                         createEntity "text_link" 9L 4L "https://example.com/2" |] }
+                            Entities = Some <| [| createEntity "text_link" 0L 8L "https://example.com/1"
+                                                  createEntity "text_link" 9L 4L "https://example.com/2" |] }
         Assert.Equal(
             authoredTelegramMessage "@originalUser" "Original [https://example.com/1] text [https://example.com/2]",
             readMessage message
@@ -270,8 +270,8 @@ module ReadMessageTests =
     [<Fact>]
     let readOverlappingTextLinksMessage() =
         let message = { createMessage (Some originalUser) (Some "Original text") with
-                            Entities = Some <| upcast [| createEntity "text_link" 0L 8L "https://example.com/1"
-                                                         createEntity "text_link" 0L 13L "https://example.com/2" |] }
+                            Entities = Some <| [| createEntity "text_link" 0L 8L "https://example.com/1"
+                                                  createEntity "text_link" 0L 13L "https://example.com/2" |] }
         Assert.Equal(
             authoredTelegramMessage "@originalUser" "Original [https://example.com/1] text [https://example.com/2]",
             readMessage message
@@ -289,11 +289,11 @@ module ReadMessageTests =
     [<Fact>]
     let readNoneTextLinkMessage() =
         let message = { createMessage (Some originalUser) (Some "Original text") with
-                            Entities = Some <| upcast [| { Type = "text_link"
-                                                           Url = None
-                                                           Offset = 0L
-                                                           Length = 5L
-                                                           User = None } |] }
+                            Entities = Some <| [| { Type = "text_link"
+                                                    Url = None
+                                                    Offset = 0L
+                                                    Length = 5L
+                                                    User = None } |] }
         Assert.Equal(
             authoredTelegramMessage "@originalUser" "Original text",
             readMessage message

@@ -4,6 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- Runtime: upgrade to .NET 6
+- Language: upgrade to F# 6
+
 ## [1.8.0] - 2021-09-26
 ### Changed
 - Additional logging for mailbox processor errors

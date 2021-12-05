@@ -25,7 +25,7 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
         let mutable enteredRunLoop = false
         let tcs = TaskCompletionSource<unit>()
         let messageSystem : IMessageSystem =
-            upcast { new MessageSystemBase(context, cts.Token) with
+            { new MessageSystemBase(context, cts.Token) with
                 member _.RunUntilError _ =
                     async {
                         do! Async.AwaitTask tcs.Task

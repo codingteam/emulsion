@@ -4,7 +4,6 @@ open System
 open System.IO
 open System.Threading.Tasks
 
-open FSharp.Control.Tasks
 open Microsoft.Extensions.Configuration
 open Xunit
 
@@ -76,7 +75,7 @@ let ``Settings read the group id as string``(): Task<unit> =
     }
 
 [<Fact>]
-let ``Extended settings read properly``(): Task = upcast task {
+let ``Extended settings read properly``(): Task = task {
     let! configuration = mockConfiguration (string testGroupId) @",
    ""database"": {
        ""dataSource"": "":memory:""

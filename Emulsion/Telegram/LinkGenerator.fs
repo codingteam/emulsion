@@ -47,7 +47,7 @@ let private getFileIds(message: FunogramMessage): string seq =
     extractFileId message.Voice
     extractFileId message.VideoNote
 
-    upcast allFileIds
+    allFileIds
 
 let private getContentIdentities message: ContentStorage.MessageContentIdentity seq =
     match message.Chat with
@@ -82,11 +82,11 @@ let gatherLinks (logger: ILogger)
                         return Proxy.getLink hostingSettings.BaseUri hashId
                     })
                     |> Async.Parallel
-                return upcast links
+                return links
             }
         | _ ->
             let link = gatherMessageLink message
-            async.Return(upcast Option.toList link)
+            async.Return(Option.toList link)
 
     try
         let! contentLink = getMessageBodyLinks message

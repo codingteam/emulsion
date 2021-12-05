@@ -113,8 +113,8 @@ let send (logger: ILogger)
          (message: Message): Async<unit> = async {
     let text =
         match message with
-        | Authored msg -> sprintf "<%s> %s" msg.author msg.text
-        | Event msg -> sprintf "%s" msg.text
+        | Authored msg -> $"<{msg.author}> {msg.text}"
+        | Event msg -> msg.text
     let message = { RecipientJid = JID(settings.Room); Text = text }
     let! deliveryInfo = sendRoomMessage client lifetime settings.MessageTimeout message
     logger.Information("Message {MessageId} has been sent; awaiting delivery", deliveryInfo.MessageId)

@@ -4,4 +4,4 @@ open Serilog
 open Xunit.Abstractions
 
 let xunitLogger (output: ITestOutputHelper): ILogger =
-    upcast LoggerConfiguration().MinimumLevel.Debug().WriteTo.TestOutput(output).CreateLogger()
+    LoggerConfiguration().MinimumLevel.Debug().WriteTo.TestOutput(output).CreateLogger()

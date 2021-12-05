@@ -52,4 +52,4 @@ let create (settings: XmppSettings): XmppClient =
     client
 
 let wrap(client: XmppClient): IXmppClient =
-    upcast Wrapper client
+    Wrapper client

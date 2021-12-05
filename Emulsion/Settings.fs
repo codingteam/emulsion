@@ -46,7 +46,7 @@ let defaultMessageTimeout = TimeSpan.FromMinutes 5.0
 let defaultPingTimeout = TimeSpan.FromSeconds 30.0
 
 let private readTimeSpanOpt key (section: IConfigurationSection) =
-    section.[key]
+    section[key]
     |> Option.ofObj
     |> Option.map (fun s -> TimeSpan.Parse(s, CultureInfo.InvariantCulture))
 
@@ -56,30 +56,30 @@ let private readTimeSpan defaultVal key section =
 
 let read (config : IConfiguration) : EmulsionSettings =
     let readXmpp (section : IConfigurationSection) = {
-        Login = section.["login"]
-        Password = section.["password"]
-        Room = section.["room"]
-        RoomPassword = Option.ofObj section.["roomPassword"]
-        Nickname = section.["nickname"]
+        Login = section["login"]
+        Password = section["password"]
+        Room = section["room"]
+        RoomPassword = Option.ofObj section["roomPassword"]
+        Nickname = section["nickname"]
         ConnectionTimeout = readTimeSpan defaultConnectionTimeout "connectionTimeout" section
         MessageTimeout = readTimeSpan defaultMessageTimeout  "messageTimeout" section
         PingInterval = readTimeSpanOpt "pingInterval" section
         PingTimeout = readTimeSpan defaultPingTimeout "pingTimeout" section
     }
     let readTelegram (section : IConfigurationSection) = {
-        Token = section.["token"]
-        GroupId = int64 section.["groupId"]
+        Token = section["token"]
+        GroupId = int64 section["groupId"]
     }
     let readLog(section: IConfigurationSection) = {
-        Directory = section.["directory"]
+        Directory = section["directory"]
     }
     let readDatabase(section: IConfigurationSection) =
-        section.["dataSource"]
+        section["dataSource"]
         |> Option.ofObj
         |> Option.map(fun dataSource -> { DataSource = dataSource })
     let readHosting(section: IConfigurationSection) =
-        let baseUri = Option.ofObj section.["baseUri"]
-        let hashIdSalt = Option.ofObj section.["hashIdSalt"]
+        let baseUri = Option.ofObj section["baseUri"]
+        let hashIdSalt = Option.ofObj section["hashIdSalt"]
         match baseUri, hashIdSalt with
         | Some baseUri, Some hashIdSalt ->
             Some {

@@ -4,7 +4,6 @@ open System
 open System.Threading.Tasks
 open System.Xml.Linq
 
-open FSharp.Control.Tasks
 open JetBrains.Lifetimes
 open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.Elements
@@ -68,7 +67,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
 
     let sendPong roomInfo id handler =
         let pong = XMPPIq(XMPPIq.IqTypes.result, id)
-        pong.SetAttributeValue(From, sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname)
+        pong.SetAttributeValue(From, $"{roomInfo.RoomJid.BareJid}/{roomInfo.Nickname}")
         handler pong
 
     let createPresenceHandlingClient() =
@@ -161,11 +160,11 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                 sendIqQuery = fun _ iq _ -> lock iqMessages (fun() -> iqMessages.Add iq)
             )
 
-        upcast Lifetime.UsingAsync(fun lt ->
-            async {
+        Lifetime.UsingAsync(fun lt ->
+            task {
                 let! _ = XmppClient.enterRoom logger client lt roomInfoWithPing
                 do! assertPingSent iqMessages
-            } |> Async.StartAsTask
+            }
         )
 
     [<Fact>]
@@ -184,14 +183,14 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                     ),
                 sendIqQuery = fun _ iq _ -> lock iqMessages (fun() -> iqMessages.Add iq)
             )
-        upcast Lifetime.UsingAsync(fun lt ->
-            async {
+        Lifetime.UsingAsync(fun lt ->
+            task {
                 let! connection = Async.StartChild <| XmppClient.enterRoom logger client lt roomInfoWithPing
                 do! assertNoPingSent iqMessages
                 lock join !join // ha-ha
                 let! _ = connection
                 do! assertPingSent iqMessages
-            } |> Async.StartAsTask
+            }
         )
 
     [<Fact>]
@@ -200,13 +199,13 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
         let roomInfo = { roomInfoWithPing with Ping = {| roomInfoWithPing.Ping with Timeout = timeout |} }
 
         let (client, _) = createPresenceHandlingClient()
-        upcast Lifetime.UsingAsync(fun lt ->
-            async {
+        Lifetime.UsingAsync(fun lt ->
+            task {
                 let! lt = XmppClient.enterRoom logger client lt roomInfo
                 Assert.True lt.IsAlive
                 do! Async.Sleep(int (timeout * 2.0).TotalMilliseconds) // wait for two timeouts for test stability
                 Assert.False lt.IsAlive
-            } |> Async.StartAsTask
+            }
         )
 
     [<Fact>]
@@ -225,13 +224,13 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                     sendPong roomInfo pingId handler
             )
 
-        upcast Lifetime.UsingAsync(fun lt ->
-            async {
+        Lifetime.UsingAsync(fun lt ->
+            task {
                 let! lt = XmppClient.enterRoom logger client lt roomInfo
                 Assert.True lt.IsAlive
                 do! Async.Sleep(int (timeout * 2.0).TotalMilliseconds)
                 Assert.True lt.IsAlive
-            } |> Async.StartAsTask
+            }
         )
 
     [<Fact>]
@@ -245,16 +244,16 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
             }
 
         let (client, _) = createPresenceHandlingClient()
-        upcast task {
+        task {
             let! ex = Assert.ThrowsAnyAsync(fun() ->
-                upcast Lifetime.UsingAsync(fun lt ->
-                    async {
+                Lifetime.UsingAsync(fun lt ->
+                    task {
                         let! _ = XmppClient.enterRoom logger client lt roomInfo
                         ()
-                    } |> Async.StartAsTask
+                    }
                 )
             )
 
-            let expectedMessage = sprintf "Ping interval of %A should be greater than ping timeout of %A" interval timeout
+            let expectedMessage = $"Ping interval of {interval} should be greater than ping timeout of {timeout}"
             Assert.Equal(expectedMessage, ex.Message)
         }

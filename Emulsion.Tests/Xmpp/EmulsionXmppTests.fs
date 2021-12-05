@@ -191,7 +191,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
 
     [<Fact>]
     member _.``send function awaits the message delivery``(): Task =
-        upcast (async {
+        task {
             use ld = Lifetime.Define()
             let lt = ld.Lifetime
             let messageId = lt.CreateTaskCompletionSource()
@@ -217,4 +217,4 @@ type SendTests(outputHelper: ITestOutputHelper) =
             let deliveryMessage = SharpXmppHelper.message messageId "" ""
             onMessage deliveryMessage
             do! receival
-        } |> Async.StartAsTask)
+        }

@@ -27,7 +27,7 @@ let ``Unique constraint should hold``(): unit =
         Assert.NotEqual(0L, id)
 
         let! ex = Async.AwaitTask(Assert.ThrowsAnyAsync(fun() ->
-            upcast Async.StartAsTask(DataStorage.transaction settings addNewContent)
+            Async.StartAsTask(DataStorage.transaction settings addNewContent)
         ))
         let sqlEx = Exceptions.unwrap<SqliteException> ex
         Assert.Contains("UNIQUE constraint failed", sqlEx.Message)

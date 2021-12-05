@@ -11,4 +11,4 @@ type LockedBuffer<'T>() =
             messages.Count
         )
     member _.All(): 'T seq =
-        upcast ResizeArray messages
+        ResizeArray messages

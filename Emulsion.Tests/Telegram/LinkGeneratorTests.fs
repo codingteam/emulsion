@@ -69,7 +69,7 @@ let private messageWithAnimation =
 
 let private messageWithPhoto =
     { messageTemplate with
-        Photo = Some(upcast [|{
+        Photo = Some([|{
             FileId = fileId1
             Width = 0
             Height = 0

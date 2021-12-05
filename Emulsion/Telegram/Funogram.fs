@@ -209,31 +209,31 @@ module MessageConverter =
         | _ -> text
 
     let private getEventMessageBodyText (message: FunogramMessage) =
+        let name = getUserDisplayName
         match message with
         | { From = Some originalUser; NewChatMembers = Some users } ->
             let users = Seq.toArray users
             match users with
-            | [| user |] when user = originalUser -> $"{getUserDisplayName user} has entered the chat"
-            | [| user |] -> sprintf "%s has added %s to the chat" (getUserDisplayName originalUser) (getUserDisplayName user)
+            | [| user |] when user = originalUser -> $"{name user} has entered the chat"
+            | [| user |] -> $"{name originalUser} has added {name user} to the chat"
             | [| user1; user2 |] ->
-                sprintf "%s has added %s and %s to the chat"
-                    (getUserDisplayName originalUser)
-                    (getUserDisplayName user1) (getUserDisplayName user2)
+                $"{name originalUser} has added {name user1} and {name user2} to the chat"
             | _ ->
                 let builder = StringBuilder().AppendFormat("{0} has added ", getUserDisplayName originalUser)
                 for i = 0 to users.Length - 2 do
-                    builder.AppendFormat("{0}, ", getUserDisplayName users.[i]) |> ignore
+                    builder.AppendFormat("{0}, ", getUserDisplayName users[i]) |> ignore
                 builder
-                    .AppendFormat("and {0} to the chat", getUserDisplayName users.[users.Length - 1])
+                    .AppendFormat("and {0} to the chat", getUserDisplayName users[users.Length - 1])
                     .ToString()
         | { From = Some originalUser; LeftChatMember = Some user } ->
             if originalUser = user
-            then sprintf "%s has left the chat" (getUserDisplayName user)
-            else sprintf "%s has removed %s from the chat" (getUserDisplayName originalUser) (getUserDisplayName user)
+            then $"{name user} has left the chat"
+            else $"{name originalUser} has removed {name user} from the chat"
         | _ -> "[DATA UNRECOGNIZED]"
 
     let private addOriginalMessage quoteSettings originalMessage replyMessageBody =
-        sprintf "%s\n\n%s" (getQuotedMessage quoteSettings originalMessage) replyMessageBody
+        let quotedMessage = getQuotedMessage quoteSettings originalMessage
+        $"{quotedMessage}\n\n{replyMessageBody}"
 
     let internal flatten (quotedLimits: QuoteSettings) (message: ThreadMessage): Message =
         match message.main with
@@ -344,7 +344,7 @@ let private updateArrived databaseSettings
     ] |> ignore
 
 let internal prepareHtmlMessage: Message -> string = function
-| Authored {author = author; text = text} -> sprintf "<b>%s</b>\n%s" (Html.escape author) (Html.escape text)
+| Authored {author = author; text = text} -> $"<b>{Html.escape author}</b>\n{Html.escape text}"
 | Event {text = text} -> Html.escape text
 
 let send (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =

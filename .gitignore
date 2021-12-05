@@ -9,3 +9,6 @@ out/
 emulsion.json
 
 *.user
+
+.fake
+.ionide

@@ -39,7 +39,7 @@ let connect (client: IXmppClient): Async<Lifetime> = async {
 }
 
 let private botJid roomInfo =
-    sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
+    $"{roomInfo.RoomJid.BareJid}/{roomInfo.Nickname}"
 
 let private isSelfPresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
     let presence = SharpXmppHelper.parsePresence presence
@@ -53,10 +53,10 @@ let private isLeavePresence (roomInfo: RoomInfo) (presence: XMPPPresence) =
 
 let private extractPresenceException (roomInfo: RoomInfo) (presence: XMPPPresence) =
     let presence = SharpXmppHelper.parsePresence presence
-    let expectedJid = sprintf "%s/%s" roomInfo.RoomJid.BareJid roomInfo.Nickname
+    let expectedJid = $"{roomInfo.RoomJid.BareJid}/{roomInfo.Nickname}"
     if presence.From = expectedJid then
         presence.Error
-        |> Option.map (fun e -> Exception(sprintf "Error: %A" e))
+        |> Option.map (fun e -> Exception $"Error: {e}")
     else None
 
 let private newMessageId(): string =
@@ -69,7 +69,7 @@ let private startPingActivity (logger: ILogger)
     roomInfo.Ping.Interval |> Option.iter (fun pingInterval ->
         let pingTimeout = roomInfo.Ping.Timeout
         if pingInterval <= pingTimeout then
-            failwithf "Ping interval of %A should be greater than ping timeout of %A" pingInterval pingTimeout
+            failwithf $"Ping interval of {pingInterval} should be greater than ping timeout of {pingTimeout}"
             // (otherwise, `use pingLifetimeDefinition` below would create lifetime conflict: it could've been
             // terminated earlier than the ping timeout ends, which will break ping logic)
 
@@ -98,7 +98,7 @@ let private startPingActivity (logger: ILogger)
                     client.SendIqQuery pingLifetime pingMessage (fun response ->
                         if SharpXmppHelper.isPong jid pingId response then
                             Volatile.Write(&pongReceived, true)
-                            use __ = pingLifetime.UsingAllowTerminationUnderExecution()
+                            use _ = pingLifetime.UsingAllowTerminationUnderExecution()
                             pingLifetimeDefinition.Terminate()
                     )
 
@@ -155,7 +155,7 @@ let private hasMessageId messageId message =
 
 let private extractMessageException message =
     SharpXmppHelper.getMessageError message
-    |> Option.map(fun e -> Exception(sprintf "Error: %A" e))
+    |> Option.map(fun e -> Exception $"Error: {e}")
 
 let private awaitMessageReceival (client: IXmppClient) (lifetime: Lifetime) (timeout: TimeSpan) messageId =
     // We need to perform this part synchronously to avoid the race condition between adding a message handler and
