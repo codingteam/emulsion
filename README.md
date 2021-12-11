@@ -6,8 +6,7 @@ emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
 Build
 -----
 
-Install [.NET SDK][dotnet-sdk] 6.0 or newer for your platform, then
-run:
+Install [.NET SDK][dotnet] 6.0 or newer for your platform, then run:
 
 ```console
 $ dotnet build
@@ -69,7 +68,7 @@ $ dotnet test
 Run
 ---
 
-Requires [.NET Runtime][dotnet-runtime] version 6.0 or newer.
+Requires [.NET Runtime][dotnet] version 6.0 or newer.
 
 ```console
 $ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
@@ -130,8 +129,7 @@ Developer documentation:
 [docs.changelog]: ./CHANGELOG.md
 [docs.create-migration]: ./docs/create-migration.md
 [docs.license]: ./LICENSE.md
-[dotnet-runtime]: https://dotnet.microsoft.com/download
-[dotnet-sdk]: https://dotnet.microsoft.com/download
+[dotnet]: https://dotnet.microsoft.com/download
 [hashids.net]: https://github.com/ullmark/hashids.net
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
