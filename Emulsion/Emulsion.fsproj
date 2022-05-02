@@ -46,5 +46,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Emulsion.ContentProxy\Emulsion.ContentProxy.fsproj" />
+    <ProjectReference Include="..\Emulsion.Web\Emulsion.Web.fsproj" />
   </ItemGroup>
 </Project>

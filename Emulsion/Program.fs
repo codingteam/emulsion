@@ -11,6 +11,7 @@ open Emulsion.Actors
 open Emulsion.Database
 open Emulsion.MessageSystem
 open Emulsion.Settings
+open Emulsion.Web
 open Emulsion.Xmpp
 
 let private getConfiguration directory (fileName: string) =
@@ -50,6 +51,13 @@ let private startApp config =
             | Some dbSettings -> do! migrateDatabase logger dbSettings
             | None -> ()
 
+            let webServerTask =
+                config.Hosting
+                |> Option.map (fun hosting ->
+                    logger.Information "Initializing web server…"
+                    WebServer.run hosting.BaseUri
+                )
+
             logger.Information "Actor system preparation…"
             use system = ActorSystem.Create("emulsion")
             logger.Information "Clients preparation…"
@@ -73,11 +81,18 @@ let private startApp config =
             let! xmppSystem = startMessageSystem logger xmpp core.Tell
             logger.Information "System ready"
 
-            logger.Information "Waiting for actor system termination…"
-            do! Async.AwaitTask system.WhenTerminated
-            logger.Information "Waiting for message systems termination…"
-            do! telegramSystem
-            do! xmppSystem
+            logger.Information "Waiting for the systems to terminate…"
+            let! _ = Async.Parallel(seq {
+                yield Async.AwaitTask system.WhenTerminated
+                yield telegramSystem
+                yield xmppSystem
+
+                match webServerTask with
+                | Some task -> yield Async.AwaitTask task
+                | None -> ()
+            })
+
+            logger.Information "Terminated successfully."
         with
         | error ->
             logger.Fatal(error, "General application failure")

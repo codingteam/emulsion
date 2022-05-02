@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="WeatherForecast.fs"/>
+    <Compile Include="Controllers/WeatherForecastController.fs"/>
+    <Compile Include="WebServer.fs"/>
+  </ItemGroup>
+</Project>
