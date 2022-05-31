@@ -32,9 +32,9 @@ let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageContentIde
     | Some item -> return item
 }
 
-let getById (context: EmulsionDbContext) (id: int64): Async<TelegramContent> = async {
+let getById (context: EmulsionDbContext) (id: int64): Async<TelegramContent option> = async {
     return! query {
         for content in context.TelegramContents do
         where (content.Id = id)
-    } |> exactlyOneAsync
+    } |> tryExactlyOneAsync
 }

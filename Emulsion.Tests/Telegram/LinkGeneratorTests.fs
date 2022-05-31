@@ -155,6 +155,7 @@ let private doDatabaseLinksTest (fileIds: string[]) message =
                 let! content = DataStorage.transaction databaseSettings (fun context ->
                     ContentStorage.getById context (Proxy.decodeHashId hostingSettings.HashIdSalt id)
                 )
+                let content = Option.get content
 
                 Assert.Equal(message.MessageId, content.MessageId)
                 Assert.Equal(message.Chat.Username, Some content.ChatUserName)

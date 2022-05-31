@@ -5,8 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="WeatherForecast.fs"/>
-    <Compile Include="Controllers/WeatherForecastController.fs"/>
-    <Compile Include="WebServer.fs"/>
+    <Compile Include="Controllers\ContentController.fs" />
+    <Compile Include="WebServer.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Emulsion.ContentProxy\Emulsion.ContentProxy.fsproj" />
+    <ProjectReference Include="..\Emulsion.Settings\Emulsion.Settings.fsproj" />
   </ItemGroup>
 </Project>
