@@ -1,10 +1,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
 WORKDIR /app
 
-COPY ./Emulsion.sln ./
+COPY ./Emulsion.ContentProxy/Emulsion.ContentProxy.fsproj ./Emulsion.ContentProxy/
+COPY ./Emulsion.Database/Emulsion.Database.fsproj ./Emulsion.Database/
 COPY ./Emulsion/Emulsion.fsproj ./Emulsion/
-COPY ./Emulsion.Tests/Emulsion.Tests.fsproj ./Emulsion.Tests/
-RUN dotnet restore
+
+RUN dotnet restore Emulsion
 
 COPY . ./
 RUN dotnet publish Emulsion -c Release -o /app/out
