@@ -7,7 +7,9 @@ Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 ### Changed
 - Runtime: upgrade to .NET 6
-- Language: upgrade to F# 6
+
+### Added
+- Preliminary database support (disabled by default): Emulsion is now able to store information about Telegram content in an SQLite database
 
 ## [1.8.0] - 2021-09-26
 ### Changed
