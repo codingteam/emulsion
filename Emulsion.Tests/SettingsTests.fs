@@ -81,7 +81,8 @@ let ``Extended settings read properly``(): Task = task {
        ""dataSource"": "":memory:""
    },
    ""hosting"": {
-       ""baseUri"": ""https://example.com"",
+       ""externalUriBase"": ""https://example.com"",
+       ""bindUri"": ""http://localhost:5555"",
        ""hashIdSalt"": ""123123123""
    }"
     let expectedConfiguration =
@@ -90,7 +91,8 @@ let ``Extended settings read properly``(): Task = task {
                 DataSource = ":memory:"
             }
             Hosting = Some {
-                BaseUri = Uri("https://example.com")
+                ExternalUriBase = Uri "https://example.com"
+                BindUri = Uri "http://localhost:5555"
                 HashIdSalt = "123123123"
             }
         }

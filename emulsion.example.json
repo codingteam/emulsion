@@ -21,7 +21,8 @@
         "dataSource": "sqliteDatabase.db"
     },
     "hosting": {
-        "baseUri": "https://example.com/api/content",
+        "externalUriBase": "https://example.com/api/",
+        "bindUri": "https://localhost:5000",
         "hashIdSalt": "test"
     }
 }

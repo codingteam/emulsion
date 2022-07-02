@@ -13,7 +13,8 @@ open Emulsion.Telegram
 open Emulsion.Tests.TestUtils
 
 let private hostingSettings = {
-    BaseUri = Uri "https://example.com"
+    ExternalUriBase = Uri "https://example.com"
+    BindUri = Uri "http://localhost:5556"
     HashIdSalt = "mySalt"
 }
 let private chatName = "test_chat"
@@ -153,9 +154,9 @@ let private doDatabaseLinksTest (fileIds: string[]) message =
             let contentLinks = Seq.toArray links.ContentLinks
             for fileId, link in Seq.zip fileIds contentLinks do
                 let link = link.ToString()
-                let baseUri = hostingSettings.BaseUri.ToString()
+                let baseUri = hostingSettings.ExternalUriBase.ToString()
                 Assert.StartsWith(baseUri, link)
-                let emptyLinkLength = (Proxy.getLink hostingSettings.BaseUri "").ToString().Length
+                let emptyLinkLength = (Proxy.getLink hostingSettings.ExternalUriBase "").ToString().Length
                 let id = link.Substring(emptyLinkLength)
                 let! content = DataStorage.transaction databaseSettings (fun context ->
                     ContentStorage.getById context (Proxy.decodeHashId hostingSettings.HashIdSalt id)

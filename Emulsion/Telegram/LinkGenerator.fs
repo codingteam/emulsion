@@ -83,7 +83,7 @@ let gatherLinks (logger: ILogger)
                         )
 
                         let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt content.Id
-                        return Proxy.getLink hostingSettings.BaseUri hashId
+                        return Proxy.getLink hostingSettings.ExternalUriBase hashId
                     })
                     |> Async.Parallel
                 return links

@@ -44,7 +44,8 @@ There's **unfinished** Telegram content proxy support. To enable it, configure t
         "dataSource": "sqliteDatabase.db"
     },
     "hosting": {
-        "baseUri": "https://example.com/api/content",
+        "externalUriBase": "https://example.com/api/",
+        "bindUri": "http://localhost:5000/",
         "hashIdSalt": "test"
     }
 }
@@ -52,7 +53,9 @@ There's **unfinished** Telegram content proxy support. To enable it, configure t
 
 `dataSource` may be a path to the SQLite database file on disk. If set, Emulsion will automatically apply necessary migrations to this database on startup.
 
-If all the parameters are set, then Emulsion will save the incoming messages into the database, and will then insert links to `{baseUri}/content/{contentId}` instead of links to `https://t.me/{messageId}`.
+If all the parameters are set, then Emulsion will save the incoming messages into the database, and will then insert links to `{externalUriBase}/content/{contentId}` instead of links to `https://t.me/{messageId}`.
+
+`bindUri` designates the URI the web server will listen locally (which may or may not be the same as the `externalUriBase`).
 
 The content identifiers in question are generated from the database ones using the [hashids.net][hashids.net] library, `hashIdSalt` is used in generation. This should complicate guessing of content ids for any external party not reading the chat directly.
 

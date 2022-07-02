@@ -20,7 +20,8 @@ open Emulsion.Web
 type ContentControllerTests(output: ITestOutputHelper) =
 
     let hostingSettings = {
-        BaseUri = Uri "https://example.com/emulsion"
+        ExternalUriBase = Uri "https://example.com/emulsion"
+        BindUri = Uri "http://localhost:5557"
         HashIdSalt = "test_salt"
     }
 

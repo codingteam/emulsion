@@ -29,7 +29,8 @@ type LogSettings = {
 }
 
 type HostingSettings = {
-    BaseUri: Uri
+    ExternalUriBase: Uri
+    BindUri: Uri
     HashIdSalt: string
 }
 
@@ -78,16 +79,18 @@ let read (config : IConfiguration) : EmulsionSettings =
         |> Option.ofObj
         |> Option.map(fun dataSource -> { DataSource = dataSource })
     let readHosting(section: IConfigurationSection) =
-        let baseUri = Option.ofObj section["baseUri"]
+        let externalUriBase = Option.ofObj section["externalUriBase"]
+        let bindUri = Option.ofObj section["bindUri"]
         let hashIdSalt = Option.ofObj section["hashIdSalt"]
-        match baseUri, hashIdSalt with
-        | Some baseUri, Some hashIdSalt ->
+        match externalUriBase, bindUri, hashIdSalt with
+        | Some externalUriBase, Some bindUri, Some hashIdSalt ->
             Some {
-                BaseUri = Uri baseUri
+                ExternalUriBase = Uri externalUriBase
+                BindUri = Uri bindUri
                 HashIdSalt = hashIdSalt
             }
-        | None, None -> None
-        | other -> failwith $"Pair {other} is not valid for hosting settings"
+        | None, None, None -> None
+        | other -> failwith $"Parameter pack {other} represents invalid hosting settings."
 
     { Xmpp = readXmpp <| config.GetSection("xmpp")
       Telegram = readTelegram <| config.GetSection("telegram")

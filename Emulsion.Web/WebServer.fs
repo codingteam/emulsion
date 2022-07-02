@@ -9,8 +9,7 @@ open Microsoft.Extensions.DependencyInjection
 open Serilog
 
 let run (logger: ILogger) (hostingSettings: HostingSettings) (databaseSettings: DatabaseSettings): Task =
-    // TODO: Use baseUri
-    let builder = WebApplication.CreateBuilder()
+    let builder = WebApplication.CreateBuilder(WebApplicationOptions())
 
     builder.Host.UseSerilog(logger)
     |> ignore
@@ -24,4 +23,4 @@ let run (logger: ILogger) (hostingSettings: HostingSettings) (databaseSettings: 
 
     let app = builder.Build()
     app.MapControllers() |> ignore
-    app.RunAsync()
+    app.RunAsync(hostingSettings.BindUri.ToString())
