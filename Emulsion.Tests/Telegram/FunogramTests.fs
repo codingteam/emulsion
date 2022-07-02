@@ -18,32 +18,34 @@ let private groupId = 200600L
 [<Literal>]
 let private chatName = "test_room"
 
-let private createUser username firstName lastName = {
-    Id = 0L
-    FirstName = firstName
-    LastName = lastName
-    Username = username
-    LanguageCode = None
-    IsBot = false
-}
+let private createUser username firstName lastName = User.Create(
+    id = 0L,
+    isBot = false,
+    firstName = firstName,
+    ?lastName = lastName,
+    ?username = username
+)
 
-let private currentChat = {
-    defaultChat with
-        Id = groupId
-        Username = Some chatName
-        Type = SuperGroup
-}
+let private currentChat = Chat.Create(
+    id = groupId,
+    ``type`` = ChatType.SuperGroup,
+    username = chatName
+)
+
+let private defaultMessage = Message.Create(
+    messageId = 1L,
+    date = DateTime.MinValue,
+    chat = currentChat
+)
 
 let private createMessage from text : Funogram.Telegram.Types.Message =
     { defaultMessage with
         From = from
-        Chat = currentChat
         Text = text }
 
 let private createEmptyMessage from : Funogram.Telegram.Types.Message =
     { defaultMessage with
-        From = Some from
-        Chat = currentChat }
+        From = Some from }
 
 let private createReplyMessage from text replyTo : Funogram.Telegram.Types.Message =
     { createMessage from text with
@@ -52,7 +54,6 @@ let private createReplyMessage from text replyTo : Funogram.Telegram.Types.Messa
 let private createForwardedMessage from (forwarded: Funogram.Telegram.Types.Message) =
     { defaultMessage with
         From = Some from
-        Chat = currentChat
         ForwardFrom = forwarded.From
         Text = forwarded.Text }
 
@@ -62,6 +63,7 @@ let private createStickerMessage from emoji =
         Chat = currentChat
         Sticker = Some {
             FileId = ""
+            FileUniqueId = ""
             Width = 0
             Height = 0
             Thumb = None
@@ -70,31 +72,36 @@ let private createStickerMessage from emoji =
             SetName = None
             MaskPosition = None
             IsAnimated = false
+            IsVideo = false
+            PremiumAnimation = None
         }
     }
 
-let private createPhoto() = seq {
-    { FileId = ""
-      Width = 0
-      Height = 0
-      FileSize = None
+let private createPhoto() = [|
+    {
+        FileId = ""
+        FileUniqueId = ""
+        Width = 0
+        Height = 0
+        FileSize = None
     }
-}
+|]
 
-let private createAnimation() =
-    { FileId = ""
-      Width = 0
-      Height = 0
-      Duration = 0
-      Thumb = None
-      FileName = None
-      MimeType = None
-      FileSize = None }
+let private createAnimation(): Animation = {
+    FileId = ""
+    FileUniqueId = ""
+    Width = 0
+    Height = 0
+    Duration = 0
+    Thumb = None
+    FileName = None
+    MimeType = None
+    FileSize = None
+}
 
 let private createMessageWithCaption from caption =
     { defaultMessage with
         From = Some from
-        Chat = currentChat
         Caption = Some caption }
 
 let private createPoll from (question: string) (options: string[]) =
@@ -105,11 +112,16 @@ let private createPoll from (question: string) (options: string[]) =
             VoterCount = 0
         })
 
-    let poll: Poll =
-        { Id = ""
-          Question = question
-          Options = options
-          IsClosed = false }
+    let poll= Poll.Create(
+        id = "",
+        question = question,
+        options = options,
+        totalVoterCount = 0L,
+        isClosed = false,
+        isAnonymous = false,
+        ``type`` = "",
+        allowsMultipleAnswers = false
+    )
 
     { defaultMessage with
         From = Some from
@@ -131,11 +143,12 @@ let private createEntity t offset length url = {
     Length = length
     Url = Some url
     User = None
+    Language = None
 }
 
-let private createEntities t offset length url = Some <| seq {
+let private createEntities t offset length url = Some <| [|
     createEntity t offset length url
-}
+|]
 
 let private originalUser = createUser (Some "originalUser") "" None
 let private replyingUser = createUser (Some "replyingUser") "" None
@@ -293,7 +306,8 @@ module ReadMessageTests =
                                                     Url = None
                                                     Offset = 0L
                                                     Length = 5L
-                                                    User = None } |] }
+                                                    User = None
+                                                    Language = None } |] }
         Assert.Equal(
             authoredTelegramMessage "@originalUser" "Original text",
             readMessage message
@@ -459,7 +473,7 @@ module ReadMessageTests =
     [<Fact>]
     let readUserEntersChat() =
         let message = { createEmptyMessage originalUser with
-                            NewChatMembers = Some <| seq { originalUser } }
+                            NewChatMembers = Some <| [| originalUser |] }
         Assert.Equal(
             eventTelegramMessage "@originalUser has entered the chat",
             readMessage message
@@ -477,7 +491,7 @@ module ReadMessageTests =
     let readAddedChatMember() =
         let newUser = createUser None "FirstName1" None
         let message = { createEmptyMessage originalUser with
-                            NewChatMembers = Some <| seq { newUser } }
+                            NewChatMembers = Some <| [| newUser |] }
         Assert.Equal(
             eventTelegramMessage "@originalUser has added FirstName1 the chat",
             readMessage message
@@ -485,10 +499,10 @@ module ReadMessageTests =
 
     [<Fact>]
     let readNewChatMembers() =
-        let newUsers = seq {
+        let newUsers = [|
             createUser None "FirstName1" None
             createUser None "FirstName2" None
-        }
+        |]
         let message = { createEmptyMessage originalUser with NewChatMembers = Some newUsers }
 
         Assert.Equal(
@@ -498,11 +512,11 @@ module ReadMessageTests =
 
     [<Fact>]
     let readMoreChatMembers() =
-        let newUsers = seq {
+        let newUsers = [|
             createUser None "FirstName1" None
             createUser None "FirstName2" None
             createUser None "FirstName3" None
-        }
+        |]
         let message = { createEmptyMessage originalUser with NewChatMembers = Some newUsers }
 
         Assert.Equal(
@@ -526,12 +540,17 @@ module ReadMessageTests =
                                     From = Some { createUser None "" None
                                                       with Id = selfUserId }
                                     Text = Some "Myself\nTests"
-                                    Entities = Some <| seq {
-                                        yield { Type = "bold"
-                                                Offset = 0L
-                                                Length = int64 "Myself".Length
-                                                Url = None
-                                                User = None } } }
+                                    Entities = Some <| [|
+                                        {
+                                            Type = "bold"
+                                            Offset = 0L
+                                            Length = int64 "Myself".Length
+                                            Url = None
+                                            User = None
+                                            Language = None
+                                        }
+                                    |]
+                              }
         let reply = createReplyMessage (Some replyingUser) (Some "reply text") originalMessage
         Assert.Equal(
             authoredTelegramReplyMessage "@replyingUser" "reply text" (authoredTelegramMessage "Myself" "Tests").main,
@@ -545,7 +564,10 @@ module ProcessMessageTests =
     [<Fact>]
     let messageFromOtherChatShouldBeIgnored(): unit =
         let message = { createMessage (Some originalUser) (Some "test") with
-                          Chat = defaultChat }
+                          Chat = Chat.Create(
+                              id = 0L,
+                              ``type`` = ChatType.SuperGroup
+                          ) }
         Assert.Equal(None, processMessage message)
 
 module ProcessSendResultTests =

@@ -35,7 +35,7 @@ let private getFileIds(message: FunogramMessage): string seq =
     let inline extractFileId(o: ^a option) =
         Option.iter(fun o -> allFileIds.Add((^a) : (member FileId: string) o)) o
 
-    let extractPhotoFileIds: PhotoSize seq option -> unit =
+    let extractPhotoFileIds: PhotoSize[] option -> unit =
         Option.iter(
             Seq.map(fun photoSize -> photoSize.FileId)
             >> Seq.distinct
@@ -53,7 +53,7 @@ let private getFileIds(message: FunogramMessage): string seq =
 
     allFileIds
 
-let private getContentIdentities message: ContentStorage.MessageContentIdentity seq =
+let private getContentIdentities(message: FunogramMessage): ContentStorage.MessageContentIdentity seq =
     match message.Chat with
     | { Type = SuperGroup
         Username = Some chatName } ->

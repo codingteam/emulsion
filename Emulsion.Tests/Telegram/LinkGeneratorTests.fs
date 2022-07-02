@@ -22,18 +22,21 @@ let private fileId1 = "123456"
 let private fileId2 = "654321"
 
 let private messageTemplate =
-    { defaultMessage with
-        Chat =
-            { defaultChat with
-                Type = SuperGroup
-                Username = Some chatName
-            }
-    }
+    Message.Create(
+        messageId = 0L,
+        date = DateTime.MinValue,
+        chat = Chat.Create(
+            id = 0L,
+            ``type`` = ChatType.SuperGroup,
+            username = chatName
+        )
+    )
 
 let private messageWithDocument =
     { messageTemplate with
         Document = Some {
             FileId = fileId1
+            FileUniqueId = fileId1
             Thumb = None
             FileName = None
             MimeType = None
@@ -45,6 +48,8 @@ let private messageWithAudio =
     { messageTemplate with
         Audio = Some {
             FileId = fileId1
+            FileUniqueId = fileId1
+            FileName = None
             Duration = 0
             Performer = None
             Title = None
@@ -58,6 +63,7 @@ let private messageWithAnimation =
     { messageTemplate with
         Animation = Some {
             FileId = fileId1
+            FileUniqueId = fileId1
             Width = 0
             Height = 0
             Duration = 0
@@ -72,6 +78,7 @@ let private messageWithPhoto =
     { messageTemplate with
         Photo = Some([|{
             FileId = fileId1
+            FileUniqueId = fileId1
             Width = 0
             Height = 0
             FileSize = None
@@ -80,8 +87,9 @@ let private messageWithPhoto =
 
 let private messageWithMultiplePhotos =
     { messageWithPhoto with
-        Photo = Some(Seq.append (Option.get messageWithPhoto.Photo) [|{
+        Photo = Some(Array.append (Option.get messageWithPhoto.Photo) [|{
             FileId = fileId2
+            FileUniqueId = fileId2
             Width = 0
             Height = 0
             FileSize = None
@@ -97,6 +105,7 @@ let private messageWithSticker =
     { messageTemplate with
         Sticker = Some {
             FileId = fileId1
+            FileUniqueId = fileId1
             Width = 0
             Height = 0
             IsAnimated = false
@@ -105,6 +114,8 @@ let private messageWithSticker =
             SetName = None
             MaskPosition = None
             FileSize = None
+            IsVideo = false
+            PremiumAnimation = None
         }
     }
 
@@ -112,6 +123,8 @@ let private messageWithVideo =
     { messageTemplate with
         Video = Some {
             FileId = fileId1
+            FileUniqueId = fileId1
+            FileName = None
             Width = 0
             Height = 0
             Duration = 0
@@ -125,6 +138,7 @@ let private messageWithVoice =
     { messageTemplate with
         Voice = Some {
             FileId = fileId1
+            FileUniqueId = fileId1
             Duration = 0
             MimeType = None
             FileSize = None
@@ -135,6 +149,7 @@ let private messageWithVideoNote =
     { messageTemplate with
         VideoNote = Some {
             FileId = fileId1
+            FileUniqueId = fileId1
             Length = 0
             Duration = 0
             Thumb = None

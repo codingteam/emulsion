@@ -348,8 +348,8 @@ let internal prepareHtmlMessage: Message -> string = function
 | Event {text = text} -> Html.escape text
 
 let send (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =
-    let sendHtmlMessage groupId text =
-        Api.sendMessageBase groupId text (Some ParseMode.HTML) None None None None
+    let sendHtmlMessage (groupId: ChatId) text =
+        Req.SendMessage.Make(groupId, text, ParseMode.HTML)
 
     let groupId = Int(int64 settings.GroupId)
     let message = prepareHtmlMessage content

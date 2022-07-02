@@ -13,7 +13,7 @@ type Client(ctx: ServiceContext,
             hostingSettings: HostingSettings option) =
     inherit MessageSystemBase(ctx, cancellationToken)
 
-    let botConfig = { Funogram.Telegram.Bot.defaultConfig with Token = telegramSettings.Token }
+    let botConfig = { Funogram.Telegram.Bot.Config.defaultConfig with Token = telegramSettings.Token }
 
     override _.RunUntilError receiver = async {
         // Run loop of Telegram is in no need of any complicated start, so just return an async that will perform it:
