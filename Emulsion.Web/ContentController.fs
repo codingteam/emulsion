@@ -1,6 +1,5 @@
-﻿namespace Emulsion.Web.Controllers
+﻿namespace Emulsion.Web
 
-open System.Globalization
 open System.Threading.Tasks
 
 open Microsoft.AspNetCore.Mvc
@@ -30,11 +29,10 @@ type ContentController(logger: ILogger<ContentController>,
         return
             content
             |> Option.map(fun c ->
-                let url = $"https://t.me/{c.ChatUserName}/{c.MessageId.ToString(CultureInfo.InvariantCulture)}"
+                let url = $"https://t.me/{c.ChatUserName}/{string c.MessageId}"
                 RedirectResult url
             )
     }
-
 
     [<HttpGet>]
     member this.Get(hashId: string): Task<IActionResult> = task {

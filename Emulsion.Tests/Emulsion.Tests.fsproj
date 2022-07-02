@@ -21,7 +21,6 @@
     <Compile Include="Telegram\Html.fs" />
     <Compile Include="Telegram\FunogramTests.fs" />
     <Compile Include="Telegram\LinkGeneratorTests.fs" />
-    <Compile Include="Xmpp\SharpXmppPingHandlerTests.fs" />
     <Compile Include="Xmpp\XmppClientFactory.fs" />
     <Compile Include="Xmpp\XmppMessageFactory.fs" />
     <Compile Include="Xmpp\XmppClientTests.fs" />
@@ -33,6 +32,7 @@
     <Compile Include="Database\DatabaseStructureTests.fs" />
     <Compile Include="ContentProxy\ContentStorageTests.fs" />
     <Compile Include="ContentProxy\ProxyTests.fs" />
+    <Compile Include="Web\ContentControllerTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.TestKit" Version="1.3.12" />

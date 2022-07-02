@@ -5,12 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Controllers\ContentController.fs" />
+    <Compile Include="ContentController.fs" />
     <Compile Include="WebServer.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Emulsion.ContentProxy\Emulsion.ContentProxy.fsproj" />
     <ProjectReference Include="..\Emulsion.Settings\Emulsion.Settings.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
   </ItemGroup>
 </Project>
