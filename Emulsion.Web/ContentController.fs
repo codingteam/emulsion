@@ -34,7 +34,7 @@ type ContentController(logger: ILogger<ContentController>,
             )
     }
 
-    [<HttpGet>]
+    [<HttpGet("{hashId}")>]
     member this.Get(hashId: string): Task<IActionResult> = task {
         match decodeHashId hashId with
         | None -> return this.BadRequest()

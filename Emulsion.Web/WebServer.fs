@@ -1,15 +1,23 @@
 module Emulsion.Web.WebServer
 
-open System
 open System.Threading.Tasks
 
+open Emulsion.Database
+open Emulsion.Settings
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
+open Serilog
 
-let run(baseUri: Uri): Task =
-    // TODO: Pass baseUri
+let run (logger: ILogger) (hostingSettings: HostingSettings) (databaseSettings: DatabaseSettings): Task =
+    // TODO: Use baseUri
     let builder = WebApplication.CreateBuilder()
+
+    builder.Host.UseSerilog(logger)
+    |> ignore
+
     builder.Services
+        .AddSingleton(hostingSettings)
+        .AddTransient<EmulsionDbContext>(fun _ -> new EmulsionDbContext(databaseSettings.ContextOptions))
         .AddControllers()
         .AddApplicationPart(typeof<ContentController>.Assembly)
     |> ignore

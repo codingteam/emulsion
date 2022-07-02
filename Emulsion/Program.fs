@@ -52,11 +52,11 @@ let private startApp config =
             | None -> ()
 
             let webServerTask =
-                config.Hosting
-                |> Option.map (fun hosting ->
+                match config.Hosting, config.Database with
+                | Some hosting, Some database ->
                     logger.Information "Initializing web server…"
-                    WebServer.run hosting.BaseUri
-                )
+                    Some <| WebServer.run logger hosting database
+                | _ -> None
 
             logger.Information "Actor system preparation…"
             use system = ActorSystem.Create("emulsion")
