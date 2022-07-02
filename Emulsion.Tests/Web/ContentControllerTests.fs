@@ -1,15 +1,15 @@
 namespace Emulsion.Tests.Web
 
 open System
-
 open System.Threading.Tasks
-open Emulsion.ContentProxy
+
 open Microsoft.AspNetCore.Mvc
 open Microsoft.Extensions.Logging
 open Serilog.Extensions.Logging
 open Xunit
 open Xunit.Abstractions
 
+open Emulsion.ContentProxy
 open Emulsion.Database
 open Emulsion.Database.Entities
 open Emulsion.Settings
