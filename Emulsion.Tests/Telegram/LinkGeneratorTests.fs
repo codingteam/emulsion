@@ -87,6 +87,11 @@ let private messageWithMultiplePhotos =
         }|])
     }
 
+let private messageWithMultiplePhotoSizes =
+    let photoSize1 = messageWithPhoto.Photo |> Option.get |> Seq.head
+    let photoSize2 = { photoSize1 with Width = 100; Height = 200 }
+    { messageWithPhoto with Photo = Some [| photoSize1; photoSize2 |] }
+
 let private messageWithSticker =
     { messageTemplate with
         Sticker = Some {
@@ -197,3 +202,6 @@ let databaseVideoNoteTest(): unit = doDatabaseLinkTest fileId1 messageWithVideoN
 
 [<Fact>]
 let databaseMultiplePhotosTest(): unit = doDatabaseLinksTest [|fileId1; fileId2|] messageWithMultiplePhotos
+
+[<Fact>]
+let databaseMultiplePhotoSizesTest(): unit = doDatabaseLinksTest [| fileId1 |] messageWithMultiplePhotoSizes

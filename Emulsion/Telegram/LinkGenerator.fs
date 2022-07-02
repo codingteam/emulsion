@@ -36,7 +36,11 @@ let private getFileIds(message: FunogramMessage): string seq =
         Option.iter(fun o -> allFileIds.Add((^a) : (member FileId: string) o)) o
 
     let extractPhotoFileIds: PhotoSize seq option -> unit =
-        Option.iter(Seq.iter(fun photoSize -> allFileIds.Add(photoSize.FileId)))
+        Option.iter(
+            Seq.map(fun photoSize -> photoSize.FileId)
+            >> Seq.distinct
+            >> Seq.iter(allFileIds.Add)
+        )
 
     extractFileId message.Document
     extractFileId message.Audio
