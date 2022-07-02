@@ -36,7 +36,9 @@ Note that `pingInterval` of `null` disables XMPP ping support.
 
 ### Telegram Content Proxy
 
-There's **unfinished** Telegram content proxy support. To enable it, configure the `database` and `hosting` configuration file sections:
+There's **unfinished** Telegram content proxy support, for XMPP users to access Telegram content without directly opening links on t.me. Right now, it will only generate a redirect to the corresponding t.me URI, so it doesn't help a lot. But in the future, proper content proxy will be supported.
+
+To enable it, configure the `database` and `hosting` configuration file sections:
 
 ```json
 {
@@ -58,6 +60,14 @@ If all the parameters are set, then Emulsion will save the incoming messages int
 `bindUri` designates the URI the web server will listen locally (which may or may not be the same as the `externalUriBase`).
 
 The content identifiers in question are generated from the database ones using the [hashids.net][hashids.net] library, `hashIdSalt` is used in generation. This should complicate guessing of content ids for any external party not reading the chat directly.
+
+### Recommended Network Configuration
+
+Current configuration system allows the following:
+
+1. Set up a reverse proxy for, say, `https://example.com/telegram` taking the content from `http://localhost/`.
+2. When receiving a piece of Telegram content (a file, a photo, an audio message), the bot will send a link to `https://example.com/telegram/content/<some_id>` to the XMPP chat.
+3. When anyone visits the link, the reverse proxy will send a request to `http://localhost/content/<some_id>`, which will take a corresponding content from the database.
 
 Test
 ----
