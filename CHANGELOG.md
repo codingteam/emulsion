@@ -4,6 +4,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- [#147: Telegram content redirector support](https://github.com/codingteam/emulsion/issues/147). Emulsion is now able to generate redirects to t.me from its own embedded web server, knowing the internal content id.
+
+  This feature is not very useful, yet (earlier, the same t.me links were already available to the users directly), but it is the first step for further development of more valuable forms of content proxying.
+
 ## [1.9.0] - 2022-06-01
 ### Changed
 - Runtime: upgrade to .NET 6
