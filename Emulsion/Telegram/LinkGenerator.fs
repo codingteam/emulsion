@@ -37,8 +37,15 @@ let private getFileIds(message: FunogramMessage): string seq =
 
     let extractPhotoFileIds: PhotoSize[] option -> unit =
         Option.iter(
-            Seq.map(fun photoSize -> photoSize.FileId)
-            >> Seq.distinct
+            // In one message, several unique photos may have several sizes each. Get the biggest photo for each unique
+            // file:
+            Seq.groupBy(fun photoSize -> photoSize.FileUniqueId)
+            >> Seq.map(fun (_uniqueId, sizes) ->
+                sizes
+                |> Seq.sortByDescending(fun size -> size.Height * size.Width)
+                |> Seq.head
+                |> fun photoSize -> photoSize.FileId
+            )
             >> Seq.iter(allFileIds.Add)
         )
 

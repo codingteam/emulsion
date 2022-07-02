@@ -20,6 +20,7 @@ let private hostingSettings = {
 let private chatName = "test_chat"
 let private fileId1 = "123456"
 let private fileId2 = "654321"
+let private fileId3 = "555555"
 
 let private messageTemplate =
     Message.Create(
@@ -97,9 +98,19 @@ let private messageWithMultiplePhotos =
     }
 
 let private messageWithMultiplePhotoSizes =
+    // Create multiple photos with the same FileUniqueId but different file ids:
     let photoSize1 = messageWithPhoto.Photo |> Option.get |> Seq.head
-    let photoSize2 = { photoSize1 with Width = 100; Height = 200 }
-    { messageWithPhoto with Photo = Some [| photoSize1; photoSize2 |] }
+    let photoSize2 = { photoSize1 with FileId = fileId2; Width = photoSize1.Width + 1L; Height = photoSize1.Height + 1L }
+    let photoSize3 = { photoSize1 with FileId = fileId3 }
+
+    Assert.Equal(photoSize1.FileUniqueId, photoSize2.FileUniqueId)
+    Assert.Equal(photoSize1.FileUniqueId, photoSize3.FileUniqueId)
+
+    Assert.NotEqual<string>(photoSize1.FileId, photoSize2.FileId)
+    Assert.NotEqual<string>(photoSize1.FileId, photoSize3.FileId)
+    Assert.NotEqual<string>(photoSize2.FileId, photoSize3.FileId)
+
+    { messageWithPhoto with Photo = Some [| photoSize1; photoSize2; photoSize3 |] }
 
 let private messageWithSticker =
     { messageTemplate with
@@ -220,4 +231,4 @@ let databaseVideoNoteTest(): unit = doDatabaseLinkTest fileId1 messageWithVideoN
 let databaseMultiplePhotosTest(): unit = doDatabaseLinksTest [|fileId1; fileId2|] messageWithMultiplePhotos
 
 [<Fact>]
-let databaseMultiplePhotoSizesTest(): unit = doDatabaseLinksTest [| fileId1 |] messageWithMultiplePhotoSizes
+let databaseMultiplePhotoSizesTest(): unit = doDatabaseLinksTest [| fileId2 |] messageWithMultiplePhotoSizes
