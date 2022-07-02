@@ -8,6 +8,9 @@ out/
 
 emulsion.json
 
+*.db
+*.db-shm
+*.db-wal
 *.user
 
 .fake
