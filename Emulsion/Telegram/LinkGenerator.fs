@@ -35,24 +35,19 @@ let private getFileIds(message: FunogramMessage): string seq =
     let inline extractFileId(o: ^a option) =
         Option.iter(fun o -> allFileIds.Add((^a) : (member FileId: string) o)) o
 
-    let extractPhotoFileIds: PhotoSize[] option -> unit =
+    let extractPhotoFileId: PhotoSize[] option -> unit =
         Option.iter(
-            // In one message, several unique photos may have several sizes each. Get the biggest photo for each unique
-            // file:
-            Seq.groupBy(fun photoSize -> photoSize.FileUniqueId)
-            >> Seq.map(fun (_uniqueId, sizes) ->
-                sizes
-                |> Seq.sortByDescending(fun size -> size.Height * size.Width)
-                |> Seq.head
-                |> fun photoSize -> photoSize.FileId
-            )
-            >> Seq.iter(allFileIds.Add)
+            // Telegram may send several differently-sized thumbnails in one message. Pick the biggest one of them.
+            Seq.sortByDescending(fun size -> size.Height * size.Width)
+            >> Seq.map(fun photoSize -> photoSize.FileId)
+            >> Seq.tryHead
+            >> Option.iter(allFileIds.Add)
         )
 
     extractFileId message.Document
     extractFileId message.Audio
     extractFileId message.Animation
-    extractPhotoFileIds message.Photo
+    extractPhotoFileId message.Photo
     extractFileId message.Sticker
     extractFileId message.Video
     extractFileId message.Voice
