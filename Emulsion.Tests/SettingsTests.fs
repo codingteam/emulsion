@@ -92,7 +92,7 @@ let ``Extended settings read properly``(): Task = task {
             }
             Hosting = Some {
                 ExternalUriBase = Uri "https://example.com"
-                BindUri = Uri "http://localhost:5555"
+                BindUri = "http://localhost:5555"
                 HashIdSalt = "123123123"
             }
         }

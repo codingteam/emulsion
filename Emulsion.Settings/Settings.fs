@@ -30,7 +30,7 @@ type LogSettings = {
 
 type HostingSettings = {
     ExternalUriBase: Uri
-    BindUri: Uri
+    BindUri: string
     HashIdSalt: string
 }
 
@@ -86,7 +86,7 @@ let read (config : IConfiguration) : EmulsionSettings =
         | Some externalUriBase, Some bindUri, Some hashIdSalt ->
             Some {
                 ExternalUriBase = Uri externalUriBase
-                BindUri = Uri bindUri
+                BindUri = bindUri
                 HashIdSalt = hashIdSalt
             }
         | None, None, None -> None

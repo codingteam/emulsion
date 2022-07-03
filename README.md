@@ -47,7 +47,7 @@ To enable it, configure the `database` and `hosting` configuration file sections
     },
     "hosting": {
         "externalUriBase": "https://example.com/api/",
-        "bindUri": "http://localhost:5000/",
+        "bindUri": "http://*:5000/",
         "hashIdSalt": "test"
     }
 }

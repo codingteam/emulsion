@@ -21,7 +21,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
 
     let hostingSettings = {
         ExternalUriBase = Uri "https://example.com/emulsion"
-        BindUri = Uri "http://localhost:5557"
+        BindUri = "http://localhost:5557"
         HashIdSalt = "test_salt"
     }
 

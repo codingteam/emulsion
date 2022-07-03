@@ -23,4 +23,4 @@ let run (logger: ILogger) (hostingSettings: HostingSettings) (databaseSettings: 
 
     let app = builder.Build()
     app.MapControllers() |> ignore
-    app.RunAsync(hostingSettings.BindUri.ToString())
+    app.RunAsync(hostingSettings.BindUri)

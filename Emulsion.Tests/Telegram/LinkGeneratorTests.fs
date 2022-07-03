@@ -14,7 +14,7 @@ open Emulsion.Tests.TestUtils
 
 let private hostingSettings = {
     ExternalUriBase = Uri "https://example.com"
-    BindUri = Uri "http://localhost:5556"
+    BindUri = "http://localhost:5556"
     HashIdSalt = "mySalt"
 }
 let private chatName = "test_chat"

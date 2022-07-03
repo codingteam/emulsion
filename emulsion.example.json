@@ -22,7 +22,7 @@
     },
     "hosting": {
         "externalUriBase": "https://example.com/api/",
-        "bindUri": "https://localhost:5000",
+        "bindUri": "http://*:5000",
         "hashIdSalt": "test"
     }
 }

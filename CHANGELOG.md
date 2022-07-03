@@ -4,6 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2022-07-03
+### Added
+- Full syntax of `ASPNETCORE_URLS`, including wildcards, now may be used in `hosting.bindUri`
+
 ## [2.0.1] - 2022-07-03
 ### Fixed
 - Docker image now uses `mcr.microsoft.com/dotnet/aspnet:6.0` (because the new features require ASP.NET Core runtime)
