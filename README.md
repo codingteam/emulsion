@@ -96,10 +96,14 @@ application from Docker, you may use the following Bash script:
 NAME=emulsion
 EMULSION_VERSION=latest
 CONFIG=/opt/codingteam/emulsion/emulsion.json
+DATA=/opt/codingteam/emulsion/data # optional
+WEB_PORT=5051 # optional
 docker pull codingteam/emulsion:$EMULSION_VERSION
 docker rm -f $NAME
 docker run --name $NAME \
     -v $CONFIG:/app/emulsion.json:ro \
+    -v $DATA:/data \
+    -p 127.0.0.1:$WEB_PORT:5000 \
     --restart unless-stopped \
     -d \
     codingteam/emulsion:$EMULSION_VERSION
@@ -111,6 +115,8 @@ where
 - `$EMULSION_VERSION` is the image version you want to deploy, or `latest` for
   the latest available one
 - `$CONFIG` is the **absolute** path to the configuration file
+- `$DATA` is the absolute path to the data directory
+- `$WEB_PORT` is the port on the host system which will be used to access the content proxy
 
 To build and push the container to Docker Hub, use the following commands:
 
