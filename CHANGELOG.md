@@ -128,4 +128,5 @@ runtime 2.2.
 [1.9.0]: https://github.com/codingteam/emulsion/compare/v1.8.0...v1.9.0
 [2.0.0]: https://github.com/codingteam/emulsion/compare/v1.9.0...v2.0.0
 [2.0.1]: https://github.com/codingteam/emulsion/compare/v2.0.0...v2.0.1
-[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.0.1...HEAD
+[2.0.2]: https://github.com/codingteam/emulsion/compare/v2.0.1...v2.0.2
+[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.0.2...HEAD
