@@ -8,14 +8,15 @@ open Serilog
 open SharpXMPP.XMPP
 
 open Emulsion
+open Emulsion.Messaging
+open Emulsion.Messaging.MessageSystem
 open Emulsion.Settings
-open Emulsion.MessageSystem
 open Emulsion.Xmpp.XmppClient
 
 let private shouldProcessMessage (settings: XmppSettings) message =
     let isGroup = SharpXmppHelper.isGroupChatMessage message
     let shouldSkip = lazy (
-        SharpXmppHelper.isOwnMessage (settings.Nickname) message
+        SharpXmppHelper.isOwnMessage settings.Nickname message
         || SharpXmppHelper.isHistoricalMessage message
         || SharpXmppHelper.isEmptyMessage message
     )

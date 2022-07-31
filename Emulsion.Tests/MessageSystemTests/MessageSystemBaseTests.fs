@@ -8,7 +8,8 @@ open Xunit
 open Xunit.Abstractions
 
 open Emulsion
-open Emulsion.MessageSystem
+open Emulsion.Messaging
+open Emulsion.Messaging.MessageSystem
 open Emulsion.Tests.TestUtils
 open Emulsion.Tests.TestUtils.Waiter
 
@@ -39,7 +40,7 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
                 }
             }
         // Start the system but don't let it to start the internal loop yet:
-        MessageSystem.putMessage messageSystem msg
+        putMessage messageSystem msg
 
         // No messages sent:
         waitForItemCount buffer 1 shortTimeout |> Assert.False
@@ -76,7 +77,7 @@ type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
                     buffer.Add m
                 }
             }
-        MessageSystem.putMessage messageSystem msg
+        putMessage messageSystem msg
 
         let messageReceiver = ignore
         let runningSystem = Task.Run(fun () -> (messageSystem :> IMessageSystem).RunSynchronously messageReceiver)

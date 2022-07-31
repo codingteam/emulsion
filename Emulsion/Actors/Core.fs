@@ -3,7 +3,7 @@ module Emulsion.Actors.Core
 open Akka.Actor
 open Serilog
 
-open Emulsion
+open Emulsion.Messaging
 
 type CoreActor(logger: ILogger, factories: ActorFactories) as this =
     inherit ReceiveActor()

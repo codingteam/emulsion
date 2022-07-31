@@ -4,8 +4,8 @@ open System.Threading
 
 open JetBrains.Lifetimes
 
-open Emulsion
-open Emulsion.MessageSystem
+open Emulsion.Messaging
+open Emulsion.Messaging.MessageSystem
 open Emulsion.Settings
 
 type XmppMessageSystem(ctx: ServiceContext, cancellationToken: CancellationToken, settings: XmppSettings) =

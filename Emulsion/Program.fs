@@ -9,7 +9,7 @@ open Serilog
 
 open Emulsion.Actors
 open Emulsion.Database
-open Emulsion.MessageSystem
+open Emulsion.Messaging.MessageSystem
 open Emulsion.Settings
 open Emulsion.Web
 open Emulsion.Xmpp

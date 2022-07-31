@@ -11,8 +11,9 @@ open SharpXMPP.XMPP.Client.Elements
 open Xunit
 open Xunit.Abstractions
 
-open Emulsion.Settings
 open Emulsion
+open Emulsion.Messaging
+open Emulsion.Settings
 open Emulsion.Tests.TestUtils
 open Emulsion.Tests.Xmpp
 open Emulsion.Xmpp

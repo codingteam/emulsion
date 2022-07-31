@@ -4,7 +4,9 @@ WORKDIR /app
 COPY ./Emulsion/Emulsion.fsproj ./Emulsion/
 COPY ./Emulsion.ContentProxy/Emulsion.ContentProxy.fsproj ./Emulsion.ContentProxy/
 COPY ./Emulsion.Database/Emulsion.Database.fsproj ./Emulsion.Database/
+COPY ./Emulsion.Messaging/Emulsion.Messaging.fsproj ./Emulsion.Messaging/
 COPY ./Emulsion.Settings/Emulsion.Settings.fsproj ./Emulsion.Settings/
+COPY ./Emulsion.Telegram/Emulsion.Telegram.fsproj ./Emulsion.Telegram/
 COPY ./Emulsion.Web/Emulsion.Web.fsproj ./Emulsion.Web/
 
 RUN dotnet restore Emulsion

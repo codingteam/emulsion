@@ -3,7 +3,7 @@ namespace Emulsion.Telegram
 open System.Threading
 
 open Emulsion.Database
-open Emulsion.MessageSystem
+open Emulsion.Messaging.MessageSystem
 open Emulsion.Settings
 
 type Client(ctx: ServiceContext,

@@ -9,7 +9,7 @@ open Funogram.Api
 open Funogram.Types
 open Serilog
 
-open Emulsion
+open Emulsion.Messaging
 open Emulsion.Database
 open Emulsion.Settings
 open Emulsion.Telegram.LinkGenerator

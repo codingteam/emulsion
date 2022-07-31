@@ -1,4 +1,4 @@
-module Emulsion.MessageSystem
+module Emulsion.Messaging.MessageSystem
 
 open System
 open System.Threading

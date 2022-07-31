@@ -6,17 +6,9 @@
     <Version>2.0.2</Version>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Message.fs" />
-    <Compile Include="MessageSender.fs" />
-    <Compile Include="MessageSystem.fs" />
     <Compile Include="Logging.fs" />
     <Compile Include="Lifetimes.fs" />
     <Compile Include="ExceptionUtils.fs" />
-    <Compile Include="Telegram\Html.fs" />
-    <Compile Include="Telegram\LinkGenerator.fs" />
-    <Compile Include="Telegram\Funogram.fs" />
-    <Compile Include="Telegram\Client.fs" />
     <Compile Include="Xmpp\Types.fs" />
     <Compile Include="Xmpp/SharpXmppHelper.fs" />
     <Compile Include="Xmpp\XmppClient.fs" />
@@ -32,9 +24,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka" Version="1.3.12" />
-    <PackageReference Include="FSharpx.Collections" Version="2.0.0" />
-    <PackageReference Include="Funogram" Version="2.0.4" />
-    <PackageReference Include="Funogram.Telegram" Version="6.1.0.1" />
     <PackageReference Include="JetBrains.Lifetimes" Version="2020.2.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
@@ -45,6 +34,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Emulsion.ContentProxy\Emulsion.ContentProxy.fsproj" />
+    <ProjectReference Include="..\Emulsion.Messaging\Emulsion.Messaging.fsproj" />
+    <ProjectReference Include="..\Emulsion.Telegram\Emulsion.Telegram.fsproj" />
     <ProjectReference Include="..\Emulsion.Web\Emulsion.Web.fsproj" />
   </ItemGroup>
 </Project>

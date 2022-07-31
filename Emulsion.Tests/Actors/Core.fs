@@ -8,6 +8,7 @@ open Xunit.Abstractions
 
 open Emulsion
 open Emulsion.Actors
+open Emulsion.Messaging
 open Emulsion.Tests.TestUtils
 
 type CoreTests(testOutput: ITestOutputHelper) as this =

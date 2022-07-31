@@ -1,4 +1,4 @@
-namespace Emulsion
+namespace Emulsion.Telegram
 
 open System.Runtime.CompilerServices
 

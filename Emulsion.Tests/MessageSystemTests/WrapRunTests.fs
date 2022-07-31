@@ -6,8 +6,7 @@ open System.Threading
 open Serilog.Core
 open Xunit
 
-open Emulsion
-open Emulsion.MessageSystem
+open Emulsion.Messaging.MessageSystem
 
 let private performTest expectedStage runBody =
     use cts = new CancellationTokenSource()
@@ -22,7 +21,7 @@ let private performTest expectedStage runBody =
     }
 
     try
-        Async.RunSynchronously(MessageSystem.wrapRun context run, cancellationToken = cts.Token)
+        Async.RunSynchronously(wrapRun context run, cancellationToken = cts.Token)
     with
     | :? OperationCanceledException -> ()
 

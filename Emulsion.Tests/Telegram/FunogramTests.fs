@@ -7,7 +7,7 @@ open Funogram.Types
 open Serilog.Core
 open Xunit
 
-open Emulsion
+open Emulsion.Messaging
 open Emulsion.Telegram
 open Emulsion.Telegram.Funogram
 

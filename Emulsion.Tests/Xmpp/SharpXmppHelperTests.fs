@@ -6,11 +6,11 @@ open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.Elements
 open Xunit
 
-open Emulsion
-open Emulsion.Xmpp.SharpXmppHelper.Attributes
-open Emulsion.Xmpp.SharpXmppHelper.Elements
+open Emulsion.Messaging
 open Emulsion.Tests.Xmpp
 open Emulsion.Xmpp
+open Emulsion.Xmpp.SharpXmppHelper.Attributes
+open Emulsion.Xmpp.SharpXmppHelper.Elements
 
 [<Fact>]
 let ``Message body has a proper namespace``() =

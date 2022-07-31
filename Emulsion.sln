@@ -44,6 +44,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Web", "Emulsion.We
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Settings", "Emulsion.Settings\Emulsion.Settings.fsproj", "{88331E40-EF70-4AF1-99CA-8A849208CAB7}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Telegram", "Emulsion.Telegram\Emulsion.Telegram.fsproj", "{D21E6DD6-35A8-430B-9719-E044197650A2}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Messaging", "Emulsion.Messaging\Emulsion.Messaging.fsproj", "{C8DC4049-250B-4E84-BC98-CFC0AF1632AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +81,14 @@ Global
 		{88331E40-EF70-4AF1-99CA-8A849208CAB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88331E40-EF70-4AF1-99CA-8A849208CAB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88331E40-EF70-4AF1-99CA-8A849208CAB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D21E6DD6-35A8-430B-9719-E044197650A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D21E6DD6-35A8-430B-9719-E044197650A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D21E6DD6-35A8-430B-9719-E044197650A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D21E6DD6-35A8-430B-9719-E044197650A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8DC4049-250B-4E84-BC98-CFC0AF1632AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8DC4049-250B-4E84-BC98-CFC0AF1632AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8DC4049-250B-4E84-BC98-CFC0AF1632AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8DC4049-250B-4E84-BC98-CFC0AF1632AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7D1ADF47-BF1C-4007-BB9B-08C283044467} = {973131E1-E645-4A50-A0D2-1886A1A8F0C6}

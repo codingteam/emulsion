@@ -9,8 +9,8 @@ open Serilog.Sinks.TestCorrelator
 open Xunit
 open Xunit.Abstractions
 
-open Emulsion
-open Emulsion.MessageSender
+open Emulsion.Messaging
+open Emulsion.Messaging.MessageSender
 open Emulsion.Tests.TestUtils
 open Emulsion.Tests.TestUtils.Waiter
 

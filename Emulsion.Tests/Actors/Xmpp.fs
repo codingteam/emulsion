@@ -6,7 +6,8 @@ open Xunit.Abstractions
 
 open Emulsion
 open Emulsion.Actors
-open Emulsion.MessageSystem
+open Emulsion.Messaging
+open Emulsion.Messaging.MessageSystem
 open Emulsion.Tests.TestUtils
 
 type XmppTest(testOutput: ITestOutputHelper) =

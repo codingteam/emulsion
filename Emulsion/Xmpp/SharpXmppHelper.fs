@@ -9,7 +9,7 @@ open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.Elements
 open SharpXMPP.XMPP.Client.MUC.Bookmarks.Elements
 
-open Emulsion
+open Emulsion.Messaging
 open Emulsion.Xmpp
 
 module Namespaces =

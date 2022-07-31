@@ -1,4 +1,4 @@
-namespace Emulsion
+namespace Emulsion.Messaging
 
 [<Struct>]
 type AuthoredMessage = {
