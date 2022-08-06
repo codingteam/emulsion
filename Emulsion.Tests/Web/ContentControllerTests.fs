@@ -26,6 +26,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
     }
 
     let logger = xunitLogger output
+    let telegramClient = TelegramClientMock()
 
     let performTestWithPreparation prepareAction testAction = Async.StartAsTask(async {
         return! TestDataStorage.doWithDatabase(fun databaseSettings -> async {
@@ -34,7 +35,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
             use loggerFactory = new SerilogLoggerFactory(logger)
             let logger = loggerFactory.CreateLogger<ContentController>()
             use context = new EmulsionDbContext(databaseSettings.ContextOptions)
-            let controller = ContentController(logger, hostingSettings, context)
+            let controller = ContentController(logger, hostingSettings, telegramClient, context)
             return! testAction controller
         })
     })
@@ -62,6 +63,11 @@ type ContentControllerTests(output: ITestOutputHelper) =
         let contentId = 343L
         let chatUserName = "MySuperExampleChat"
         let messageId = 777L
+        let fileId = "foobar"
+
+        let testLink = Uri "https://example.com/myFile"
+        telegramClient.SetResponse(fileId, testLink)
+
         performTestWithPreparation (fun databaseOptions -> async {
             use context = new EmulsionDbContext(databaseOptions.ContextOptions)
             let content = {
@@ -76,5 +82,5 @@ type ContentControllerTests(output: ITestOutputHelper) =
             let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
             let! result = Async.AwaitTask <| controller.Get hashId
             let redirect = Assert.IsType<RedirectResult> result
-            Assert.Equal($"https://t.me/{chatUserName}/{string messageId}", redirect.Url)
+            Assert.Equal(testLink, Uri redirect.Url)
         })

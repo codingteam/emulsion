@@ -2,13 +2,19 @@ module Emulsion.Web.WebServer
 
 open System.Threading.Tasks
 
-open Emulsion.Database
-open Emulsion.Settings
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
 open Serilog
 
-let run (logger: ILogger) (hostingSettings: HostingSettings) (databaseSettings: DatabaseSettings): Task =
+open Emulsion.Database
+open Emulsion.Settings
+open Emulsion.Telegram
+
+let run (logger: ILogger)
+        (hostingSettings: HostingSettings)
+        (databaseSettings: DatabaseSettings)
+        (telegram: ITelegramClient)
+        : Task =
     let builder = WebApplication.CreateBuilder(WebApplicationOptions())
 
     builder.Host.UseSerilog(logger)
@@ -16,6 +22,7 @@ let run (logger: ILogger) (hostingSettings: HostingSettings) (databaseSettings: 
 
     builder.Services
         .AddSingleton(hostingSettings)
+        .AddSingleton(telegram)
         .AddTransient<EmulsionDbContext>(fun _ -> new EmulsionDbContext(databaseSettings.ContextOptions))
         .AddControllers()
         .AddApplicationPart(typeof<ContentController>.Assembly)

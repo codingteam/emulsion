@@ -298,9 +298,9 @@ module MessageConverter =
                 else extractMessageContent replyTo links.ReplyToContentLinks
             { main = mainMessage; replyTo = Some replyToMessage }
 
-let internal processSendResult(result: Result<'a, ApiResponseError>): unit =
+let internal processSendResult(result: Result<'a, ApiResponseError>): 'a =
     match result with
-    | Ok _ -> ()
+    | Ok x -> x
     | Error e ->
         failwith $"Telegram API Call processing error {e.ErrorCode}: {e.Description}"
 
@@ -347,15 +347,23 @@ let internal prepareHtmlMessage: Message -> string = function
 | Authored {author = author; text = text} -> $"<b>{Html.escape author}</b>\n{Html.escape text}"
 | Event {text = text} -> Html.escape text
 
-let send (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =
+let private send (botConfig: BotConfig) request = api botConfig request
+
+let sendGetFile (botConfig: BotConfig) (fileId: string): Async<File> = async {
+    let! result = send botConfig (Req.GetFile.Make fileId)
+    return processSendResult result
+}
+
+let sendMessage (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =
     let sendHtmlMessage (groupId: ChatId) text =
         Req.SendMessage.Make(groupId, text, ParseMode.HTML)
 
     let groupId = Int(int64 settings.GroupId)
     let message = prepareHtmlMessage content
     async {
-        let! result = api botConfig (sendHtmlMessage groupId message)
-        return processSendResult result
+        let! result = send botConfig (sendHtmlMessage groupId message)
+        processSendResult result |> ignore
+        return ()
     }
 
 let run (logger: ILogger)

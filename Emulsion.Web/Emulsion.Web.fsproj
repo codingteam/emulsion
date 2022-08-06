@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Emulsion.ContentProxy\Emulsion.ContentProxy.fsproj" />
     <ProjectReference Include="..\Emulsion.Settings\Emulsion.Settings.fsproj" />
+    <ProjectReference Include="..\Emulsion.Telegram\Emulsion.Telegram.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

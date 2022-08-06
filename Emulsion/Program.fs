@@ -47,21 +47,6 @@ let private startApp config =
     async {
         let logger = Logging.createRootLogger config.Log
         try
-            match config.Database with
-            | Some dbSettings -> do! migrateDatabase logger dbSettings
-            | None -> ()
-
-            let webServerTask =
-                match config.Hosting, config.Database with
-                | Some hosting, Some database ->
-                    logger.Information "Initializing web server…"
-                    Some <| WebServer.run logger hosting database
-                | _ -> None
-
-            logger.Information "Actor system preparation…"
-            use system = ActorSystem.Create("emulsion")
-            logger.Information "Clients preparation…"
-
             let xmppLogger = Logging.xmppLogger logger
             let telegramLogger = Logging.telegramLogger logger
 
@@ -72,6 +57,22 @@ let private startApp config =
                                            config.Telegram,
                                            config.Database,
                                            config.Hosting)
+
+            match config.Database with
+            | Some dbSettings -> do! migrateDatabase logger dbSettings
+            | None -> ()
+
+            let webServerTask =
+                match config.Hosting, config.Database with
+                | Some hosting, Some database ->
+                    logger.Information "Initializing web server…"
+                    Some <| WebServer.run logger hosting database telegram
+                | _ -> None
+
+            logger.Information "Actor system preparation…"
+            use system = ActorSystem.Create("emulsion")
+            logger.Information "Clients preparation…"
+
             let factories = { xmppFactory = Xmpp.spawn xmppLogger xmpp
                               telegramFactory = Telegram.spawn telegramLogger telegram }
             logger.Information "Core preparation…"

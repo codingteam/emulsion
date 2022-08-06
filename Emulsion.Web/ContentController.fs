@@ -2,6 +2,8 @@
 
 open System.Threading.Tasks
 
+open Emulsion.Database.Entities
+open Emulsion.Telegram
 open Microsoft.AspNetCore.Mvc
 open Microsoft.Extensions.Logging
 
@@ -13,6 +15,7 @@ open Emulsion.Settings
 [<Route("content")>]
 type ContentController(logger: ILogger<ContentController>,
                        configuration: HostingSettings,
+                       telegram: ITelegramClient,
                        context: EmulsionDbContext) =
     inherit ControllerBase()
 
@@ -26,12 +29,11 @@ type ContentController(logger: ILogger<ContentController>,
 
     let produceRedirect contentId: Async<IActionResult option> = async {
         let! content = ContentStorage.getById context contentId
-        return
-            content
-            |> Option.map(fun c ->
-                let url = $"https://t.me/{c.ChatUserName}/{string c.MessageId}"
-                RedirectResult url
-            )
+        match content with
+        | Some content ->
+            let! url = telegram.GetTemporaryFileLink content.FileId
+            return Some <| RedirectResult(url.ToString())
+        | None -> return None
     }
 
     [<HttpGet("{hashId}")>]
