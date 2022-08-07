@@ -15,8 +15,7 @@ $ dotnet build
 Configure
 ---------
 
-Copy `emulsion.example.json` to `emulsion.json` and set the settings. For some
-settings, there're defaults:
+Copy `emulsion.example.json` to `emulsion.json` and set the settings. For some settings, there are defaults:
 
 ```json
 {
@@ -26,19 +25,22 @@ settings, there're defaults:
         "messageTimeout": "00:05:00",
         "pingInterval": null,
         "pingTimeout": "00:00:30"
+    },
+    "fileCache": {
+        "fileSizeLimitBytes": 1048576
     }
 }
 ```
 
-All the other settings are required, except the `database` and `hosting` sections.
+All the other settings are required, except the `database`, `hosting` and `fileCache` sections (the corresponding functionality will be turned off if the sections aren't filled).
 
 Note that `pingInterval` of `null` disables XMPP ping support.
 
 ### Telegram Content Proxy
 
-There's **unfinished** Telegram content proxy support, for XMPP users to access Telegram content without directly opening links on t.me. Right now, it will only generate a redirect to the corresponding t.me URI, so it doesn't help a lot. But in the future, proper content proxy will be supported.
+There's Telegram content proxy support, for XMPP users to access Telegram content without directly opening links on t.me.
 
-To enable it, configure the `database` and `hosting` configuration file sections:
+To enable it, configure the `database`, `hosting` and `fileCache` configuration file sections:
 
 ```json
 {
@@ -49,6 +51,10 @@ To enable it, configure the `database` and `hosting` configuration file sections
         "externalUriBase": "https://example.com/api/",
         "bindUri": "http://*:5000/",
         "hashIdSalt": "test"
+    },
+    "fileCache": {
+        "directory": "/tmp/emulsion/cache",
+        "fileSizeLimitBytes": 1048576
     }
 }
 ```
@@ -60,6 +66,8 @@ If all the parameters are set, then Emulsion will save the incoming messages int
 `bindUri` designates the URI the web server will listen locally (which may or may not be the same as the `externalUriBase`).
 
 The content identifiers in question are generated from the database ones using the [hashids.net][hashids.net] library, `hashIdSalt` is used in generation. This should complicate guessing of content ids for any external party not reading the chat directly.
+
+If the `fileCache.directory` option is not set, then the content proxy will only generate redirects to corresponding t.me URIs. Otherwise, it will store the downloaded files (that fit the cache) in a cache on disk; the items not fitting into the cache will be proxied to clients.
 
 ### Recommended Network Configuration
 

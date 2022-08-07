@@ -24,5 +24,6 @@
         "externalUriBase": "https://example.com/api/",
         "bindUri": "http://*:5000",
         "hashIdSalt": "test"
-    }
+    },
+    "fileCache": {}
 }

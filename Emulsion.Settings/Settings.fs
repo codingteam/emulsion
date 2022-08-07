@@ -34,12 +34,18 @@ type HostingSettings = {
     HashIdSalt: string
 }
 
+type FileCacheSettings = {
+    Directory: string
+    FileSizeLimitBytes: uint64
+}
+
 type EmulsionSettings = {
     Xmpp: XmppSettings
     Telegram: TelegramSettings
     Log: LogSettings
     Database: DatabaseSettings option
     Hosting: HostingSettings option
+    FileCache: FileCacheSettings option
 }
 
 let defaultConnectionTimeout = TimeSpan.FromMinutes 5.0
@@ -56,6 +62,12 @@ let private readTimeSpan defaultVal key section =
     |> Option.defaultValue defaultVal
 
 let read (config : IConfiguration) : EmulsionSettings =
+    let uint64OrDefault value ``default`` =
+        value
+        |> Option.ofObj
+        |> Option.map uint64
+        |> Option.defaultValue ``default``
+
     let readXmpp (section : IConfigurationSection) = {
         Login = section["login"]
         Password = section["password"]
@@ -91,9 +103,16 @@ let read (config : IConfiguration) : EmulsionSettings =
             }
         | None, None, None -> None
         | other -> failwith $"Parameter pack {other} represents invalid hosting settings."
+    let readFileCache(section: IConfigurationSection) =
+        Option.ofObj section["directory"]
+        |> Option.map(fun directory -> {
+            Directory = directory
+            FileSizeLimitBytes = uint64OrDefault section["fileSizeLimitBytes"] 1048576UL
+        })
 
     { Xmpp = readXmpp <| config.GetSection("xmpp")
       Telegram = readTelegram <| config.GetSection("telegram")
       Log = readLog <| config.GetSection "log"
       Database = readDatabase <| config.GetSection "database"
-      Hosting = readHosting <| config.GetSection "hosting" }
+      Hosting = readHosting <| config.GetSection "hosting"
+      FileCache = readFileCache <| config.GetSection "fileCache" }

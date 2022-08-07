@@ -33,6 +33,7 @@
     <Compile Include="Database\DatabaseStructureTests.fs" />
     <Compile Include="ContentProxy\ContentStorageTests.fs" />
     <Compile Include="ContentProxy\ProxyTests.fs" />
+    <Compile Include="ContentProxy\FileCacheTests.fs" />
     <Compile Include="Web\ContentControllerTests.fs" />
   </ItemGroup>
   <ItemGroup>
