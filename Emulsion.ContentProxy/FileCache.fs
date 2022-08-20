@@ -15,18 +15,20 @@ type DownloadRequest = {
     Size: uint64
 }
 
+module FileCache =
+    let FileName(sha256: SHA256, cacheKey: string): string =
+        cacheKey
+        |> Encoding.UTF8.GetBytes
+        |> sha256.ComputeHash
+        |> Convert.ToBase64String
+
 // TODO: Total cache limit
 type FileCache(logger: ILogger,
                settings: FileCacheSettings,
                sha256: SHA256) =
 
-    let getFilePath (cacheKey: string) =
-        let hash =
-            cacheKey
-            |> Encoding.UTF8.GetBytes
-            |> sha256.ComputeHash
-            |> Convert.ToBase64String
-        Path.Combine(settings.Directory, hash)
+    let getFilePath(cacheKey: string) =
+        Path.Combine(settings.Directory, FileCache.FileName(sha256, cacheKey))
 
     let getFromCache(cacheKey: string) = async {
         let path = getFilePath cacheKey
@@ -57,6 +59,7 @@ type FileCache(logger: ILogger,
 
         use cachedFile = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.None)
         do! Async.AwaitTask(stream.CopyToAsync(cachedFile, ct))
+        logger.Information("Download successful: \"{Uri}\" to \"{Path}\".")
 
         let! file = getFromCache cacheKey
         return upcast Option.get file

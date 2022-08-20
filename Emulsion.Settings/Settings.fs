@@ -37,6 +37,7 @@ type HostingSettings = {
 type FileCacheSettings = {
     Directory: string
     FileSizeLimitBytes: uint64
+    TotalCacheSizeLimitBytes: uint64
 }
 
 type EmulsionSettings = {
@@ -107,7 +108,8 @@ let read (config : IConfiguration) : EmulsionSettings =
         Option.ofObj section["directory"]
         |> Option.map(fun directory -> {
             Directory = directory
-            FileSizeLimitBytes = uint64OrDefault section["fileSizeLimitBytes"] 1048576UL
+            FileSizeLimitBytes = uint64OrDefault section["fileSizeLimitBytes"] 1024UL * 1024UL
+            TotalCacheSizeLimitBytes = uint64OrDefault section["fileSizeLimitBytes"] 20UL * 1024UL * 1024UL
         })
 
     { Xmpp = readXmpp <| config.GetSection("xmpp")

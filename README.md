@@ -27,7 +27,8 @@ Copy `emulsion.example.json` to `emulsion.json` and set the settings. For some s
         "pingTimeout": "00:00:30"
     },
     "fileCache": {
-        "fileSizeLimitBytes": 1048576
+        "fileSizeLimitBytes": 1048576,
+        "totalCacheSizeLimitBytes": 20971520
     }
 }
 ```
@@ -54,7 +55,8 @@ To enable it, configure the `database`, `hosting` and `fileCache` configuration 
     },
     "fileCache": {
         "directory": "/tmp/emulsion/cache",
-        "fileSizeLimitBytes": 1048576
+        "fileSizeLimitBytes": 1048576,
+        "totalCacheSizeLimitBytes": 20971520
     }
 }
 ```

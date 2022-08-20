@@ -10,6 +10,7 @@
     <Compile Include="TestUtils\TestDataStorage.fs" />
     <Compile Include="TestUtils\Exceptions.fs" />
     <Compile Include="TestUtils\TelegramClientMock.fs" />
+    <Compile Include="TestUtils\WebFileStorage.fs" />
     <Compile Include="ExceptionUtilsTests.fs" />
     <Compile Include="LifetimesTests.fs" />
     <Compile Include="MessageSenderTests.fs" />
