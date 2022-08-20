@@ -50,6 +50,7 @@ let private testConfiguration = {
     }
     Database = None
     Hosting = None
+    FileCache = None
 }
 
 let private mockConfiguration groupIdLiteral extendedJson =

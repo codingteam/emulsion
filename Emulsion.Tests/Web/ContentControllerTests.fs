@@ -13,6 +13,7 @@ open Emulsion.ContentProxy
 open Emulsion.Database
 open Emulsion.Database.Entities
 open Emulsion.Settings
+open Emulsion.Telegram
 open Emulsion.Tests.TestUtils
 open Emulsion.Tests.TestUtils.Logging
 open Emulsion.Web
@@ -35,7 +36,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
             use loggerFactory = new SerilogLoggerFactory(logger)
             let logger = loggerFactory.CreateLogger<ContentController>()
             use context = new EmulsionDbContext(databaseSettings.ContextOptions)
-            let controller = ContentController(logger, hostingSettings, telegramClient, context)
+            let controller = ContentController(logger, hostingSettings, telegramClient, None, context)
             return! testAction controller
         })
     })
@@ -66,7 +67,11 @@ type ContentControllerTests(output: ITestOutputHelper) =
         let fileId = "foobar"
 
         let testLink = Uri "https://example.com/myFile"
-        telegramClient.SetResponse(fileId, testLink)
+        let testFileInfo = {
+            TemporaryLink = testLink
+            Size = 1UL
+        }
+        telegramClient.SetResponse(fileId, Some testFileInfo)
 
         performTestWithPreparation (fun databaseOptions -> async {
             use context = new EmulsionDbContext(databaseOptions.ContextOptions)
