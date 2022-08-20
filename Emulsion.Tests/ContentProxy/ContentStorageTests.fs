@@ -4,7 +4,7 @@ open Xunit
 
 open Emulsion.ContentProxy.ContentStorage
 open Emulsion.Database
-open Emulsion.Tests.TestUtils
+open Emulsion.TestFramework
 
 let private testIdentity = {
     ChatUserName = "test"

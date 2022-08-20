@@ -1,4 +1,4 @@
-﻿module Emulsion.Tests.TestUtils.TestDataStorage
+﻿module Emulsion.TestFramework.TestDataStorage
 
 open System.IO
 

@@ -1,4 +1,4 @@
-module Emulsion.Tests.TestUtils.Logging
+module Emulsion.TestFramework.Logging
 
 open Serilog
 open Xunit.Abstractions

@@ -8,7 +8,7 @@ open Emulsion
 open Emulsion.Actors
 open Emulsion.Messaging
 open Emulsion.Messaging.MessageSystem
-open Emulsion.Tests.TestUtils
+open Emulsion.TestFramework
 
 type XmppTest(testOutput: ITestOutputHelper) =
     inherit TestKit()

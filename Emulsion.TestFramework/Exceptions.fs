@@ -1,4 +1,4 @@
-﻿module Emulsion.Tests.TestUtils.Exceptions
+﻿module Emulsion.TestFramework.Exceptions
 
 open System
 open Microsoft.EntityFrameworkCore

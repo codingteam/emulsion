@@ -11,8 +11,8 @@ open Xunit.Abstractions
 
 open Emulsion.ContentProxy
 open Emulsion.Settings
-open Emulsion.Tests.TestUtils
-open Emulsion.Tests.TestUtils.Logging
+open Emulsion.TestFramework
+open Emulsion.TestFramework.Logging
 
 type FileCacheTests(outputHelper: ITestOutputHelper) =
 

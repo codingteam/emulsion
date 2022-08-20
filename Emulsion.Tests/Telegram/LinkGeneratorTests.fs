@@ -10,7 +10,7 @@ open Xunit
 open Emulsion.Database
 open Emulsion.Settings
 open Emulsion.Telegram
-open Emulsion.Tests.TestUtils
+open Emulsion.TestFramework
 
 let private hostingSettings = {
     ExternalUriBase = Uri "https://example.com"

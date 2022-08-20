@@ -11,8 +11,8 @@ open Xunit.Abstractions
 
 open Emulsion.Messaging
 open Emulsion.Messaging.MessageSender
-open Emulsion.Tests.TestUtils
-open Emulsion.Tests.TestUtils.Waiter
+open Emulsion.TestFramework
+open Emulsion.TestFramework.Waiter
 
 type MessageSenderTests(testOutput: ITestOutputHelper) =
     let testContext = {

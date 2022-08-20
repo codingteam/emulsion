@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="LockedBuffer.fs" />
+    <Compile Include="Logging.fs" />
+    <Compile Include="Waiter.fs" />
+    <Compile Include="TestDataStorage.fs" />
+    <Compile Include="Exceptions.fs" />
+    <Compile Include="TelegramClientMock.fs" />
+    <Compile Include="WebFileStorage.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.Sinks.XUnit" Version="1.0.8" />
+    <ProjectReference Include="..\Emulsion.Database\Emulsion.Database.fsproj" />
+    <ProjectReference Include="..\Emulsion.Telegram\Emulsion.Telegram.fsproj" />
+  </ItemGroup>
+</Project>

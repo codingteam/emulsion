@@ -5,7 +5,7 @@ open Xunit
 
 open Emulsion.Database
 open Emulsion.Database.Entities
-open Emulsion.Tests.TestUtils
+open Emulsion.TestFramework
 
 [<Fact>]
 let ``Unique constraint should hold``(): unit =

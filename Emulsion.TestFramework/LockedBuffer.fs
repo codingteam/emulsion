@@ -1,4 +1,4 @@
-namespace Emulsion.Tests.TestUtils
+namespace Emulsion.TestFramework
 
 type LockedBuffer<'T>() =
     let messages = ResizeArray<'T>()

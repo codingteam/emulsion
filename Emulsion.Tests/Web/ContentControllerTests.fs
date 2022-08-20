@@ -14,8 +14,8 @@ open Emulsion.Database
 open Emulsion.Database.Entities
 open Emulsion.Settings
 open Emulsion.Telegram
-open Emulsion.Tests.TestUtils
-open Emulsion.Tests.TestUtils.Logging
+open Emulsion.TestFramework
+open Emulsion.TestFramework.Logging
 open Emulsion.Web
 
 type ContentControllerTests(output: ITestOutputHelper) =

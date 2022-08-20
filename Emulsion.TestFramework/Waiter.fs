@@ -1,4 +1,4 @@
-module Emulsion.Tests.TestUtils.Waiter
+module Emulsion.TestFramework.Waiter
 
 open System
 open System.Threading

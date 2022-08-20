@@ -4,13 +4,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="TestUtils\LockedBuffer.fs" />
-    <Compile Include="TestUtils\Logging.fs" />
-    <Compile Include="TestUtils\Waiter.fs" />
-    <Compile Include="TestUtils\TestDataStorage.fs" />
-    <Compile Include="TestUtils\Exceptions.fs" />
-    <Compile Include="TestUtils\TelegramClientMock.fs" />
-    <Compile Include="TestUtils\WebFileStorage.fs" />
     <Compile Include="ExceptionUtilsTests.fs" />
     <Compile Include="LifetimesTests.fs" />
     <Compile Include="MessageSenderTests.fs" />
@@ -42,10 +35,10 @@
     <PackageReference Include="Akka.TestKit.Xunit2" Version="1.3.12" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="Serilog.Sinks.TestCorrelator" Version="3.2.0" />
-    <PackageReference Include="Serilog.Sinks.XUnit" Version="1.0.8" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <ProjectReference Include="../Emulsion/Emulsion.fsproj" />
     <ProjectReference Include="..\Emulsion.Database\Emulsion.Database.fsproj" />
+    <ProjectReference Include="..\Emulsion.TestFramework\Emulsion.TestFramework.fsproj" />
   </ItemGroup>
 </Project>

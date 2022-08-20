@@ -14,7 +14,7 @@ open Emulsion
 open Emulsion.Xmpp
 open Emulsion.Xmpp.SharpXmppHelper.Attributes
 open Emulsion.Xmpp.SharpXmppHelper.Elements
-open Emulsion.Tests.TestUtils.Logging
+open Emulsion.TestFramework.Logging
 
 type XmppClientRoomTests(output: ITestOutputHelper) =
     let logger = xunitLogger output

@@ -10,8 +10,8 @@ open Xunit.Abstractions
 open Emulsion
 open Emulsion.Messaging
 open Emulsion.Messaging.MessageSystem
-open Emulsion.Tests.TestUtils
-open Emulsion.Tests.TestUtils.Waiter
+open Emulsion.TestFramework
+open Emulsion.TestFramework.Waiter
 
 type MessageSystemBaseTests(testLogger: ITestOutputHelper) =
     let logger = Logging.xunitLogger testLogger

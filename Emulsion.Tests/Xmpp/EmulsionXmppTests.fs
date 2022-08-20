@@ -14,7 +14,7 @@ open Xunit.Abstractions
 open Emulsion
 open Emulsion.Messaging
 open Emulsion.Settings
-open Emulsion.Tests.TestUtils
+open Emulsion.TestFramework
 open Emulsion.Tests.Xmpp
 open Emulsion.Xmpp
 open Emulsion.Xmpp.SharpXmppHelper.Elements
