@@ -32,7 +32,7 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
             TotalCacheSizeLimitBytes = totalLimitBytes
         }
 
-        new FileCache(xunitLogger outputHelper, settings, sha256)
+        new FileCache(xunitLogger outputHelper, settings, SimpleHttpClientFactory(), sha256)
 
     let assertCacheState(entries: (string * byte[]) seq) =
         let files =
@@ -46,10 +46,20 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
 
         let entries =
             entries
-            |> Seq.map(fun (k, v) -> FileCache.FileName(sha256, k), v)
+            |> Seq.map(fun (k, v) -> FileCache.EncodeFileName(sha256, k), v)
             |> Map.ofSeq
 
-        Assert.Equal<IEnumerable<_>>(entries, files)
+        Assert.Equal<IEnumerable<_>>(entries.Keys, files.Keys)
+        for key in entries.Keys do
+            Assert.Equal<IEnumerable<_>>(entries[key], files[key])
+
+    [<Fact>]
+    member _.``File cache should throw a validation exception if the cache directory contains directories``(): unit =
+        Assert.False true
+
+    [<Fact>]
+    member _.``File cache should throw a validation exception if the cache directory contains non-conventionally-named files``(): unit =
+        Assert.False true
 
     [<Fact>]
     member _.``File should be cached``(): unit =
@@ -83,6 +93,10 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
             "c", fileStorage.Content("c")
         |]
     }
+
+    [<Fact>]
+    member _.``File cache cleanup works in order by file modification dates``(): unit =
+        Assert.False true
 
     [<Fact>]
     member _.``File should be read even after cleanup``(): unit =
