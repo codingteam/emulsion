@@ -53,6 +53,11 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
         for key in entries.Keys do
             Assert.Equal<IEnumerable<_>>(entries[key], files[key])
 
+    let assertFileDownloaded (fileCache: FileCache) (fileStorage: WebFileStorage) entry size = async {
+        let! file = fileCache.Download(fileStorage.Link entry, entry, size)
+        Assert.True file.IsSome
+    }
+
     [<Fact>]
     member _.``File cache should throw a validation exception if the cache directory contains directories``(): unit =
         Assert.False true
@@ -78,16 +83,13 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
             "c", [| 3uy |]
         |])
 
-        let! file = fileCache.Download(fileStorage.Link("a"), "a", 128UL)
-        Assert.True file.IsSome
+        do! assertFileDownloaded fileCache fileStorage "a" 128UL
         assertCacheState [| "a", fileStorage.Content("a") |]
 
-        let! file = fileCache.Download(fileStorage.Link("b"), "b", 128UL)
-        Assert.True file.IsSome
+        do! assertFileDownloaded fileCache fileStorage "b" 128UL
         assertCacheState [| "b", fileStorage.Content("b") |]
 
-        let! file = fileCache.Download(fileStorage.Link("c"), "c", 1UL)
-        Assert.True file.IsSome
+        do! assertFileDownloaded fileCache fileStorage "c" 1UL
         assertCacheState [|
             "b", fileStorage.Content("b")
             "c", fileStorage.Content("c")
@@ -95,8 +97,23 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
     }
 
     [<Fact>]
-    member _.``File cache cleanup works in order by file modification dates``(): unit =
-        Assert.False true
+    member _.``File cache cleanup works in order by file modification dates``(): Task = task {
+        use fileCache = setUpFileCache 2UL
+        use fileStorage = new WebFileStorage(Map.ofArray [|
+            "a", [| 1uy |]
+            "b", [| 2uy |]
+            "c", [| 3uy |]
+        |])
+
+        do! assertFileDownloaded fileCache fileStorage "a" 1UL
+        do! assertFileDownloaded fileCache fileStorage "c" 1UL
+        do! assertFileDownloaded fileCache fileStorage "b" 1UL // "a" should be deleted
+        assertCacheState [| "b", [| 2uy |]
+                            "c", [| 3uy |] |]
+        do! assertFileDownloaded fileCache fileStorage "a" 1UL // "c" should be deleted
+        assertCacheState [| "a", [| 1uy |]
+                            "b", [| 2uy |] |]
+    }
 
     [<Fact>]
     member _.``File should be read even after cleanup``(): unit =
