@@ -6,6 +6,7 @@ open System.IO
 open System.Security.Cryptography
 open System.Threading.Tasks
 
+open JetBrains.Lifetimes
 open Xunit
 open Xunit.Abstractions
 
@@ -58,13 +59,35 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
         Assert.True file.IsSome
     }
 
+    let assertCacheValidationError setUpAction expectedMessage =
+        use fileCache = setUpFileCache 1UL
+        use fileStorage = new WebFileStorage(Map.empty)
+
+        setUpAction()
+
+        Lifetime.Using(fun lt ->
+            let mutable error: Exception option = None
+            fileCache.Error.Advise(lt, fun e -> error <- Some e)
+
+            let file = Async.RunSynchronously <| fileCache.Download(fileStorage.Link "nonexistent", "nonexistent", 1UL)
+            Assert.True file.IsNone
+
+            Assert.True error.IsSome
+            Assert.Equal(expectedMessage, error.Value.Message)
+        )
+
     [<Fact>]
     member _.``File cache should throw a validation exception if the cache directory contains directories``(): unit =
-        Assert.False true
+        assertCacheValidationError
+            (fun() -> Directory.CreateDirectory(Path.Combine(cacheDirectory.Value, "aaa")) |> ignore)
+            "Cache directory invalid: contains a subdirectory \"aaa\"."
 
     [<Fact>]
     member _.``File cache should throw a validation exception if the cache directory contains non-conventionally-named files``(): unit =
-        Assert.False true
+        assertCacheValidationError
+            (fun() -> File.Create(Path.Combine(cacheDirectory.Value, "aaa.txt")).Dispose())
+            ("Cache directory invalid: contains an entry \"aaa.txt\" which doesn't correspond to a base58-encoded " +
+             "SHA-256 hash.")
 
     [<Fact>]
     member _.``File should be cached``(): unit =

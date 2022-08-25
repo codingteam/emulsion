@@ -7,6 +7,7 @@ open System.Security.Cryptography
 open System.Text
 open System.Threading
 
+open JetBrains.Collections.Viewable
 open Serilog
 open SimpleBase
 
@@ -29,13 +30,18 @@ module FileCache =
         |> sha256.ComputeHash
         |> Base58.M4N71KR.Encode
 
-    let DecodeFileNameToSha256Hash(fileName: string): byte[] =
-        (Base58.M4N71KR.Decode fileName).ToArray()
+    let TryDecodeFileNameToSha256Hash(fileName: string): byte[] option =
+        try
+            Some <| (Base58.M4N71KR.Decode fileName).ToArray()
+        with
+        | :? ArgumentException -> None
 
 type FileCache(logger: ILogger,
                settings: FileCacheSettings,
                httpClientFactory: IHttpClientFactory,
                sha256: SHA256) =
+
+    let error = Signal<Exception>()
 
     let getFilePath(cacheKey: string) =
         Path.Combine(settings.Directory, FileCache.EncodeFileName(sha256, cacheKey))
@@ -55,14 +61,15 @@ type FileCache(logger: ILogger,
             let entryName = Path.GetFileName entry
 
             if not <| File.Exists entry
-            then failwith $"Cache directory invalid: contains a subdirectory: \"{entryName}\"."
+            then failwith $"Cache directory invalid: contains a subdirectory \"{entryName}\"."
 
-            let hash = FileCache.DecodeFileNameToSha256Hash entryName
-            if hash.Length <> sha256.HashSize / 8
-            then failwith (
-                $"Cache directory invalid: contains entry \"{entryName}\" which doesn't correspond to a " +
-                "base58-encoded SHA-256 hash."
-            )
+            match FileCache.TryDecodeFileNameToSha256Hash entryName with
+            | Some hash when hash.Length = sha256.HashSize / 8 -> ()
+            | _ ->
+                failwith (
+                    $"Cache directory invalid: contains an entry \"{entryName}\" which doesn't correspond to a " +
+                    "base58-encoded SHA-256 hash."
+                )
         )
     }
 
@@ -147,6 +154,7 @@ type FileCache(logger: ILogger,
             with
             | ex ->
                 logger.Error(ex, "Exception while processing the file download queue")
+                error.Fire ex
                 replyChannel.Reply None
     }
     let processor = MailboxProcessor.Start(processLoop, cancellation.Token)
@@ -162,3 +170,5 @@ type FileCache(logger: ILogger,
             CacheKey = cacheKey
             Size = size
         }, chan))
+
+    member _.Error: ISource<Exception> = error
