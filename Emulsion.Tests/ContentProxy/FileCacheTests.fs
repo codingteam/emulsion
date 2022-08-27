@@ -76,6 +76,12 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
             Assert.Equal(expectedMessage, error.Value.Message)
         )
 
+    let readAllBytes (stream: Stream) = task {
+        use buffer = new MemoryStream()
+        do! stream.CopyToAsync buffer
+        return buffer.ToArray()
+    }
+
     [<Fact>]
     member _.``File cache should throw a validation exception if the cache directory contains directories``(): unit =
         assertCacheValidationError
@@ -90,8 +96,15 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
              "SHA-256 hash.")
 
     [<Fact>]
-    member _.``File should be cached``(): unit =
-        Assert.False true
+    member _.``File should be cached``(): Task = task {
+        use fileCache = setUpFileCache 1024UL
+        use fileStorage = new WebFileStorage(Map.ofArray [|
+            "a", [| for _ in 1 .. 5 do yield 1uy |]
+        |])
+
+        do! assertFileDownloaded fileCache fileStorage "a" 5UL
+        assertCacheState [| "a", fileStorage.Content("a") |]
+    }
 
     [<Fact>]
     member _.``Too big file should be proxied``(): unit =
@@ -143,8 +156,24 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
         Assert.False true
 
     [<Fact>]
-    member _.``File should be re-downloaded after cleanup even if there's a outdated read session in progress``(): unit =
-        Assert.False true
+    member _.``File should be re-downloaded after cleanup even if there's a outdated read session in progress``(): Task = task {
+        use fileCache = setUpFileCache (1024UL * 1024UL)
+        use fileStorage = new WebFileStorage(Map.ofArray [|
+            "a", [| for _ in 1 .. 1024 * 1024 do 1uy |]
+            "b", [| for _ in 1 .. 1024 * 1024 do 2uy |]
+        |])
+
+        // Start downloading the "a" item:
+        let! stream = fileCache.Download(fileStorage.Link "a", "a", 1024UL * 1024UL)
+        let stream = Option.get stream
+        // Just keep the stream open for now and trigger the cleanup:
+        do! assertFileDownloaded fileCache fileStorage "b" (1024UL * 1024UL)
+        // Now there's only "b" item in the cache:
+        assertCacheState [| "b", fileStorage.Content "b" |]
+        // We should still be able to read "a" fully:
+        let! content = readAllBytes stream
+        Assert.Equal<byte>(fileStorage.Content "a", content)
+    }
 
     interface IDisposable with
         member _.Dispose() = sha256.Dispose()
