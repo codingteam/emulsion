@@ -29,7 +29,7 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
     let setUpFileCache(totalLimitBytes: uint64) =
         let settings = {
             Directory = cacheDirectory.Value
-            FileSizeLimitBytes = 1048576UL
+            FileSizeLimitBytes = 10UL * 1024UL * 1024UL
             TotalCacheSizeLimitBytes = totalLimitBytes
         }
 
@@ -107,8 +107,15 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
     }
 
     [<Fact>]
-    member _.``Too big file should be proxied``(): unit =
-        Assert.False true
+    member _.``Too big file should be proxied``(): Task = task {
+        use fileCache = setUpFileCache 1UL
+        use fileStorage = new WebFileStorage(Map.ofArray [|
+            "a", [| for _ in 1 .. 2 do yield 1uy |]
+        |])
+
+        do! assertFileDownloaded fileCache fileStorage "a" 2UL
+        assertCacheState Array.empty
+    }
 
     [<Fact>]
     member _.``Cleanup should be triggered``(): Task = task {
@@ -152,11 +159,7 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
     }
 
     [<Fact>]
-    member _.``File should be read even after cleanup``(): unit =
-        Assert.False true
-
-    [<Fact>]
-    member _.``File should be re-downloaded after cleanup even if there's a outdated read session in progress``(): Task = task {
+    member _.``File should be downloaded even if it was cleaned up during download``(): Task = task {
         use fileCache = setUpFileCache (1024UL * 1024UL)
         use fileStorage = new WebFileStorage(Map.ofArray [|
             "a", [| for _ in 1 .. 1024 * 1024 do 1uy |]
@@ -170,6 +173,32 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
         do! assertFileDownloaded fileCache fileStorage "b" (1024UL * 1024UL)
         // Now there's only "b" item in the cache:
         assertCacheState [| "b", fileStorage.Content "b" |]
+        // We should still be able to read "a" fully:
+        let! content = readAllBytes stream
+        Assert.Equal<byte>(fileStorage.Content "a", content)
+    }
+
+    [<Fact>]
+    member _.``File should be re-downloaded after cleanup even if there's a outdated read session in progress``(): Task = task {
+        let size = 2UL * 1024UL * 1024UL
+        use fileCache = setUpFileCache size
+        use fileStorage = new WebFileStorage(Map.ofArray [|
+            "a", [| for _ in 1UL .. size do 1uy |]
+            "b", [| for _ in 1UL .. size do 2uy |]
+        |])
+
+        // Start downloading the "a" item:
+        let! stream = fileCache.Download(fileStorage.Link "a", "a", size)
+        let stream = Option.get stream
+        // Just keep the stream open for now and trigger the cleanup:
+        do! assertFileDownloaded fileCache fileStorage "b" size
+        // Now there's only "b" item in the cache:
+        assertCacheState [| "b", fileStorage.Content "b" |]
+        // And now, while still having "a" not downloaded, let's fill the cache with it again (could be broken on
+        // Windows due to peculiarity of file deletion when opened, see
+        // https://boostgsoc13.github.io/boost.afio/doc/html/afio/FAQ/deleting_open_files.html):
+        do! assertFileDownloaded fileCache fileStorage "a" size
+        assertCacheState [| "a", fileStorage.Content "a" |]
         // We should still be able to read "a" fully:
         let! content = readAllBytes stream
         Assert.Equal<byte>(fileStorage.Content "a", content)
