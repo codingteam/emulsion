@@ -42,6 +42,11 @@ type ContentControllerTests(output: ITestOutputHelper) =
     })
 
     let performTest = performTestWithPreparation(fun _ -> async.Return())
+    let performTestWithContent content = performTestWithPreparation (fun databaseOptions -> async {
+        use context = new EmulsionDbContext(databaseOptions.ContextOptions)
+        do! DataStorage.addAsync context.TelegramContents content
+        return! Async.Ignore <| Async.AwaitTask(context.SaveChangesAsync())
+    })
 
     [<Fact>]
     member _.``ContentController returns BadRequest on hashId deserialization error``(): Task =
@@ -60,11 +65,37 @@ type ContentControllerTests(output: ITestOutputHelper) =
         })
 
     [<Fact>]
+    member _.``ContentController returns a normal redirect if there's no file cache``(): Task =
+        let contentId = 343L
+        let chatUserName = "MySuperExampleChat"
+        let messageId = 777L
+        let content = {
+            Id = contentId
+            ChatUserName = chatUserName
+            MessageId = messageId
+            FileId = "foobar"
+        }
+
+        performTestWithContent content (fun controller -> async {
+            let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
+            let! result = Async.AwaitTask <| controller.Get hashId
+            let redirect = Assert.IsType<RedirectResult> result
+            Assert.Equal(Uri $"https://t.me/{chatUserName}/{string messageId}", Uri redirect.Url)
+        })
+
+
+    [<Fact>]
     member _.``ContentController returns a correct result``(): Task =
         let contentId = 343L
         let chatUserName = "MySuperExampleChat"
         let messageId = 777L
         let fileId = "foobar"
+        let content = {
+            Id = contentId
+            ChatUserName = chatUserName
+            MessageId = messageId
+            FileId = fileId
+        }
 
         let testLink = Uri "https://example.com/myFile"
         let testFileInfo = {
@@ -73,17 +104,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
         }
         telegramClient.SetResponse(fileId, Some testFileInfo)
 
-        performTestWithPreparation (fun databaseOptions -> async {
-            use context = new EmulsionDbContext(databaseOptions.ContextOptions)
-            let content = {
-                Id = contentId
-                ChatUserName = chatUserName
-                MessageId = messageId
-                FileId = "foobar"
-            }
-            do! DataStorage.addAsync context.TelegramContents content
-            return! Async.Ignore <| Async.AwaitTask(context.SaveChangesAsync())
-        }) (fun controller -> async {
+        performTestWithContent content (fun controller -> async {
             let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
             let! result = Async.AwaitTask <| controller.Get hashId
             let redirect = Assert.IsType<RedirectResult> result
