@@ -11,29 +11,16 @@ open Xunit
 open Xunit.Abstractions
 
 open Emulsion.ContentProxy
-open Emulsion.Settings
 open Emulsion.TestFramework
-open Emulsion.TestFramework.Logging
 
 type FileCacheTests(outputHelper: ITestOutputHelper) =
 
     let sha256 = SHA256.Create()
 
-    let cacheDirectory = lazy (
-        let path = Path.GetTempFileName()
-        File.Delete path
-        Directory.CreateDirectory path |> ignore
-        path
-    )
+    let cacheDirectory = lazy TestFileCache.newCacheDirectory()
 
     let setUpFileCache(totalLimitBytes: uint64) =
-        let settings = {
-            Directory = cacheDirectory.Value
-            FileSizeLimitBytes = 10UL * 1024UL * 1024UL
-            TotalCacheSizeLimitBytes = totalLimitBytes
-        }
-
-        new FileCache(xunitLogger outputHelper, settings, SimpleHttpClientFactory(), sha256)
+        TestFileCache.setUpFileCache outputHelper sha256 cacheDirectory.Value totalLimitBytes
 
     let assertCacheState(entries: (string * byte[]) seq) =
         let files =
@@ -81,6 +68,9 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
         do! stream.CopyToAsync buffer
         return buffer.ToArray()
     }
+
+    interface IDisposable with
+        member _.Dispose() = sha256.Dispose()
 
     [<Fact>]
     member _.``File cache should throw a validation exception if the cache directory contains directories``(): unit =
@@ -203,6 +193,3 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
         let! content = readAllBytes stream
         Assert.Equal<byte>(fileStorage.Content "a", content)
     }
-
-    interface IDisposable with
-        member _.Dispose() = sha256.Dispose()

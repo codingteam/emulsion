@@ -1,6 +1,7 @@
 namespace Emulsion.Tests.Web
 
 open System
+open System.Security.Cryptography
 open System.Threading.Tasks
 
 open Microsoft.AspNetCore.Mvc
@@ -29,24 +30,34 @@ type ContentControllerTests(output: ITestOutputHelper) =
     let logger = xunitLogger output
     let telegramClient = TelegramClientMock()
 
-    let performTestWithPreparation prepareAction testAction = Async.StartAsTask(async {
+    let sha256 = SHA256.Create()
+
+    let cacheDirectory = lazy TestFileCache.newCacheDirectory()
+
+    let setUpFileCache(totalLimitBytes: uint64) =
+        TestFileCache.setUpFileCache output sha256 cacheDirectory.Value totalLimitBytes
+
+    let performTestWithPreparation fileCache prepareAction testAction = Async.StartAsTask(async {
         return! TestDataStorage.doWithDatabase(fun databaseSettings -> async {
             do! prepareAction databaseSettings
 
             use loggerFactory = new SerilogLoggerFactory(logger)
             let logger = loggerFactory.CreateLogger<ContentController>()
             use context = new EmulsionDbContext(databaseSettings.ContextOptions)
-            let controller = ContentController(logger, hostingSettings, telegramClient, None, context)
+            let controller = ContentController(logger, hostingSettings, telegramClient, fileCache, context)
             return! testAction controller
         })
     })
 
-    let performTest = performTestWithPreparation(fun _ -> async.Return())
-    let performTestWithContent content = performTestWithPreparation (fun databaseOptions -> async {
+    let performTest = performTestWithPreparation None (fun _ -> async.Return())
+    let performTestWithContent fileCache content = performTestWithPreparation fileCache (fun databaseOptions -> async {
         use context = new EmulsionDbContext(databaseOptions.ContextOptions)
         do! DataStorage.addAsync context.TelegramContents content
         return! Async.Ignore <| Async.AwaitTask(context.SaveChangesAsync())
     })
+
+    interface IDisposable with
+        member _.Dispose() = sha256.Dispose()
 
     [<Fact>]
     member _.``ContentController returns BadRequest on hashId deserialization error``(): Task =
@@ -57,7 +68,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
         })
 
     [<Fact>]
-    member _.``ContentController returns NotFound if the content doesn't exist``(): Task =
+    member _.``ContentController returns NotFound if the content doesn't exist in the database``(): Task =
         performTest (fun controller -> async {
             let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt 667L
             let! result = Async.AwaitTask <| controller.Get hashId
@@ -76,16 +87,43 @@ type ContentControllerTests(output: ITestOutputHelper) =
             FileId = "foobar"
         }
 
-        performTestWithContent content (fun controller -> async {
+        performTestWithContent None content (fun controller -> async {
             let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
             let! result = Async.AwaitTask <| controller.Get hashId
             let redirect = Assert.IsType<RedirectResult> result
             Assert.Equal(Uri $"https://t.me/{chatUserName}/{string messageId}", Uri redirect.Url)
         })
 
+    [<Fact>]
+    member _.``ContentController returns NotFound if the content doesn't exist on the Telegram server``(): Task = task {
+        let contentId = 344L
+        let chatUserName = "MySuperExampleChat"
+        let messageId = 777L
+        let fileId = "foobar1"
+        let content = {
+            Id = contentId
+            ChatUserName = chatUserName
+            MessageId = messageId
+            FileId = fileId
+        }
+
+        telegramClient.SetResponse(fileId, None)
+
+        let cacheDir = TestFileCache.newCacheDirectory()
+        use fileCache = TestFileCache.setUpFileCache output sha256 cacheDir 1UL
+        do! performTestWithContent (Some fileCache) content (fun controller -> async {
+            let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
+            let! result = Async.AwaitTask <| controller.Get hashId
+            Assert.IsType<NotFoundResult> result |> ignore
+        })
+    }
 
     [<Fact>]
-    member _.``ContentController returns a correct result``(): Task =
+    member _.``ContentController returns 404 if the cache reports that a file was not found``(): unit =
+        Assert.True false
+
+    [<Fact>]
+    member _.``ContentController returns a downloaded file from cache``(): Task =
         let contentId = 343L
         let chatUserName = "MySuperExampleChat"
         let messageId = 777L
@@ -104,9 +142,11 @@ type ContentControllerTests(output: ITestOutputHelper) =
         }
         telegramClient.SetResponse(fileId, Some testFileInfo)
 
-        performTestWithContent content (fun controller -> async {
+        performTestWithContent None content (fun controller -> async {
             let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
             let! result = Async.AwaitTask <| controller.Get hashId
             let redirect = Assert.IsType<RedirectResult> result
             Assert.Equal(testLink, Uri redirect.Url)
         })
+
+

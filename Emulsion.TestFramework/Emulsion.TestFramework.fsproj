@@ -15,6 +15,7 @@
     <Compile Include="TelegramClientMock.fs" />
     <Compile Include="WebFileStorage.fs" />
     <Compile Include="SimpleHttpClientFactory.fs" />
+    <Compile Include="TestFileCache.fs" />
   </ItemGroup>
 
   <ItemGroup>
