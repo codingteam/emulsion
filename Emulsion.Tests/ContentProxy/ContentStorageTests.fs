@@ -7,6 +7,7 @@ open Emulsion.Database
 open Emulsion.TestFramework
 
 let private testIdentity = {
+    ChatId = 0L
     ChatUserName = "test"
     MessageId = 123L
     FileId = "this_is_file"

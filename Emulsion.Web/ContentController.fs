@@ -42,8 +42,11 @@ type ContentController(logger: ILogger<ContentController>,
             | Some content ->
                 match fileCache with
                 | None ->
-                    let link = $"https://t.me/{content.ChatUserName}/{string content.MessageId}"
-                    return RedirectResult link
+                    match content.ChatUserName with
+                    | "" -> return UnprocessableEntityResult()
+                    | _ ->
+                        let link = $"https://t.me/{content.ChatUserName}/{string content.MessageId}"
+                        return RedirectResult link
                 | Some cache ->
                     match! telegram.GetFileInfo content.FileId with
                     | None ->

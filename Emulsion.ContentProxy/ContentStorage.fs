@@ -6,6 +6,7 @@ open Emulsion.Database.Entities
 open Emulsion.Database.QueryableEx
 
 type MessageContentIdentity = {
+    ChatId: int64
     ChatUserName: string
     MessageId: int64
     FileId: string
@@ -17,7 +18,8 @@ let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageContentIde
     let! existingItem =
         query {
             for content in context.TelegramContents do
-            where (content.ChatUserName = id.ChatUserName
+            where (content.ChatId = id.ChatId
+                   && content.ChatUserName = id.ChatUserName
                    && content.MessageId = id.MessageId
                    && content.FileId = id.FileId
                    && content.FileName = id.FileName
@@ -27,6 +29,7 @@ let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageContentIde
     | None ->
         let newItem = {
             Id = 0L
+            ChatId = id.ChatId
             ChatUserName = id.ChatUserName
             MessageId = id.MessageId
             FileId = id.FileId

@@ -38,6 +38,13 @@ type ContentFileNameAndMimeType() =
 
 
     override this.Down(migrationBuilder:MigrationBuilder) =
+        migrationBuilder.Sql @"
+            drop index TelegramContents_Unique;
+
+            create unique index TelegramContents_Unique
+            on TelegramContents(ChatUserName, MessageId, FileId)
+        " |> ignore
+
         migrationBuilder.DropColumn(
             name = "FileName"
             ,table = "TelegramContents"
@@ -47,14 +54,6 @@ type ContentFileNameAndMimeType() =
             name = "MimeType"
             ,table = "TelegramContents"
             ) |> ignore
-
-        migrationBuilder.Sql @"
-            drop index TelegramContents_Unique;
-
-            create unique index TelegramContents_Unique
-            on TelegramContents(ChatUserName, MessageId, FileId)
-        " |> ignore
-
 
     override this.BuildTargetModel(modelBuilder: ModelBuilder) =
         modelBuilder

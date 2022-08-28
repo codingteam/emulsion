@@ -13,6 +13,7 @@ let ``Unique constraint should hold``(): unit =
         let addNewContent(ctx: EmulsionDbContext) =
             let newContent = {
                 Id = 0L
+                ChatId = 0L
                 ChatUserName = "testChat"
                 MessageId = 666L
                 FileId = "foobar"

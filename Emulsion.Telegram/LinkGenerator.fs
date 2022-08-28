@@ -87,20 +87,17 @@ let private getFileInfos(message: FunogramMessage): FileInfo seq =
     allFileInfos
 
 let private getContentIdentities(message: FunogramMessage): ContentStorage.MessageContentIdentity seq =
-    match message.Chat with
-    | { Type = SuperGroup
-        Username = Some chatName } ->
-        getFileInfos message
-        |> Seq.map (fun fileInfo ->
-            {
-                ChatUserName = chatName
-                MessageId = message.MessageId
-                FileId = fileInfo.FileId
-                FileName = Option.defaultValue "file.bin" fileInfo.FileName
-                MimeType = Option.defaultValue "application/octet-stream" fileInfo.MimeType
-            }
-       )
-    | _ -> Seq.empty
+    getFileInfos message
+    |> Seq.map (fun fileInfo ->
+        {
+            ChatId = message.Chat.Id
+            ChatUserName = Option.defaultValue "" message.Chat.Username
+            MessageId = message.MessageId
+            FileId = fileInfo.FileId
+            FileName = Option.defaultValue "file.bin" fileInfo.FileName
+            MimeType = Option.defaultValue "application/octet-stream" fileInfo.MimeType
+        }
+   )
 
 let gatherLinks (logger: ILogger)
                 (databaseSettings: DatabaseSettings option)
