@@ -55,7 +55,5 @@ type ContentController(logger: ILogger<ContentController>,
                             logger.LogWarning $"Link \"{fileInfo}\" could not be downloaded."
                             return this.NotFound() :> IActionResult
                         | Some stream ->
-                            let contentType = Option.defaultValue "application/octet-stream" content.MimeType
-                            let fileName = Option.defaultValue "" content.FileName
-                            return FileStreamResult(stream, contentType, FileDownloadName = fileName)
+                            return FileStreamResult(stream, content.MimeType, FileDownloadName = content.FileName)
     }

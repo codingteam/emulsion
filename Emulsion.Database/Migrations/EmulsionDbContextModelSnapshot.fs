@@ -27,13 +27,13 @@ type EmulsionDbContextModelSnapshot() =
             b.Property<string>("FileId")
                 .IsRequired(false)
                 .HasColumnType("TEXT") |> ignore
-            b.Property<string option>("FileName")
+            b.Property<string>("FileName")
                 .IsRequired(false)
                 .HasColumnType("TEXT") |> ignore
             b.Property<Int64>("MessageId")
                 .IsRequired(true)
                 .HasColumnType("INTEGER") |> ignore
-            b.Property<string option>("MimeType")
+            b.Property<string>("MimeType")
                 .IsRequired(false)
                 .HasColumnType("TEXT") |> ignore
 

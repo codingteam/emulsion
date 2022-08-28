@@ -96,8 +96,8 @@ let private getContentIdentities(message: FunogramMessage): ContentStorage.Messa
                 ChatUserName = chatName
                 MessageId = message.MessageId
                 FileId = fileInfo.FileId
-                FileName = fileInfo.FileName
-                MimeType = fileInfo.MimeType
+                FileName = Option.defaultValue "file.bin" fileInfo.FileName
+                MimeType = Option.defaultValue "application/octet-stream" fileInfo.MimeType
             }
        )
     | _ -> Seq.empty

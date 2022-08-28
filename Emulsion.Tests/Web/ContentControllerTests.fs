@@ -84,8 +84,8 @@ type ContentControllerTests(output: ITestOutputHelper) =
             ChatUserName = chatUserName
             MessageId = messageId
             FileId = "foobar"
-            FileName = None
-            MimeType = None
+            FileName = "file.bin"
+            MimeType = "application/octet-stream"
         }
 
         performTestWithContent None content (fun controller -> async {
@@ -106,8 +106,8 @@ type ContentControllerTests(output: ITestOutputHelper) =
             ChatUserName = chatUserName
             MessageId = messageId
             FileId = fileId
-            FileName = None
-            MimeType = None
+            FileName = "file.bin"
+            MimeType = "application/octet-stream"
         }
 
         telegramClient.SetResponse(fileId, None)
@@ -131,8 +131,8 @@ type ContentControllerTests(output: ITestOutputHelper) =
             ChatUserName = chatUserName
             MessageId = messageId
             FileId = fileId
-            FileName = None
-            MimeType = None
+            FileName = "file.bin"
+            MimeType = "application/octet-stream"
         }
 
         use fileCache = setUpFileCache()
@@ -160,8 +160,8 @@ type ContentControllerTests(output: ITestOutputHelper) =
             ChatUserName = chatUserName
             MessageId = messageId
             FileId = fileId
-            FileName = None
-            MimeType = None
+            FileName = "file.bin"
+            MimeType = "application/octet-stream"
         }
 
         let onServerFileId = "fileIdOnServer"

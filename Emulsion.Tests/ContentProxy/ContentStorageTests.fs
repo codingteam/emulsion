@@ -10,8 +10,8 @@ let private testIdentity = {
     ChatUserName = "test"
     MessageId = 123L
     FileId = "this_is_file"
-    FileName = None
-    MimeType = None
+    FileName = "file.bin"
+    MimeType = "application/octet-stream"
 }
 
 let private executeQuery settings =

@@ -5,13 +5,11 @@ open System
 open Emulsion.Database
 open Microsoft.EntityFrameworkCore
 open Microsoft.EntityFrameworkCore.Infrastructure
-open Microsoft.EntityFrameworkCore.Metadata
 open Microsoft.EntityFrameworkCore.Migrations
-open Microsoft.EntityFrameworkCore.Storage.ValueConversion
 
 [<DbContext(typeof<EmulsionDbContext>)>]
-[<Migration("20220828121717_FileNameAndMimeType")>]
-type FileNameAndMimeType() =
+[<Migration("20220828133844_ContentFileNameAndMimeType")>]
+type ContentFileNameAndMimeType() =
     inherit Migration()
 
     override this.Up(migrationBuilder:MigrationBuilder) =
@@ -20,6 +18,7 @@ type FileNameAndMimeType() =
             ,table = "TelegramContents"
             ,``type`` = "TEXT"
             ,nullable = true
+            ,defaultValue = "file.bin"
             ) |> ignore
 
         migrationBuilder.AddColumn<string>(
@@ -27,7 +26,15 @@ type FileNameAndMimeType() =
             ,table = "TelegramContents"
             ,``type`` = "TEXT"
             ,nullable = true
+            ,defaultValue = "application/octet-stream"
             ) |> ignore
+
+        migrationBuilder.Sql @"
+            drop index TelegramContents_Unique;
+
+            create unique index TelegramContents_Unique
+            on TelegramContents(ChatUserName, MessageId, FileId, FileName, MimeType)
+        " |> ignore
 
 
     override this.Down(migrationBuilder:MigrationBuilder) =
@@ -40,6 +47,13 @@ type FileNameAndMimeType() =
             name = "MimeType"
             ,table = "TelegramContents"
             ) |> ignore
+
+        migrationBuilder.Sql @"
+            drop index TelegramContents_Unique;
+
+            create unique index TelegramContents_Unique
+            on TelegramContents(ChatUserName, MessageId, FileId)
+        " |> ignore
 
 
     override this.BuildTargetModel(modelBuilder: ModelBuilder) =
@@ -59,13 +73,13 @@ type FileNameAndMimeType() =
             b.Property<string>("FileId")
                 .IsRequired(false)
                 .HasColumnType("TEXT") |> ignore
-            b.Property<string option>("FileName")
+            b.Property<string>("FileName")
                 .IsRequired(false)
                 .HasColumnType("TEXT") |> ignore
             b.Property<Int64>("MessageId")
                 .IsRequired(true)
                 .HasColumnType("INTEGER") |> ignore
-            b.Property<string option>("MimeType")
+            b.Property<string>("MimeType")
                 .IsRequired(false)
                 .HasColumnType("TEXT") |> ignore
 

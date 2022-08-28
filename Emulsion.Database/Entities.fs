@@ -8,6 +8,6 @@ type TelegramContent = {
     ChatUserName: string
     MessageId: int64
     FileId: string
-    FileName: string option
-    MimeType: string option
+    FileName: string
+    MimeType: string
 }

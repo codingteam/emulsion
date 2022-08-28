@@ -9,8 +9,8 @@ type MessageContentIdentity = {
     ChatUserName: string
     MessageId: int64
     FileId: string
-    FileName: string option
-    MimeType: string option
+    FileName: string
+    MimeType: string
 }
 
 let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageContentIdentity): Async<TelegramContent> = async {
