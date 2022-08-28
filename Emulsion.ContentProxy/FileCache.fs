@@ -128,7 +128,7 @@ type FileCache(logger: ILogger,
         do! async { // to limit the cachedFile scope
             use cachedFile = new FileStream(path, writeFileOptions)
             do! Async.AwaitTask(stream.CopyToAsync(cachedFile, ct))
-            logger.Information("Download successful: \"{Uri}\" to \"{Path}\".")
+            logger.Information("Download successful: \"{Uri}\" to \"{Path}\".", uri, path)
         }
 
         let! file = getFromCache cacheKey
