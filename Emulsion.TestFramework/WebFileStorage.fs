@@ -6,6 +6,7 @@ open System.Net.Sockets
 
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
+open Serilog
 
 module private NetUtil =
     let findFreePort() =
@@ -13,7 +14,7 @@ module private NetUtil =
         socket.Bind(IPEndPoint(IPAddress.Loopback, 0))
         (socket.LocalEndPoint :?> IPEndPoint).Port
 
-type WebFileStorage(data: Map<string, byte[]>) =
+type WebFileStorage(logger: ILogger, data: Map<string, byte[]>) =
     let url = $"http://localhost:{NetUtil.findFreePort()}"
 
     let startWebApplication() =
@@ -36,5 +37,9 @@ type WebFileStorage(data: Map<string, byte[]>) =
 
     interface IDisposable with
         member this.Dispose(): unit =
+            Console.WriteLine "TEST LOGGING"
+            Console.WriteLine("Stopping the test web server…")
             app.StopAsync().Wait()
+            Console.WriteLine("Stopped the test web server, waiting for app.RunAsync() to finish…")
             task.Wait()
+            Console.WriteLine("Stopped the test web server completely.")

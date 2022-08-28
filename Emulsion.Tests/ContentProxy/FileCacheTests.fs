@@ -52,7 +52,7 @@ type FileCacheTests(output: ITestOutputHelper) =
 
     let assertCacheValidationError setUpAction expectedMessage =
         use fileCache = setUpFileCache 1UL
-        use fileStorage = new WebFileStorage(Map.empty)
+        use fileStorage = new WebFileStorage(Logging.xunitLogger output, Map.empty)
 
         setUpAction()
 
@@ -89,7 +89,7 @@ type FileCacheTests(output: ITestOutputHelper) =
     [<Fact>]
     member _.``File should be cached``(): Task = task {
         use fileCache = setUpFileCache 1024UL
-        use fileStorage = new WebFileStorage(Map.ofArray [|
+        use fileStorage = new WebFileStorage(Logging.xunitLogger output, Map.ofArray [|
             "a", [| for _ in 1 .. 5 do yield 1uy |]
         |])
 
@@ -100,7 +100,7 @@ type FileCacheTests(output: ITestOutputHelper) =
     [<Fact>]
     member _.``Too big file should be proxied``(): Task = task {
         use fileCache = setUpFileCache 1UL
-        use fileStorage = new WebFileStorage(Map.ofArray [|
+        use fileStorage = new WebFileStorage(Logging.xunitLogger output, Map.ofArray [|
             "a", [| for _ in 1 .. 2 do yield 1uy |]
         |])
 
@@ -111,7 +111,7 @@ type FileCacheTests(output: ITestOutputHelper) =
     [<Fact>]
     member _.``Cleanup should be triggered``(): Task = task {
         use fileCache = setUpFileCache 129UL
-        use fileStorage = new WebFileStorage(Map.ofArray [|
+        use fileStorage = new WebFileStorage(Logging.xunitLogger output, Map.ofArray [|
             "a", [| for _ in 1 .. 128 do yield 1uy |]
             "b", [| for _ in 1 .. 128 do yield 2uy |]
             "c", [| 3uy |]
@@ -133,7 +133,7 @@ type FileCacheTests(output: ITestOutputHelper) =
     [<Fact>]
     member _.``File cache cleanup works in order by file modification dates``(): Task = task {
         use fileCache = setUpFileCache 2UL
-        use fileStorage = new WebFileStorage(Map.ofArray [|
+        use fileStorage = new WebFileStorage(Logging.xunitLogger output, Map.ofArray [|
             "a", [| 1uy |]
             "b", [| 2uy |]
             "c", [| 3uy |]
@@ -152,7 +152,7 @@ type FileCacheTests(output: ITestOutputHelper) =
     [<Fact>]
     member _.``File should be downloaded even if it was cleaned up during download``(): Task = task {
         use fileCache = setUpFileCache (1024UL * 1024UL)
-        use fileStorage = new WebFileStorage(Map.ofArray [|
+        use fileStorage = new WebFileStorage(Logging.xunitLogger output, Map.ofArray [|
             "a", [| for _ in 1 .. 1024 * 1024 do 1uy |]
             "b", [| for _ in 1 .. 1024 * 1024 do 2uy |]
         |])
@@ -173,7 +173,7 @@ type FileCacheTests(output: ITestOutputHelper) =
     member _.``File should be re-downloaded after cleanup even if there's a outdated read session in progress``(): Task = task {
         let size = 2UL * 1024UL * 1024UL
         use fileCache = setUpFileCache size
-        use fileStorage = new WebFileStorage(Map.ofArray [|
+        use fileStorage = new WebFileStorage(Logging.xunitLogger output, Map.ofArray [|
             "a", [| for _ in 1UL .. size do 1uy |]
             "b", [| for _ in 1UL .. size do 2uy |]
         |])

@@ -139,7 +139,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
         }
 
         use fileCache = setUpFileCache()
-        use fileStorage = new WebFileStorage(Map.empty)
+        use fileStorage = new WebFileStorage(logger, Map.empty)
         telegramClient.SetResponse(fileId, Some {
             TemporaryLink = fileStorage.Link fileId
             Size = 1UL
@@ -170,7 +170,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
 
         let onServerFileId = "fileIdOnServer"
         use fileCache = setUpFileCache()
-        use fileStorage = new WebFileStorage(Map.ofArray [| onServerFileId, [| 1uy; 2uy; 3uy |] |])
+        use fileStorage = new WebFileStorage(logger, Map.ofArray [| onServerFileId, [| 1uy; 2uy; 3uy |] |])
         let testFileInfo = {
             TemporaryLink = fileStorage.Link onServerFileId
             Size = 1UL
