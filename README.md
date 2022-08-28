@@ -125,7 +125,7 @@ where
 - `$EMULSION_VERSION` is the image version you want to deploy, or `latest` for
   the latest available one
 - `$CONFIG` is the **absolute** path to the configuration file
-- `$DATA` is the absolute path to the data directory
+- `$DATA` is the absolute path to the data directory (used by the configuration)
 - `$WEB_PORT` is the port on the host system which will be used to access the content proxy
 
 To build and push the container to Docker Hub, use the following commands:
