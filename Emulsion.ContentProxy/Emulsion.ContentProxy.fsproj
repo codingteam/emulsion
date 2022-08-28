@@ -8,6 +8,7 @@
     <Compile Include="Proxy.fs" />
     <Compile Include="ContentStorage.fs" />
     <Compile Include="FileCache.fs" />
+    <Compile Include="SimpleHttpClientFactory.fs" />
   </ItemGroup>
 
   <ItemGroup>

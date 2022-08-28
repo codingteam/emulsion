@@ -14,7 +14,6 @@
     <Compile Include="Exceptions.fs" />
     <Compile Include="TelegramClientMock.fs" />
     <Compile Include="WebFileStorage.fs" />
-    <Compile Include="SimpleHttpClientFactory.fs" />
     <Compile Include="FileCacheUtil.fs" />
     <Compile Include="StreamUtils.fs" />
   </ItemGroup>

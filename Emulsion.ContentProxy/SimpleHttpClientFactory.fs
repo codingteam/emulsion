@@ -1,4 +1,4 @@
-﻿namespace Emulsion.TestFramework
+﻿namespace Emulsion.ContentProxy
 
 open System.Net.Http
 

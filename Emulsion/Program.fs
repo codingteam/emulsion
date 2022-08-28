@@ -2,12 +2,14 @@
 
 open System
 open System.IO
+open System.Security.Cryptography
 
 open Akka.Actor
 open Microsoft.Extensions.Configuration
 open Serilog
 
 open Emulsion.Actors
+open Emulsion.ContentProxy
 open Emulsion.Database
 open Emulsion.Messaging.MessageSystem
 open Emulsion.Settings
@@ -58,42 +60,50 @@ let private startApp config =
                                            config.Database,
                                            config.Hosting)
 
-            match config.Database with
-            | Some dbSettings -> do! migrateDatabase logger dbSettings
-            | None -> ()
+            use sha256 = SHA256.Create()
+            let fileCacheOption = config.FileCache |> Option.map(fun settings ->
+                let httpClientFactory = SimpleHttpClientFactory()
+                new FileCache(logger, settings, httpClientFactory, sha256)
+            )
 
-            let webServerTask =
-                match config.Hosting, config.Database with
-                | Some hosting, Some database ->
-                    logger.Information "Initializing web server…"
-                    Some <| WebServer.run logger hosting database telegram
-                | _ -> None
-
-            logger.Information "Actor system preparation…"
-            use system = ActorSystem.Create("emulsion")
-            logger.Information "Clients preparation…"
-
-            let factories = { xmppFactory = Xmpp.spawn xmppLogger xmpp
-                              telegramFactory = Telegram.spawn telegramLogger telegram }
-            logger.Information "Core preparation…"
-            let core = Core.spawn logger factories system "core"
-            logger.Information "Message systems preparation…"
-            let! telegramSystem = startMessageSystem logger telegram core.Tell
-            let! xmppSystem = startMessageSystem logger xmpp core.Tell
-            logger.Information "System ready"
-
-            logger.Information "Waiting for the systems to terminate…"
-            let! _ = Async.Parallel(seq {
-                yield Async.AwaitTask system.WhenTerminated
-                yield telegramSystem
-                yield xmppSystem
-
-                match webServerTask with
-                | Some task -> yield Async.AwaitTask task
+            try
+                match config.Database with
+                | Some dbSettings -> do! migrateDatabase logger dbSettings
                 | None -> ()
-            })
 
-            logger.Information "Terminated successfully."
+                let webServerTask =
+                    match config.Hosting, config.Database with
+                    | Some hosting, Some database ->
+                        logger.Information "Initializing the web server…"
+                        Some <| WebServer.run logger hosting database telegram fileCacheOption
+                    | _ -> None
+
+                logger.Information "Actor system preparation…"
+                use system = ActorSystem.Create("emulsion")
+                logger.Information "Clients preparation…"
+
+                let factories = { xmppFactory = Xmpp.spawn xmppLogger xmpp
+                                  telegramFactory = Telegram.spawn telegramLogger telegram }
+                logger.Information "Core preparation…"
+                let core = Core.spawn logger factories system "core"
+                logger.Information "Message systems preparation…"
+                let! telegramSystem = startMessageSystem logger telegram core.Tell
+                let! xmppSystem = startMessageSystem logger xmpp core.Tell
+                logger.Information "System ready"
+
+                logger.Information "Waiting for the systems to terminate…"
+                do! Async.Ignore <| Async.Parallel(seq {
+                    yield Async.AwaitTask system.WhenTerminated
+                    yield telegramSystem
+                    yield xmppSystem
+
+                    match webServerTask with
+                    | Some task -> yield Async.AwaitTask task
+                    | None -> ()
+                })
+            finally
+                fileCacheOption |> Option.iter(fun x -> (x :> IDisposable).Dispose())
+                logger.Information "Terminated successfully."
         with
         | error ->
             logger.Fatal(error, "General application failure")

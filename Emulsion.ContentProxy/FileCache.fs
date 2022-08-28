@@ -61,6 +61,10 @@ type FileCache(logger: ILogger,
                 None
     }
 
+    let assertCacheDirectoryExists() = async {
+        Directory.CreateDirectory settings.Directory |> ignore
+    }
+
     let assertCacheValid() = async {
         Directory.EnumerateFileSystemEntries settings.Directory
         |> Seq.iter(fun entry ->
@@ -83,6 +87,7 @@ type FileCache(logger: ILogger,
         if size > settings.FileSizeLimitBytes || size > settings.TotalCacheSizeLimitBytes then
             return false
         else
+            do! assertCacheDirectoryExists()
             do! assertCacheValid()
 
             let allEntries =
