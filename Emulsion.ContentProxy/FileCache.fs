@@ -36,6 +36,26 @@ module FileCache =
         with
         | :? ArgumentException -> None
 
+    let IsMoveAndDeleteModeEnabled =
+        // NOTE: On older versions of Windows (known to reproduce on windows-2019 GitHub Actions image), the following
+        // scenario may be defunct:
+        //
+        // - open a file with FileShare.Delete (i.e. for download)
+        // - delete a file (i.e. during the cache cleanup)
+        // - try to create a file with the same name again
+        //
+        // According to this article
+        // (https://boostgsoc13.github.io/boost.afio/doc/html/afio/FAQ/deleting_open_files.html), it is impossible to do
+        // since file will occupy its disk name until the last handle is closed.
+        //
+        // In practice, this is allowed (checked at least on Windows 10 20H2 and windows-2022 GitHub Actions image), but
+        // some tests are known to be broken on older versions of Windows (windows-2019).
+        //
+        // As a workaround, let's rename the file to a random name before deleting it.
+        //
+        // This workaround may be removed after these older versions of Windows goes out of support.
+        OperatingSystem.IsWindows()
+
 type FileCache(logger: ILogger,
                settings: FileCacheSettings,
                httpClientFactory: IHttpClientFactory,
@@ -61,12 +81,27 @@ type FileCache(logger: ILogger,
                 None
     }
 
+    let enumerateCacheFiles() =
+        let entries = Directory.EnumerateFileSystemEntries settings.Directory
+        if FileCache.IsMoveAndDeleteModeEnabled then
+            entries |> Seq.filter(fun p -> not(p.EndsWith ".deleted"))
+        else
+            entries
+
+    let deleteFileSafe (fileInfo: FileInfo) = async {
+        if FileCache.IsMoveAndDeleteModeEnabled then
+            fileInfo.MoveTo(Path.Combine(fileInfo.DirectoryName, $"{Guid.NewGuid().ToString()}.deleted"))
+            fileInfo.Delete()
+        else
+            fileInfo.Delete()
+    }
+
     let assertCacheDirectoryExists() = async {
         Directory.CreateDirectory settings.Directory |> ignore
     }
 
     let assertCacheValid() = async {
-        Directory.EnumerateFileSystemEntries settings.Directory
+        enumerateCacheFiles()
         |> Seq.iter(fun entry ->
             let entryName = Path.GetFileName entry
 
@@ -83,30 +118,6 @@ type FileCache(logger: ILogger,
         )
     }
 
-    let deleteFileSafe (fileInfo: FileInfo) = async {
-        if OperatingSystem.IsWindows() then
-            // NOTE: On older versions of Windows (known to reproduce on windows-2019 GitHub Actions image), the
-            // following scenario may be defunct:
-            // - open a file with FileShare.Delete (i.e. for download)
-            // - delete a file (i.e. during the cache cleanup)
-            // - try to create a file with the same name again
-            //
-            // According to this article
-            // (https://boostgsoc13.github.io/boost.afio/doc/html/afio/FAQ/deleting_open_files.html), it is impossible
-            // to do since file will occupy its disk name until the last handle is closed.
-            //
-            // In practice, this is allowed (checked at least on Windows 10 20H2 and windows-2022 GitHub Actions image),
-            // but is known to be broken on older versions of Windows (windows-2019).
-            //
-            // As a workaround, let's rename the file to a random name before deleting it.
-            //
-            // This workaround may be removed after these older versions of Windows goes out of support.
-            fileInfo.MoveTo(Path.Combine(fileInfo.DirectoryName, $"{Guid.NewGuid().ToString()}.deleted"))
-            fileInfo.Delete()
-        else
-            fileInfo.Delete()
-    }
-
     let ensureFreeCache size = async {
         if size > settings.FileSizeLimitBytes || size > settings.TotalCacheSizeLimitBytes then
             return false
@@ -114,9 +125,7 @@ type FileCache(logger: ILogger,
             do! assertCacheDirectoryExists()
             do! assertCacheValid()
 
-            let allEntries =
-                Directory.EnumerateFileSystemEntries settings.Directory
-                |> Seq.map FileInfo
+            let allEntries = enumerateCacheFiles() |> Seq.map FileInfo
 
             // Now, sort the entries from newest to oldest, and start deleting if required at a point when we understand
             // that there are too much files:

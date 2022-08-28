@@ -25,6 +25,10 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
     let assertCacheState(entries: (string * byte[]) seq) =
         let files =
             Directory.EnumerateFileSystemEntries(cacheDirectory.Value)
+            |> Seq.filter(fun f ->
+                if FileCache.IsMoveAndDeleteModeEnabled then not(f.EndsWith ".deleted")
+                else true
+            )
             |> Seq.map(fun file ->
                 let name = Path.GetFileName file
                 let content = File.ReadAllBytes file
