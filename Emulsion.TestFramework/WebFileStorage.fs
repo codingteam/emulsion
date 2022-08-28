@@ -20,7 +20,9 @@ type WebFileStorage(data: Map<string, byte[]>) =
         let builder = WebApplication.CreateBuilder()
         let app = builder.Build()
         app.MapGet("/{entry}", Func<_, _>(fun (entry: string) -> task {
-            return Results.Bytes(data[entry])
+            match Map.tryFind entry data with
+            | Some bytes -> return Results.Bytes bytes
+            | None -> return Results.NotFound()
         })) |> ignore
         app, app.RunAsync url
 

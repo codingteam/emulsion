@@ -1,4 +1,4 @@
-﻿module Emulsion.TestFramework.TestFileCache
+﻿module Emulsion.TestFramework.FileCacheUtil
 
 open System.IO
 

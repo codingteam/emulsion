@@ -29,13 +29,12 @@ type ContentControllerTests(output: ITestOutputHelper) =
 
     let logger = xunitLogger output
     let telegramClient = TelegramClientMock()
-
     let sha256 = SHA256.Create()
 
-    let cacheDirectory = lazy TestFileCache.newCacheDirectory()
+    let cacheDirectory = lazy FileCacheUtil.newCacheDirectory()
 
-    let setUpFileCache(totalLimitBytes: uint64) =
-        TestFileCache.setUpFileCache output sha256 cacheDirectory.Value totalLimitBytes
+    let setUpFileCache() =
+        FileCacheUtil.setUpFileCache output sha256 cacheDirectory.Value 0UL
 
     let performTestWithPreparation fileCache prepareAction testAction = Async.StartAsTask(async {
         return! TestDataStorage.doWithDatabase(fun databaseSettings -> async {
@@ -109,8 +108,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
 
         telegramClient.SetResponse(fileId, None)
 
-        let cacheDir = TestFileCache.newCacheDirectory()
-        use fileCache = TestFileCache.setUpFileCache output sha256 cacheDir 1UL
+        use fileCache = setUpFileCache()
         do! performTestWithContent (Some fileCache) content (fun controller -> async {
             let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
             let! result = Async.AwaitTask <| controller.Get hashId
@@ -119,11 +117,35 @@ type ContentControllerTests(output: ITestOutputHelper) =
     }
 
     [<Fact>]
-    member _.``ContentController returns 404 if the cache reports that a file was not found``(): unit =
-        Assert.True false
+    member _.``ContentController returns 404 if the cache reports that a file was not found``(): Task = task {
+        let contentId = 344L
+        let chatUserName = "MySuperExampleChat"
+        let messageId = 777L
+        let fileId = "foobar1"
+        let content = {
+            Id = contentId
+            ChatUserName = chatUserName
+            MessageId = messageId
+            FileId = fileId
+        }
+
+
+        use fileCache = setUpFileCache()
+        use fileStorage = new WebFileStorage(Map.empty)
+        telegramClient.SetResponse(fileId, Some {
+            TemporaryLink = fileStorage.Link fileId
+            Size = 1UL
+        })
+
+        do! performTestWithContent (Some fileCache) content (fun controller -> async {
+            let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
+            let! result = Async.AwaitTask <| controller.Get hashId
+            Assert.IsType<NotFoundResult> result |> ignore
+        })
+    }
 
     [<Fact>]
-    member _.``ContentController returns a downloaded file from cache``(): Task =
+    member _.``ContentController returns a downloaded file from cache``(): Task = task {
         let contentId = 343L
         let chatUserName = "MySuperExampleChat"
         let messageId = 777L
@@ -135,18 +157,20 @@ type ContentControllerTests(output: ITestOutputHelper) =
             FileId = fileId
         }
 
-        let testLink = Uri "https://example.com/myFile"
+        let onServerFileId = "fileIdOnServer"
+        use fileCache = setUpFileCache()
+        use fileStorage = new WebFileStorage(Map.ofArray [| onServerFileId, [| 1uy; 2uy; 3uy |] |])
         let testFileInfo = {
-            TemporaryLink = testLink
+            TemporaryLink = fileStorage.Link onServerFileId
             Size = 1UL
         }
         telegramClient.SetResponse(fileId, Some testFileInfo)
 
-        performTestWithContent None content (fun controller -> async {
+        do! performTestWithContent (Some fileCache) content (fun controller -> async {
             let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
             let! result = Async.AwaitTask <| controller.Get hashId
-            let redirect = Assert.IsType<RedirectResult> result
-            Assert.Equal(testLink, Uri redirect.Url)
+            let streamResult = Assert.IsType<FileStreamResult> result
+            let! content = StreamUtils.readAllBytes streamResult.FileStream
+            Assert.Equal<byte>(fileStorage.Content onServerFileId, content)
         })
-
-
+    }
