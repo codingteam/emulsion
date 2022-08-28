@@ -180,7 +180,7 @@ type FileCache(logger: ILogger,
                 return result
     }
 
-    let rec processLoop(processor: MailboxProcessor<_ * AsyncReplyChannel<_>>) = async {
+    let processLoop(processor: MailboxProcessor<_ * AsyncReplyChannel<_>>) = async {
         while true do
             let! request, replyChannel = processor.Receive()
             try
