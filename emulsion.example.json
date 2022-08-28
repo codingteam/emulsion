@@ -25,5 +25,9 @@
         "bindUri": "http://*:5000",
         "hashIdSalt": "test"
     },
-    "fileCache": {}
+    "fileCache": {
+        "directory": "./cache",
+        "fileSizeLimitBytes": 1048576,
+        "totalCacheSizeLimitBytes": 20971520
+    }
 }
