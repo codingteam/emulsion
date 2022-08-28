@@ -9,6 +9,8 @@ type MessageContentIdentity = {
     ChatUserName: string
     MessageId: int64
     FileId: string
+    FileName: string option
+    MimeType: string option
 }
 
 let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageContentIdentity): Async<TelegramContent> = async {
@@ -17,7 +19,9 @@ let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageContentIde
             for content in context.TelegramContents do
             where (content.ChatUserName = id.ChatUserName
                    && content.MessageId = id.MessageId
-                   && content.FileId = id.FileId)
+                   && content.FileId = id.FileId
+                   && content.FileName = id.FileName
+                   && content.MimeType = id.MimeType)
         } |> tryExactlyOneAsync
     match existingItem with
     | None ->
@@ -26,6 +30,8 @@ let getOrCreateMessageRecord (context: EmulsionDbContext) (id: MessageContentIde
             ChatUserName = id.ChatUserName
             MessageId = id.MessageId
             FileId = id.FileId
+            FileName = id.FileName
+            MimeType = id.MimeType
         }
         do! addAsync context.TelegramContents newItem
         return newItem

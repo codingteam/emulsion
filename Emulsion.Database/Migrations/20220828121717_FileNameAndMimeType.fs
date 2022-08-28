@@ -5,12 +5,44 @@ open System
 open Emulsion.Database
 open Microsoft.EntityFrameworkCore
 open Microsoft.EntityFrameworkCore.Infrastructure
+open Microsoft.EntityFrameworkCore.Metadata
+open Microsoft.EntityFrameworkCore.Migrations
+open Microsoft.EntityFrameworkCore.Storage.ValueConversion
 
 [<DbContext(typeof<EmulsionDbContext>)>]
-type EmulsionDbContextModelSnapshot() =
-    inherit ModelSnapshot()
+[<Migration("20220828121717_FileNameAndMimeType")>]
+type FileNameAndMimeType() =
+    inherit Migration()
 
-    override this.BuildModel(modelBuilder: ModelBuilder) =
+    override this.Up(migrationBuilder:MigrationBuilder) =
+        migrationBuilder.AddColumn<string>(
+            name = "FileName"
+            ,table = "TelegramContents"
+            ,``type`` = "TEXT"
+            ,nullable = true
+            ) |> ignore
+
+        migrationBuilder.AddColumn<string>(
+            name = "MimeType"
+            ,table = "TelegramContents"
+            ,``type`` = "TEXT"
+            ,nullable = true
+            ) |> ignore
+
+
+    override this.Down(migrationBuilder:MigrationBuilder) =
+        migrationBuilder.DropColumn(
+            name = "FileName"
+            ,table = "TelegramContents"
+            ) |> ignore
+
+        migrationBuilder.DropColumn(
+            name = "MimeType"
+            ,table = "TelegramContents"
+            ) |> ignore
+
+
+    override this.BuildTargetModel(modelBuilder: ModelBuilder) =
         modelBuilder
             .HasAnnotation("ProductVersion", "5.0.10")
             |> ignore

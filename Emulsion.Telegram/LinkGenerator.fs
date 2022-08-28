@@ -30,41 +30,74 @@ let private gatherMessageLink(message: FunogramMessage) =
     | { Text = Some _} | { Poll = Some _ } -> None
     | _ -> getMessageLink message
 
-let private getFileIds(message: FunogramMessage): string seq =
-    let allFileIds = ResizeArray()
-    let inline extractFileId(o: ^a option) =
-        Option.iter(fun o -> allFileIds.Add((^a) : (member FileId: string) o)) o
+type private FileInfo = {
+    FileId: string
+    FileName: string option
+    MimeType: string option
+}
 
-    let extractPhotoFileId: PhotoSize[] option -> unit =
+let private getFileInfos(message: FunogramMessage): FileInfo seq =
+    let allFileInfos = ResizeArray()
+    let inline extractFileInfo(o: ^a option) =
+        o |> Option.iter(fun o ->
+            allFileInfos.Add({
+                FileId = ((^a) : (member FileId: string) o)
+                FileName = ((^a) : (member FileName: string option) o)
+                MimeType = ((^a) : (member MimeType: string option) o)
+            }))
+
+    let inline extractFileInfoWithName (fileName: string) (o: ^a option) =
+        o |> Option.iter(fun o ->
+            allFileInfos.Add({
+                FileId = ((^a) : (member FileId: string) o)
+                FileName = Some fileName
+                MimeType = ((^a) : (member MimeType: string option) o)
+            }))
+
+    let inline extractFileInfoWithNameAndMimeType (fileName: string) (mimeType: string) (o: ^a option) =
+        o |> Option.iter(fun o ->
+            allFileInfos.Add({
+                FileId = ((^a) : (member FileId: string) o)
+                FileName = Some fileName
+                MimeType = Some mimeType
+            }))
+
+    let extractPhotoFileInfo: PhotoSize[] option -> unit =
         Option.iter(
             // Telegram may send several differently-sized thumbnails in one message. Pick the biggest one of them.
             Seq.sortByDescending(fun size -> size.Height * size.Width)
             >> Seq.map(fun photoSize -> photoSize.FileId)
             >> Seq.tryHead
-            >> Option.iter(allFileIds.Add)
+            >> Option.iter(fun fileId -> allFileInfos.Add {
+                FileId = fileId
+                FileName = Some "photo.jpg"
+                MimeType = Some "image/jpeg"
+            })
         )
 
-    extractFileId message.Document
-    extractFileId message.Audio
-    extractFileId message.Animation
-    extractPhotoFileId message.Photo
-    extractFileId message.Sticker
-    extractFileId message.Video
-    extractFileId message.Voice
-    extractFileId message.VideoNote
+    extractFileInfo message.Document
+    extractFileInfo message.Audio
+    extractFileInfo message.Animation
+    extractPhotoFileInfo message.Photo
+    extractFileInfoWithNameAndMimeType "sticker.jpg" "image/jpeg" message.Sticker
+    extractFileInfo message.Video
+    extractFileInfoWithName "voice.ogg" message.Voice
+    extractFileInfoWithNameAndMimeType "video.mp4" "video/mp4" message.VideoNote
 
-    allFileIds
+    allFileInfos
 
 let private getContentIdentities(message: FunogramMessage): ContentStorage.MessageContentIdentity seq =
     match message.Chat with
     | { Type = SuperGroup
         Username = Some chatName } ->
-        getFileIds message
-        |> Seq.map (fun fileId ->
+        getFileInfos message
+        |> Seq.map (fun fileInfo ->
             {
                 ChatUserName = chatName
                 MessageId = message.MessageId
-                FileId = fileId
+                FileId = fileInfo.FileId
+                FileName = fileInfo.FileName
+                MimeType = fileInfo.MimeType
             }
        )
     | _ -> Seq.empty

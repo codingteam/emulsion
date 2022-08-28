@@ -16,6 +16,8 @@ let ``Unique constraint should hold``(): unit =
                 ChatUserName = "testChat"
                 MessageId = 666L
                 FileId = "foobar"
+                FileName = None
+                MimeType = None
             }
             async {
                 do! DataStorage.addAsync ctx.TelegramContents newContent

@@ -10,6 +10,8 @@ let private testIdentity = {
     ChatUserName = "test"
     MessageId = 123L
     FileId = "this_is_file"
+    FileName = None
+    MimeType = None
 }
 
 let private executeQuery settings =

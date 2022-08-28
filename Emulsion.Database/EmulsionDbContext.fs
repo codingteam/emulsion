@@ -1,5 +1,6 @@
 ﻿namespace Emulsion.Database
 
+open EntityFrameworkCore.FSharp.Extensions
 open Microsoft.EntityFrameworkCore
 open Microsoft.EntityFrameworkCore.Design
 
@@ -7,6 +8,9 @@ open Emulsion.Database.Entities
 
 type EmulsionDbContext(options: DbContextOptions) =
     inherit DbContext(options)
+
+    override _.OnModelCreating builder =
+        builder.RegisterOptionTypes()
 
     [<DefaultValue>] val mutable private telegramContents: DbSet<TelegramContent>
     member this.TelegramContents with get() = this.telegramContents and set v = this.telegramContents <- v
