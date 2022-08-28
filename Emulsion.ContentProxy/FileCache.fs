@@ -46,11 +46,17 @@ type FileCache(logger: ILogger,
     let getFilePath(cacheKey: string) =
         Path.Combine(settings.Directory, FileCache.EncodeFileName(sha256, cacheKey))
 
+    let readFileOptions =
+        FileStreamOptions(Mode = FileMode.Open, Access = FileAccess.Read, Options = FileOptions.Asynchronous, Share = (FileShare.Read ||| FileShare.Delete))
+
+    let writeFileOptions =
+        FileStreamOptions(Mode = FileMode.CreateNew, Access = FileAccess.Write, Options = FileOptions.Asynchronous, Share = FileShare.None)
+
     let getFromCache(cacheKey: string) = async {
         let path = getFilePath cacheKey
         return
             if File.Exists path then
-                Some(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read|||FileShare.Delete))
+                Some(new FileStream(path, readFileOptions))
             else
                 None
     }
@@ -115,7 +121,7 @@ type FileCache(logger: ILogger,
         logger.Information("Saving {Uri} to path {Path}…", uri, path)
 
         do! async { // to limit the cachedFile scope
-            use cachedFile = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None)
+            use cachedFile = new FileStream(path, writeFileOptions)
             do! Async.AwaitTask(stream.CopyToAsync(cachedFile, ct))
             logger.Information("Download successful: \"{Uri}\" to \"{Path}\".")
         }
