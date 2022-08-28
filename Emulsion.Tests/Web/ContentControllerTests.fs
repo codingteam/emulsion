@@ -181,7 +181,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
             let hashId = Proxy.encodeHashId hostingSettings.HashIdSalt contentId
             let! result = Async.AwaitTask <| controller.Get hashId
             let streamResult = Assert.IsType<FileStreamResult> result
-            let! content = StreamUtils.readAllBytes streamResult.FileStream
+            let! content = StreamUtils.readAllBytes logger "fileIdOnServer" streamResult.FileStream
             Assert.Equal<byte>(fileStorage.Content onServerFileId, content)
         })
     }

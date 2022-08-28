@@ -13,14 +13,14 @@ open Xunit.Abstractions
 open Emulsion.ContentProxy
 open Emulsion.TestFramework
 
-type FileCacheTests(outputHelper: ITestOutputHelper) =
+type FileCacheTests(output: ITestOutputHelper) =
 
     let sha256 = SHA256.Create()
 
     let cacheDirectory = lazy FileCacheUtil.newCacheDirectory()
 
     let setUpFileCache(totalLimitBytes: uint64) =
-        FileCacheUtil.setUpFileCache outputHelper sha256 cacheDirectory.Value totalLimitBytes
+        FileCacheUtil.setUpFileCache output sha256 cacheDirectory.Value totalLimitBytes
 
     let assertCacheState(entries: (string * byte[]) seq) =
         let files =
@@ -66,6 +66,9 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
             Assert.True error.IsSome
             Assert.Equal(expectedMessage, error.Value.Message)
         )
+
+    let readAllBytes =
+        StreamUtils.readAllBytes (Logging.xunitLogger output)
 
     interface IDisposable with
         member _.Dispose() = sha256.Dispose()
@@ -162,7 +165,7 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
         // Now there's only "b" item in the cache:
         assertCacheState [| "b", fileStorage.Content "b" |]
         // We should still be able to read "a" fully:
-        let! content = StreamUtils.readAllBytes stream
+        let! content = readAllBytes "a (deleted from disk)" stream
         Assert.Equal<byte>(fileStorage.Content "a", content)
     }
 
@@ -188,6 +191,6 @@ type FileCacheTests(outputHelper: ITestOutputHelper) =
         do! assertFileDownloaded fileCache fileStorage "a" size
         assertCacheState [| "a", fileStorage.Content "a" |]
         // We should still be able to read "a" fully:
-        let! content = StreamUtils.readAllBytes stream
+        let! content = readAllBytes "a (deleted from disk and recreated)" stream
         Assert.Equal<byte>(fileStorage.Content "a", content)
     }
