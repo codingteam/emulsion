@@ -140,7 +140,9 @@ type FileCacheTests(output: ITestOutputHelper) =
         |])
 
         do! assertFileDownloaded fileCache fileStorage "a" 1UL
+        do! Task.Delay 1 // to ensure different timestamps for different cached files
         do! assertFileDownloaded fileCache fileStorage "c" 1UL
+        do! Task.Delay 1
         do! assertFileDownloaded fileCache fileStorage "b" 1UL // "a" should be deleted
         assertCacheState [| "b", [| 2uy |]
                             "c", [| 3uy |] |]
