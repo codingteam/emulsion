@@ -4,6 +4,7 @@ open System
 open System.Net
 open System.Net.Sockets
 
+open System.Threading.Tasks
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Http
 open Serilog
@@ -27,7 +28,7 @@ type WebFileStorage(logger: ILogger, data: Map<string, byte[]>) =
         })) |> ignore
         app, app.RunAsync url
 
-    let app, task = startWebApplication()
+    let app, runTask = startWebApplication()
 
     member _.Link(entry: string): Uri =
         Uri $"{url}/{entry}"
@@ -35,12 +36,11 @@ type WebFileStorage(logger: ILogger, data: Map<string, byte[]>) =
     member _.Content(entry: string): byte[] =
         data[entry]
 
-    interface IDisposable with
-        member this.Dispose(): unit =
-            Dumps.doWithTimeoutAndDump(TimeSpan.FromSeconds 10) (fun() ->
-                logger.Information "Stopping the test web server…"
-                app.StopAsync().Wait()
-                logger.Information "Stopped the test web server, waiting for app.RunAsync() to finish…"
-                task.Wait()
-                logger.Information "Stopped the test web server completely."
-            )
+    interface IAsyncDisposable with
+        member _.DisposeAsync(): ValueTask = ValueTask <| task {
+            logger.Information "Stopping the test web server…"
+            do! app.StopAsync()
+            logger.Information "Stopped the test web server, waiting for app.RunAsync() to finish…"
+            do! runTask
+            logger.Information "Stopped the test web server completely."
+        }

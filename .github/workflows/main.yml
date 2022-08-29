@@ -35,14 +35,6 @@ jobs:
           key: ${{ runner.os }}.nuget.${{ hashFiles('**/*.fsproj') }}
       - name: Build
         run: dotnet build
-      - name: Install dotnet dump
-        run: dotnet tool install --global dotnet-dump
       - name: Test
         run: dotnet test
         timeout-minutes: 10
-      - name: Upload test dumps
-        uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: test-dumps
-          path: "*.dmp"

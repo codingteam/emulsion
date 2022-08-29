@@ -50,7 +50,7 @@ type FileCacheTests(output: ITestOutputHelper) =
         Assert.True file.IsSome
     }
 
-    let assertCacheValidationError setUpAction expectedMessage =
+    let assertCacheValidationError setUpAction expectedMessage = task {
         use fileCache = setUpFileCache 1UL
         use fileStorage = new WebFileStorage(Logging.xunitLogger output, Map.empty)
 
@@ -66,6 +66,7 @@ type FileCacheTests(output: ITestOutputHelper) =
             Assert.True error.IsSome
             Assert.Equal(expectedMessage, error.Value.Message)
         )
+    }
 
     let readAllBytes =
         StreamUtils.readAllBytes (Logging.xunitLogger output)
@@ -74,13 +75,13 @@ type FileCacheTests(output: ITestOutputHelper) =
         member _.Dispose() = sha256.Dispose()
 
     [<Fact>]
-    member _.``File cache should throw a validation exception if the cache directory contains directories``(): unit =
+    member _.``File cache should throw a validation exception if the cache directory contains directories``(): Task =
         assertCacheValidationError
             (fun() -> Directory.CreateDirectory(Path.Combine(cacheDirectory.Value, "aaa")) |> ignore)
             "Cache directory invalid: contains a subdirectory \"aaa\"."
 
     [<Fact>]
-    member _.``File cache should throw a validation exception if the cache directory contains non-conventionally-named files``(): unit =
+    member _.``File cache should throw a validation exception if the cache directory contains non-conventionally-named files``(): Task =
         assertCacheValidationError
             (fun() -> File.Create(Path.Combine(cacheDirectory.Value, "aaa.txt")).Dispose())
             ("Cache directory invalid: contains an entry \"aaa.txt\" which doesn't correspond to a base58-encoded " +

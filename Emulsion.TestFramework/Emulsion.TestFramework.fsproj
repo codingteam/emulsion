@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Dumps.fs" />
     <Compile Include="LockedBuffer.fs" />
     <Compile Include="Logging.fs" />
     <Compile Include="Waiter.fs" />
