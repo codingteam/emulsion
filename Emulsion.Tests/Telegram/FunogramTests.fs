@@ -57,24 +57,20 @@ let private createForwardedMessage from (forwarded: Funogram.Telegram.Types.Mess
         ForwardFrom = forwarded.From
         Text = forwarded.Text }
 
-let private createStickerMessage from emoji =
+let private createStickerMessage from (emoji: string option) =
     { defaultMessage with
         From = Some from
         Chat = currentChat
-        Sticker = Some {
-            FileId = ""
-            FileUniqueId = ""
-            Width = 0
-            Height = 0
-            Thumb = None
-            FileSize = None
-            Emoji = emoji
-            SetName = None
-            MaskPosition = None
-            IsAnimated = false
-            IsVideo = false
-            PremiumAnimation = None
-        }
+        Sticker = Some <| Sticker.Create(
+            fileId = "",
+            fileUniqueId = "",
+            ``type`` = "",
+            width = 0,
+            height = 0,
+            isAnimated = false,
+            isVideo = false,
+            ?emoji = emoji
+        )
     }
 
 let private createPhoto() = [|
@@ -137,14 +133,12 @@ let private authoredTelegramReplyMessage author text replyTo =
 let private eventTelegramMessage text =
     { main = Event { text = text }; replyTo = None }
 
-let private createEntity t offset length url = {
-    Type = t
-    Offset = offset
-    Length = length
-    Url = Some url
-    User = None
-    Language = None
-}
+let private createEntity t offset length url = MessageEntity.Create(
+    ``type`` = t,
+    offset = offset,
+    length = length,
+    url = url
+)
 
 let private createEntities t offset length url = Some <| [|
     createEntity t offset length url
@@ -302,12 +296,11 @@ module ReadMessageTests =
     [<Fact>]
     let readNoneTextLinkMessage() =
         let message = { createMessage (Some originalUser) (Some "Original text") with
-                            Entities = Some <| [| { Type = "text_link"
-                                                    Url = None
-                                                    Offset = 0L
-                                                    Length = 5L
-                                                    User = None
-                                                    Language = None } |] }
+                            Entities = Some <| [| MessageEntity.Create(
+                                                    ``type`` = "text_link",
+                                                    offset = 0L,
+                                                    length = 5L
+                                                  ) |] }
         Assert.Equal(
             authoredTelegramMessage "@originalUser" "Original text",
             readMessage message
@@ -541,14 +534,11 @@ module ReadMessageTests =
                                                       with Id = selfUserId }
                                     Text = Some "Myself\nTests"
                                     Entities = Some <| [|
-                                        {
-                                            Type = "bold"
-                                            Offset = 0L
-                                            Length = int64 "Myself".Length
-                                            Url = None
-                                            User = None
-                                            Language = None
-                                        }
+                                        MessageEntity.Create(
+                                            ``type`` = "bold",
+                                            offset = 0L,
+                                            length = int64 "Myself".Length
+                                        )
                                     |]
                               }
         let reply = createReplyMessage (Some replyingUser) (Some "reply text") originalMessage

@@ -356,7 +356,7 @@ let sendGetFile (botConfig: BotConfig) (fileId: string): Async<File> = async {
 
 let sendMessage (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =
     let sendHtmlMessage (groupId: ChatId) text =
-        Req.SendMessage.Make(groupId, text, ParseMode.HTML)
+        Req.SendMessage.Make(chatId = groupId, text = text, parseMode = ParseMode.HTML)
 
     let groupId = Int(int64 settings.GroupId)
     let message = prepareHtmlMessage content

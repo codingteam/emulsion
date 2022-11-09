@@ -98,20 +98,15 @@ let private messageWithMultiplePhotos =
 
 let private messageWithSticker =
     { messageTemplate with
-        Sticker = Some {
-            FileId = fileId1
-            FileUniqueId = fileId1
-            Width = 0
-            Height = 0
-            IsAnimated = false
-            Thumb = None
-            Emoji = None
-            SetName = None
-            MaskPosition = None
-            FileSize = None
-            IsVideo = false
-            PremiumAnimation = None
-        }
+        Sticker = Some <| Sticker.Create(
+            fileId = fileId1,
+            fileUniqueId = fileId1,
+            ``type`` =  "",
+            width = 0,
+            height = 0,
+            isAnimated = false,
+            isVideo = false
+        )
     }
 
 let private messageWithVideo =
