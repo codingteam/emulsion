@@ -22,6 +22,7 @@ type XmppSettings = {
 type TelegramSettings = {
     Token: string
     GroupId: int64
+    MessageThreadId: int64 option
 }
 
 type LogSettings = {
@@ -63,6 +64,7 @@ let private readTimeSpan defaultVal key section =
     |> Option.defaultValue defaultVal
 
 let read (config : IConfiguration) : EmulsionSettings =
+    let int64Opt: string -> int64 option = Option.ofObj >> Option.map int64
     let uint64OrDefault value ``default`` =
         value
         |> Option.ofObj
@@ -83,6 +85,7 @@ let read (config : IConfiguration) : EmulsionSettings =
     let readTelegram (section : IConfigurationSection) = {
         Token = section["token"]
         GroupId = int64 section["groupId"]
+        MessageThreadId = int64Opt section["messageThreadId"]
     }
     let readLog(section: IConfigurationSection) = {
         Directory = section["directory"]

@@ -37,6 +37,8 @@ All the other settings are required, except the `database`, `hosting` and `fileC
 
 Note that `pingInterval` of `null` disables XMPP ping support.
 
+`telegram.messageThreadId` allows to connect the bot to a particular message thread: any messages from the other threads will be ignored, and the bot will send its messages to the selected thread only.
+
 ### Telegram Content Proxy
 
 There's Telegram content proxy support, for XMPP users to access Telegram content without directly opening links on t.me.

@@ -287,10 +287,15 @@ module MessageConverter =
                 let messageText = text.Substring messageTextOffset
                 Authored { author = authorName; text = messageText }
 
+    let (|ForumTopicCreatedMessage|_|) (m: FunogramMessage option) =
+        match m with
+        | Some m when Option.isSome m.ForumTopicCreated -> Some m
+        | _ -> None
+
     let internal read (selfUserId: int64) (message: FunogramMessage, links: TelegramThreadLinks): ThreadMessage =
         let mainMessage = extractMessageContent message links.ContentLinks
         match message.ReplyToMessage with
-        | None -> { main = mainMessage; replyTo = None }
+        | None | ForumTopicCreatedMessage _ -> { main = mainMessage; replyTo = None }
         | Some replyTo ->
             let replyToMessage =
                 if isSelfMessage selfUserId replyTo
@@ -310,9 +315,14 @@ let private extractLinkData logger databaseSettings hostingSettings message =
 let internal processMessage (logger: ILogger)
                             (databaseSettings: DatabaseSettings option)
                             (hostingSettings: HostingSettings option)
-                            (context: {| SelfUserId: int64; GroupId: int64 |})
+                            (context: {| SelfUserId: int64; GroupId: int64; MessageThreadId: int64 option |})
                             (message: FunogramMessage): Message option =
-    if context.GroupId = message.Chat.Id
+    let correctGroup = context.GroupId = message.Chat.Id
+    let correctThread =
+        match context.MessageThreadId with
+        | None -> true
+        | _ -> message.MessageThreadId = context.MessageThreadId
+    if correctGroup && correctThread
     then
         message
         |> extractLinkData logger databaseSettings hostingSettings
@@ -324,12 +334,14 @@ let internal processMessage (logger: ILogger)
 let private updateArrived databaseSettings
                           hostingSettings
                           groupId
+                          messageThreadId
                           (logger: ILogger)
                           onMessage
                           (ctx: Bot.UpdateContext) =
     let readContext = {|
         SelfUserId = ctx.Me.Id
         GroupId = groupId
+        MessageThreadId = messageThreadId
     |}
     Bot.processCommands ctx [
         fun ctx ->
@@ -338,7 +350,7 @@ let private updateArrived databaseSettings
                 logger.Information("Incoming Telegram message: {Message}", msg)
                 match processMessage logger databaseSettings hostingSettings readContext msg with
                 | Some m -> onMessage(TelegramMessage m)
-                | None -> logger.Warning "Message from unidentified source ignored"
+                | None -> ()
                 true
             | _ -> false
     ] |> ignore
@@ -355,10 +367,11 @@ let sendGetFile (botConfig: BotConfig) (fileId: string): Async<File> = async {
 }
 
 let sendMessage (settings: TelegramSettings) (botConfig: BotConfig) (OutgoingMessage content): Async<unit> =
-    let sendHtmlMessage (groupId: ChatId) text =
-        Req.SendMessage.Make(chatId = groupId, text = text, parseMode = ParseMode.HTML)
-
     let groupId = Int(int64 settings.GroupId)
+    let threadId = settings.MessageThreadId
+    let sendHtmlMessage (groupId: ChatId) text =
+        Req.SendMessage.Make(chatId = groupId, text = text, ?messageThreadId = threadId, parseMode = ParseMode.HTML)
+
     let message = prepareHtmlMessage content
     async {
         let! result = send botConfig (sendHtmlMessage groupId message)
@@ -373,5 +386,10 @@ let run (logger: ILogger)
         (botConfig: BotConfig)
         (onMessage: IncomingMessage -> unit): Async<unit> =
     Bot.startBot botConfig
-                 (updateArrived databaseSettings hostingSettings telegramSettings.GroupId logger onMessage)
+                 (updateArrived databaseSettings
+                                hostingSettings
+                                telegramSettings.GroupId
+                                telegramSettings.MessageThreadId
+                                logger
+                                onMessage)
                  None

@@ -547,18 +547,88 @@ module ReadMessageTests =
             readMessage reply
         )
 
+    [<Fact>]
+    let ``Reply to forum topic creation shouldn't be taken into account``(): unit =
+        let originalMessage = {
+            defaultMessage with
+                ForumTopicCreated = Some <| ForumTopicCreated.Create("Topic", 0L)
+        }
+        let replyMessage = createReplyMessage (Some replyingUser) (Some "text") originalMessage
+        Assert.Equal(
+            authoredTelegramMessage "@replyingUser" "text",
+            readMessage replyMessage
+        )
+
 module ProcessMessageTests =
+    let private processMessageOpt o =
+        processMessage Logger.None None None o
+
     let private processMessage =
-        Funogram.processMessage Logger.None None None {| SelfUserId = selfUserId; GroupId = groupId |}
+        processMessageOpt {| SelfUserId = selfUserId; GroupId = groupId; MessageThreadId = None |}
 
     [<Fact>]
-    let messageFromOtherChatShouldBeIgnored(): unit =
+    let ``Message with correct group is not ignored``(): unit =
+        let message = {
+            createMessage (Some originalUser) (Some "test") with
+                Chat = Chat.Create(
+                  id = groupId,
+                  ``type`` = ChatType.SuperGroup
+                )
+        }
+        Assert.True(Option.isSome <| processMessage message)
+
+    [<Fact>]
+    let ``Message from other chat is ignored``(): unit =
         let message = { createMessage (Some originalUser) (Some "test") with
                           Chat = Chat.Create(
                               id = 0L,
                               ``type`` = ChatType.SuperGroup
                           ) }
         Assert.Equal(None, processMessage message)
+
+    [<Fact>]
+    let ``Message from incorrect thread is ignored``(): unit =
+        let message = {
+            createMessage (Some originalUser) (Some "test") with
+                Chat = Chat.Create(
+                  id = groupId,
+                  ``type`` = ChatType.SuperGroup
+                )
+                MessageThreadId = Some 123L
+
+        }
+        Assert.Equal(None, processMessageOpt {|
+            SelfUserId = selfUserId
+            GroupId = groupId
+            MessageThreadId = Some 234L
+        |} message)
+
+    let ``Message with any thread id is not ignored if thread id is not set``(): unit =
+        let message = {
+            createMessage (Some originalUser) (Some "test") with
+                Chat = Chat.Create(
+                  id = groupId,
+                  ``type`` = ChatType.SuperGroup
+                )
+                MessageThreadId = Some 123L
+        }
+        Assert.True(Option.isSome <| processMessage message)
+
+    let ``Message with correct thread id is not ignored``(): unit =
+        let threadId = 236L
+        let message = {
+            createMessage (Some originalUser) (Some "test") with
+                Chat = Chat.Create(
+                  id = groupId,
+                  ``type`` = ChatType.SuperGroup
+                )
+                MessageThreadId = Some threadId
+        }
+        Assert.True(Option.isSome <| processMessageOpt {|
+            SelfUserId = selfUserId
+            GroupId = groupId
+            MessageThreadId = Some threadId
+        |} message)
 
 module ProcessSendResultTests =
     [<Fact>]

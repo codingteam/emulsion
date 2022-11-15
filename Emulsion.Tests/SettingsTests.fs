@@ -44,6 +44,7 @@ let private testConfiguration = {
     Telegram = {
         Token = "token"
         GroupId = testGroupId
+        MessageThreadId = None
     }
     Log = {
         Directory = "/tmp/"
