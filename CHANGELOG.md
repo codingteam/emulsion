@@ -4,6 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] (2.3.0)
+### Added
+- A new configuration parameter, `telegram.messageThreadId`, to support new message thread feature of Telegram.
+
 ## [2.2.0] - 2022-08-28
 ### Added
 - [#165: Telegram content proxy: inline images and other supported data types](https://github.com/codingteam/emulsion/issues/165)
