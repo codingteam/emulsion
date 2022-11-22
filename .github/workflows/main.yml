@@ -15,9 +15,9 @@ jobs:
     strategy:
       matrix:
         environment:
-          - macos-10.15
-          - ubuntu-20.04
-          - windows-2019
+          - macos-12
+          - ubuntu-22.04
+          - windows-2022
     env:
       DOTNET_NOLOGO: 1
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
