@@ -31,8 +31,8 @@
     <Compile Include="Web\ContentControllerTests.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Akka.TestKit" Version="1.3.12" />
-    <PackageReference Include="Akka.TestKit.Xunit2" Version="1.3.12" />
+    <PackageReference Include="Akka.TestKit" Version="1.4.46" />
+    <PackageReference Include="Akka.TestKit.Xunit2" Version="1.4.46" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="Serilog.Sinks.TestCorrelator" Version="3.2.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
