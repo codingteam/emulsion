@@ -122,7 +122,8 @@ let main = function
         |> startApp
         |> runApp
     | [| configPath |] ->
-        getConfiguration (Path.GetDirectoryName configPath) (Path.GetFileName configPath)
+        let fullConfigPath = Path.GetFullPath configPath
+        getConfiguration (Path.GetDirectoryName fullConfigPath) (Path.GetFileName configPath)
         |> startApp
         |> runApp
     | _ ->

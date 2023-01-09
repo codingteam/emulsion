@@ -5,6 +5,8 @@ and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] (2.3.1)
+### Fixed
+- [#175: Error when passing a relative path to the config file](https://github.com/codingteam/emulsion/issues/175).
 ### Changed
 - Upgrade Akka to 1.4.46.
 
