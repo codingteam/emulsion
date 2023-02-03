@@ -154,12 +154,14 @@ Common documentation:
 Developer documentation:
 
 - [How to Create a Database Migration][docs.create-migration]
+- [Maintainership][docs.maintainership]
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-aquana-
 [docker-hub]: https://hub.docker.com/r/codingteam/emulsion
 [docs.changelog]: ./CHANGELOG.md
 [docs.create-migration]: ./docs/create-migration.md
 [docs.license]: ./LICENSE.md
+[docs.maintainership]: MAINTAINERSHIP.md
 [dotnet]: https://dotnet.microsoft.com/download
 [hashids.net]: https://github.com/ullmark/hashids.net
 [telegram]: https://telegram.org/
