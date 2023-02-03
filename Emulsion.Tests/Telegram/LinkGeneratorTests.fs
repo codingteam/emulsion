@@ -21,6 +21,15 @@ let private chatName = "test_chat"
 let private fileId1 = "123456"
 let private fileId2 = "654321"
 
+let private photo: PhotoSize =
+    {
+        FileId = fileId1
+        FileUniqueId = fileId1
+        Width = 0
+        Height = 0
+        FileSize = None
+    }
+
 let private messageTemplate =
     Message.Create(
         messageId = 0L,
@@ -76,13 +85,7 @@ let private messageWithAnimation =
 
 let private messageWithPhoto =
     { messageTemplate with
-        Photo = Some([|{
-            FileId = fileId1
-            FileUniqueId = fileId1
-            Width = 0
-            Height = 0
-            FileSize = None
-        }|])
+        Photo = Some([| photo |])
     }
 
 let private messageWithMultiplePhotos =
@@ -106,6 +109,33 @@ let private messageWithSticker =
             height = 0,
             isAnimated = false,
             isVideo = false
+        )
+    }
+
+let private messageWithVideoSticker =
+    { messageTemplate with
+        Sticker = Some <| Sticker.Create(
+            fileId = fileId1,
+            fileUniqueId = fileId1,
+            ``type`` =  "",
+            width = 0,
+            height = 0,
+            isAnimated = false,
+            isVideo = true
+        )
+    }
+
+let private messageWithAnimatedSticker =
+    { messageTemplate with
+        Sticker = Some <| Sticker.Create(
+            fileId = fileId2,
+            fileUniqueId = fileId2,
+            ``type`` =  "",
+            width = 0,
+            height = 0,
+            isAnimated = true,
+            isVideo = false,
+            thumb = photo
         )
     }
 
@@ -196,6 +226,12 @@ let databasePhotoTest(): unit = doDatabaseLinkTest fileId1 messageWithPhoto
 
 [<Fact>]
 let databaseStickerTest(): unit = doDatabaseLinkTest fileId1 messageWithSticker
+
+[<Fact>]
+let databaseVideoStickerTest(): unit = doDatabaseLinkTest fileId1 messageWithVideoSticker
+
+[<Fact>]
+let databaseAnimatedStickerTest(): unit = doDatabaseLinkTest fileId1 messageWithAnimatedSticker
 
 [<Fact>]
 let databaseVideoTest(): unit = doDatabaseLinkTest fileId1 messageWithVideo
