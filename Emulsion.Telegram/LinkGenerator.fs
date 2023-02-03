@@ -75,11 +75,22 @@ let private getFileInfos(message: FunogramMessage): FileInfo seq =
             })
         )
 
+    let extractStickerFileInfo: Sticker option -> unit =
+        Option.iter(fun sticker ->
+            if sticker.IsAnimated then
+                // We cannot to preview Telegram's .tgs stickers in browser, so return thumbnail
+                extractFileInfoWithNameAndMimeType "sticker.webp" "image/webp" sticker.Thumb
+            elif sticker.IsVideo then
+                extractFileInfoWithNameAndMimeType "sticker.webm" "video/webm" (Some sticker)
+            else
+                extractFileInfoWithNameAndMimeType "sticker.webp" "image/webp" (Some sticker)
+        )
+
     extractFileInfo message.Document
     extractFileInfo message.Audio
     extractFileInfo message.Animation
     extractPhotoFileInfo message.Photo
-    extractFileInfoWithNameAndMimeType "sticker.jpg" "image/jpeg" message.Sticker
+    extractStickerFileInfo message.Sticker
     extractFileInfo message.Video
     extractFileInfoWithName "voice.ogg" message.Voice
     extractFileInfoWithNameAndMimeType "video.mp4" "video/mp4" message.VideoNote
