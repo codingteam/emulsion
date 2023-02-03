@@ -4,11 +4,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] (2.3.1)
+## [2.3.1] - 2023-02-04
 ### Fixed
-- [#175: Error when passing a relative path to the config file](https://github.com/codingteam/emulsion/issues/175).
+- [#175: Error when passing a relative path to the config file](https://github.com/codingteam/emulsion/issues/175)
+- [#169: Possibly incorrect content type specification for animations](https://github.com/codingteam/emulsion/issues/169)
+
 ### Changed
-- Upgrade Akka to 1.4.46.
+- Upgrade Akka to 1.4.46
+- Portable debug type is now used instead of full
 
 ## [2.3.0] - 2022-11-15
 ### Added
@@ -151,4 +154,5 @@ runtime 2.2.
 [2.1.0]: https://github.com/codingteam/emulsion/compare/v2.0.2...v2.1.0
 [2.2.0]: https://github.com/codingteam/emulsion/compare/v2.1.0...v2.2.0
 [2.3.0]: https://github.com/codingteam/emulsion/compare/v2.2.0...v2.3.0
-[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.3.0...HEAD
+[2.3.1]: https://github.com/codingteam/emulsion/compare/v2.3.0...v2.3.1
+[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.3.1...HEAD
