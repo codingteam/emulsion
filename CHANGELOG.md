@@ -4,6 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- Runtime: upgrade to .NET 7
+- Language: upgrade to F# 7
+
 ## [2.3.1] - 2023-02-04
 ### Fixed
 - [#175: Error when passing a relative path to the config file](https://github.com/codingteam/emulsion/issues/175)
