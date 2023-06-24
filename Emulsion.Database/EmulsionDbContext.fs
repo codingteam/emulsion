@@ -11,6 +11,9 @@ type EmulsionDbContext(options: DbContextOptions) =
     [<DefaultValue>] val mutable private telegramContents: DbSet<TelegramContent>
     member this.TelegramContents with get() = this.telegramContents and set v = this.telegramContents <- v
 
+    [<DefaultValue>] val mutable private archiveEntries: DbSet<ArchiveEntry>
+    member this.ArchiveEntries with get() = this.archiveEntries and set v = this.archiveEntries <- v
+
 /// This type is used by the EFCore infrastructure when creating a new migration.
 type EmulsionDbContextDesignFactory() =
     interface IDesignTimeDbContextFactory<EmulsionDbContext> with

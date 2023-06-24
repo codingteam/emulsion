@@ -1,5 +1,6 @@
 ﻿namespace Emulsion.Database.Entities
 
+open System
 open System.ComponentModel.DataAnnotations
 
 [<CLIMutable>]
@@ -11,4 +12,13 @@ type TelegramContent = {
     FileId: string
     FileName: string
     MimeType: string
+}
+
+[<CLIMutable>]
+type ArchiveEntry = {
+    [<Key>] Id: int64
+    MessageSystemId: string
+    DateTime: DateTimeOffset
+    Sender: string
+    Text: string
 }

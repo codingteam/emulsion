@@ -1,14 +1,17 @@
 module Emulsion.Actors.Core
 
+open System
+open System.Threading.Tasks
+
 open Akka.Actor
 open Serilog
 
 open Emulsion.Messaging
 
-type CoreActor(logger: ILogger, factories: ActorFactories) as this =
+type CoreActor(logger: ILogger, factories: ActorFactories, archive: MessageArchive) as this =
     inherit ReceiveActor()
 
-    do this.Receive<IncomingMessage>(this.OnMessage)
+    do this.ReceiveAsync<IncomingMessage>(Func<_, _> this.OnMessage)
     let mutable xmpp = Unchecked.defaultof<IActorRef>
     let mutable telegram = Unchecked.defaultof<IActorRef>
 
@@ -20,10 +23,14 @@ type CoreActor(logger: ILogger, factories: ActorFactories) as this =
         xmpp <- this.spawn factories.xmppFactory "xmpp"
         telegram <- this.spawn factories.telegramFactory "telegram"
 
-    member this.OnMessage(message : IncomingMessage) : unit =
-        match message with
-        | TelegramMessage msg -> xmpp.Tell(OutgoingMessage msg, this.Self)
-        | XmppMessage msg -> telegram.Tell(OutgoingMessage msg, this.Self)
+    member this.OnMessage(message: IncomingMessage): Task =
+        let self = this.Self
+        task {
+            do! archive.Archive message
+            match message with
+            | TelegramMessage msg -> xmpp.Tell(OutgoingMessage msg, self)
+            | XmppMessage msg -> telegram.Tell(OutgoingMessage msg, self)
+        }
 
 let spawn (logger: ILogger) (factories: ActorFactories) (system: IActorRefFactory) (name: string): IActorRef =
     logger.Information "Core actor spawning…"
