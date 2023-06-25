@@ -27,7 +27,7 @@ type CoreTests(testOutput: ITestOutputHelper) as this =
                       telegramFactory = testActorFactory }
 
     let logger = Logging.xunitLogger testOutput
-    let spawnCore() = Core.spawn logger factories this.Sys "core"
+    let spawnCore() = Core.spawn logger factories this.Sys (MessageArchive None) "core"
 
     [<Fact>]
     member this.``Core actor should spawn successfully``() =

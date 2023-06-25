@@ -6,7 +6,7 @@ open Emulsion.Database
 open Emulsion.Database.Entities
 open Emulsion.Messaging
 
-type MessageArchive(databaseSettings: DatabaseSettings) =
+type MessageArchive(databaseSettings: DatabaseSettings option) =
 
     let convert message =
         let body, messageSystemId =
@@ -27,7 +27,10 @@ type MessageArchive(databaseSettings: DatabaseSettings) =
         }
 
     member _.Archive(message: IncomingMessage): Async<unit> =
-        let message = convert message
-        DataStorage.transaction databaseSettings (fun context ->
-            DataStorage.addAsync context.ArchiveEntries message
-        )
+        match databaseSettings with
+        | None -> async.Return()
+        | Some database ->
+            let message = convert message
+            DataStorage.transaction database (fun context ->
+                DataStorage.addAsync context.ArchiveEntries message
+            )

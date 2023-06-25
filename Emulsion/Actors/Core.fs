@@ -6,6 +6,7 @@ open System.Threading.Tasks
 open Akka.Actor
 open Serilog
 
+open Emulsion
 open Emulsion.Messaging
 
 type CoreActor(logger: ILogger, factories: ActorFactories, archive: MessageArchive) as this =
@@ -32,7 +33,11 @@ type CoreActor(logger: ILogger, factories: ActorFactories, archive: MessageArchi
             | XmppMessage msg -> telegram.Tell(OutgoingMessage msg, self)
         }
 
-let spawn (logger: ILogger) (factories: ActorFactories) (system: IActorRefFactory) (name: string): IActorRef =
+let spawn (logger: ILogger)
+          (factories: ActorFactories)
+          (system: IActorRefFactory)
+          (archive: MessageArchive)
+          (name: string): IActorRef =
     logger.Information "Core actor spawning…"
-    let props = Props.Create<CoreActor>(logger, factories)
+    let props = Props.Create<CoreActor>(logger, factories, archive)
     system.ActorOf(props, name)
