@@ -10,10 +10,55 @@ open Microsoft.EntityFrameworkCore.Migrations
 open Microsoft.EntityFrameworkCore.Storage.ValueConversion
 
 [<DbContext(typeof<EmulsionDbContext>)>]
-type EmulsionDbContextModelSnapshot() =
-    inherit ModelSnapshot()
+[<Migration("20230625203424_ArchiveEntry")>]
+type ArchiveEntry() =
+    inherit Migration()
 
-    override this.BuildModel(modelBuilder: ModelBuilder) =
+    override this.Up(migrationBuilder:MigrationBuilder) =
+        migrationBuilder.CreateTable(
+            name = "ArchiveEntries"
+            ,columns = (fun table -> 
+            {|
+                Id =
+                    table.Column<Int64>(
+                        nullable = false
+                        ,``type`` = "INTEGER"
+                    ).Annotation("Sqlite:Autoincrement", true)
+                MessageSystemId =
+                    table.Column<string>(
+                        nullable = true
+                        ,``type`` = "TEXT"
+                    )
+                DateTime =
+                    table.Column<DateTimeOffset>(
+                        nullable = false
+                        ,``type`` = "TEXT"
+                    )
+                Sender =
+                    table.Column<string>(
+                        nullable = true
+                        ,``type`` = "TEXT"
+                    )
+                Text =
+                    table.Column<string>(
+                        nullable = true
+                        ,``type`` = "TEXT"
+                    )
+            |})
+            ,constraints =
+                (fun table -> 
+                    table.PrimaryKey("PK_ArchiveEntries", (fun x -> (x.Id) :> obj)) |> ignore
+                ) 
+        ) |> ignore
+
+
+    override this.Down(migrationBuilder:MigrationBuilder) =
+        migrationBuilder.DropTable(
+            name = "ArchiveEntries"
+            ) |> ignore
+
+
+    override this.BuildTargetModel(modelBuilder: ModelBuilder) =
         modelBuilder
             .HasAnnotation("ProductVersion", "5.0.10")
             |> ignore
