@@ -29,6 +29,9 @@ Copy `emulsion.example.json` to `emulsion.json` and set the settings. For some s
     "fileCache": {
         "fileSizeLimitBytes": 1048576,
         "totalCacheSizeLimitBytes": 20971520
+    },
+    "messageArchive": {
+        "isEnabled": true
     }
 }
 ```
@@ -39,7 +42,9 @@ Note that `pingInterval` of `null` disables XMPP ping support.
 
 `telegram.messageThreadId` allows to connect the bot to a particular message thread: any messages from the other threads will be ignored, and the bot will send its messages to the selected thread only.
 
-### Telegram Content Proxy
+`messageArchive.isEnabled` will enable or disable the message archive functionality. If enabled, the bot will save all the incoming messages to the database (so, `database` section from the next section is required for that to work).
+
+### Telegram Content Proxy and Web Service
 
 There's Telegram content proxy support, for XMPP users to access Telegram content without directly opening links on t.me.
 

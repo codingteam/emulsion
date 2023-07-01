@@ -9,7 +9,7 @@ open Serilog
 open Emulsion
 open Emulsion.Messaging
 
-type CoreActor(logger: ILogger, factories: ActorFactories, archive: MessageArchive) as this =
+type CoreActor(logger: ILogger, factories: ActorFactories, archive: MessageArchive option) as this =
     inherit ReceiveActor()
 
     do this.ReceiveAsync<IncomingMessage>(Func<_, _> this.OnMessage)
@@ -27,7 +27,10 @@ type CoreActor(logger: ILogger, factories: ActorFactories, archive: MessageArchi
     member this.OnMessage(message: IncomingMessage): Task =
         let self = this.Self
         task {
-            do! archive.Archive message
+            match archive with
+            | Some a -> do! a.Archive message
+            | None -> ()
+
             match message with
             | TelegramMessage msg -> xmpp.Tell(OutgoingMessage msg, self)
             | XmppMessage msg -> telegram.Tell(OutgoingMessage msg, self)
@@ -36,7 +39,7 @@ type CoreActor(logger: ILogger, factories: ActorFactories, archive: MessageArchi
 let spawn (logger: ILogger)
           (factories: ActorFactories)
           (system: IActorRefFactory)
-          (archive: MessageArchive)
+          (archive: MessageArchive option)
           (name: string): IActorRef =
     logger.Information "Core actor spawning…"
     let props = Props.Create<CoreActor>(logger, factories, archive)

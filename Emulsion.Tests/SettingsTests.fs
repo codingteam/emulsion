@@ -49,6 +49,9 @@ let private testConfiguration = {
     Log = {
         Directory = "/tmp/"
     }
+    MessageArchive = {
+        IsEnabled = false
+    }
     Database = None
     Hosting = None
     FileCache = None

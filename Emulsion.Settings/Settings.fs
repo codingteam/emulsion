@@ -41,6 +41,10 @@ type FileCacheSettings = {
     TotalCacheSizeLimitBytes: uint64
 }
 
+type MessageArchiveSettings = {
+    IsEnabled: bool
+}
+
 type EmulsionSettings = {
     Xmpp: XmppSettings
     Telegram: TelegramSettings
@@ -48,6 +52,7 @@ type EmulsionSettings = {
     Database: DatabaseSettings option
     Hosting: HostingSettings option
     FileCache: FileCacheSettings option
+    MessageArchive: MessageArchiveSettings
 }
 
 let defaultConnectionTimeout = TimeSpan.FromMinutes 5.0
@@ -64,6 +69,7 @@ let private readTimeSpan defaultVal key section =
     |> Option.defaultValue defaultVal
 
 let read (config : IConfiguration) : EmulsionSettings =
+    let boolOpt: string -> bool option = Option.ofObj >> Option.map bool.Parse
     let int64Opt: string -> int64 option = Option.ofObj >> Option.map int64
     let uint64OrDefault value ``default`` =
         value
@@ -114,10 +120,18 @@ let read (config : IConfiguration) : EmulsionSettings =
             FileSizeLimitBytes = uint64OrDefault section["fileSizeLimitBytes"] (1024UL * 1024UL)
             TotalCacheSizeLimitBytes = uint64OrDefault section["totalCacheSizeLimitBytes"] (20UL * 1024UL * 1024UL)
         })
+    let readMessageArchive(section: IConfigurationSection) =
+        Option.ofObj section
+        |> Option.map(fun section -> {
+            IsEnabled = section["isEnabled"] |> boolOpt |> Option.defaultValue false
+        })
+        |> Option.defaultValue { IsEnabled = false }
 
     { Xmpp = readXmpp <| config.GetSection("xmpp")
       Telegram = readTelegram <| config.GetSection("telegram")
       Log = readLog <| config.GetSection "log"
       Database = readDatabase <| config.GetSection "database"
       Hosting = readHosting <| config.GetSection "hosting"
-      FileCache = readFileCache <| config.GetSection "fileCache" }
+      FileCache = readFileCache <| config.GetSection "fileCache"
+      MessageArchive = readMessageArchive <| config.GetSection "messageArchive" }
+

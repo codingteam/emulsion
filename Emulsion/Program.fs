@@ -85,7 +85,10 @@ let private startApp config =
                 let factories = { xmppFactory = Xmpp.spawn xmppLogger xmpp
                                   telegramFactory = Telegram.spawn telegramLogger telegram }
                 logger.Information "Core preparation…"
-                let archive = MessageArchive config.Database
+                let archive =
+                    match config.Database, config.MessageArchive.IsEnabled with
+                    | Some database, true -> Some <| MessageArchive database
+                    | _ -> None
                 let core = Core.spawn logger factories system archive "core"
                 logger.Information "Message systems preparation…"
                 let! telegramSystem = startMessageSystem logger telegram core.Tell
