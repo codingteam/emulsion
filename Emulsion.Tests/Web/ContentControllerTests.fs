@@ -43,7 +43,7 @@ type ContentControllerTests(output: ITestOutputHelper) =
             use loggerFactory = new SerilogLoggerFactory(logger)
             let logger = loggerFactory.CreateLogger<ContentController>()
             use context = new EmulsionDbContext(databaseSettings.ContextOptions)
-            let controller = ContentController(logger, hostingSettings, telegramClient, fileCache, context)
+            let controller = ContentController(logger, hostingSettings, telegramClient, (fun () -> fileCache), context)
             return! testAction controller
         })
     })

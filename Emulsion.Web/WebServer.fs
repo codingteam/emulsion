@@ -1,5 +1,6 @@
 module Emulsion.Web.WebServer
 
+open System
 open System.Threading.Tasks
 
 open Microsoft.AspNetCore.Builder
@@ -25,7 +26,7 @@ let run (logger: ILogger)
     builder.Services
         .AddSingleton(hostingSettings)
         .AddSingleton(telegram)
-        .AddSingleton(fileCache)
+        .AddSingleton<Func<FileCache option>>(Func<_>(fun () -> fileCache))
         .AddTransient<EmulsionDbContext>(fun _ -> new EmulsionDbContext(databaseSettings.ContextOptions))
         .AddControllers()
         .AddApplicationPart(typeof<ContentController>.Assembly)

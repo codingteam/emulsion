@@ -1,5 +1,6 @@
 ﻿namespace Emulsion.Web
 
+open System
 open System.Threading.Tasks
 
 open Microsoft.AspNetCore.Mvc
@@ -16,7 +17,7 @@ open Emulsion.Telegram
 type ContentController(logger: ILogger<ContentController>,
                        configuration: HostingSettings,
                        telegram: ITelegramClient,
-                       fileCache: FileCache option,
+                       fileCache: Func<FileCache option>,
                        context: EmulsionDbContext) =
     inherit ControllerBase()
 
@@ -40,7 +41,7 @@ type ContentController(logger: ILogger<ContentController>,
                 logger.LogWarning $"Content \"{contentId}\" not found in content storage."
                 return this.NotFound() :> IActionResult
             | Some content ->
-                match fileCache with
+                match fileCache.Invoke() with
                 | None ->
                     match content.ChatUserName with
                     | "" -> return UnprocessableEntityResult()

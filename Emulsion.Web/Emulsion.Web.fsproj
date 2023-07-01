@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="ContentController.fs" />
+    <Compile Include="HistoryController.fs" />
     <Compile Include="WebServer.fs" />
   </ItemGroup>
 
