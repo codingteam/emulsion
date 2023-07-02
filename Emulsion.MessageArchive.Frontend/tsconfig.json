@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "es2016",
+        "module": "esnext",
+        "forceConsistentCasingInFileNames": true,
+        "jsx": "react",
+        "strict": true,
+        "skipLibCheck": true,
+        "noEmitOnError": true,
+        "allowSyntheticDefaultImports": true
+    }
+}
