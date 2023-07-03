@@ -1,0 +1,3 @@
+﻿type Statistics = {
+    messageCount: number;
+}

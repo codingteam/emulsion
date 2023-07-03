@@ -7,12 +7,13 @@
     <ItemGroup>
         <Content Include="*.html" />
         <Content Include="*.tsx" />
+        <Content Include="*.d.ts" />
         <None Include="*.json" />
     </ItemGroup>
 
     <Target Name="NpmBuild" BeforeTargets="Build"
             Inputs="@(Content)"
-            Outputs="bin/index.html">
+            Outputs="bin\index.html">
         <Exec Command="npm run build" />
     </Target>
 </Project>
