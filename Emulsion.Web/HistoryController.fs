@@ -23,7 +23,7 @@ type Message = {
 }
 
 [<ApiController>]
-[<Route("history")>]
+[<Route("api/history")>]
 type HistoryController(context: EmulsionDbContext) =
     inherit ControllerBase()
 

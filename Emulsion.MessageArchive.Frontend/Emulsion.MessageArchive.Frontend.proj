@@ -5,6 +5,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="*.*" />
+        <Content Include="*.html" />
+        <Content Include="*.tsx" />
+        <None Include="*.json" />
     </ItemGroup>
+
+    <Target Name="NpmBuild" BeforeTargets="Build"
+            Inputs="@(Content)"
+            Outputs="bin/index.html">
+        <Exec Command="npm run build" />
+    </Target>
 </Project>

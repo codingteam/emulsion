@@ -42,6 +42,9 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.ContentProxy", "Emulsion.ContentProxy\Emulsion.ContentProxy.fsproj", "{A520FD41-A1CB-4062-AFBC-62A8BED12E81}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Web", "Emulsion.Web\Emulsion.Web.fsproj", "{8EFD8F6C-43D3-4CE0-ADB8-63401E4A64FE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A0FA9B40-4FD3-4EF9-AFCF-2CB7445A677E} = {A0FA9B40-4FD3-4EF9-AFCF-2CB7445A677E}
+	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Settings", "Emulsion.Settings\Emulsion.Settings.fsproj", "{88331E40-EF70-4AF1-99CA-8A849208CAB7}"
 EndProject

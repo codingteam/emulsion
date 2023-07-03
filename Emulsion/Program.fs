@@ -75,7 +75,7 @@ let private startApp config =
                     match config.Hosting, config.Database with
                     | Some hosting, Some database ->
                         logger.Information "Initializing the web server…"
-                        Some <| WebServer.run logger hosting database telegram fileCacheOption
+                        Some <| WebServer.run logger hosting database config.MessageArchive telegram fileCacheOption
                     | _ -> None
 
                 logger.Information "Actor system preparation…"
