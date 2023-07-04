@@ -19,7 +19,6 @@
         <Exec Command="npm install" />
         <Touch Files="$(IntermediateOutputPath)\npm-build.timestamp" AlwaysCreate="true" />
     </Target>
-
     
     <Target Name="NpmBuild" BeforeTargets="Build"
             Inputs="@(Content)"
