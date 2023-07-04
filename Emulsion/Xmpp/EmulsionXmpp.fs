@@ -35,7 +35,7 @@ let initializeLogging (logger: ILogger) (client: IXmppClient): IXmppClient =
     client.AddSignedInHandler lt (fun _ -> logger.Information("Signed in to the server"))
     client.AddElementHandler lt (fun e ->
         let direction = if e.IsInput then "incoming" else "outgoing"
-        logger.Verbose("XMPP stanza ({Direction}): {Stanza}", direction, e.Stanza)
+        logger.Information("XMPP stanza ({Direction}): {Stanza}", direction, e.Stanza)
     )
     client
 

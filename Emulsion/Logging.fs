@@ -41,7 +41,7 @@ let createRootLogger (settings: LogSettings) =
 
     let config =
         LoggerConfiguration()
-            .MinimumLevel.Verbose()
+            .MinimumLevel.Information()
             .WriteTo.Console()
             |> addFileLogger (Some Telegram) "telegram.log"
             |> addFileLogger (Some Xmpp) "xmpp.log"

@@ -8,9 +8,19 @@
         <Content Include="*.html" />
         <Content Include="*.tsx" />
         <Content Include="*.d.ts" />
+        <Content Include="*.less" />
         <None Include="*.json" />
     </ItemGroup>
 
+    <Target Name="NpmInstall"
+            BeforeTargets="NpmBuild"
+            Inputs="package.json;package-lock.json"
+            Outputs="$(IntermediateOutputPath)\npm-build.timestamp">
+        <Exec Command="npm install" />
+        <Touch Files="$(IntermediateOutputPath)\npm-build.timestamp" AlwaysCreate="true" />
+    </Target>
+
+    
     <Target Name="NpmBuild" BeforeTargets="Build"
             Inputs="@(Content)"
             Outputs="bin\index.html">

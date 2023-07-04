@@ -5,6 +5,7 @@
     "source": "index.html",
     "type": "module",
     "devDependencies": {
+        "@parcel/transformer-less": "^2.9.3",
         "@types/react": "^18.2.14",
         "@types/react-dom": "^18.2.6",
         "parcel": "^2.9.3",

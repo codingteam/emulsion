@@ -27,6 +27,7 @@ let run (logger: ILogger)
         builder.Environment.WebRootFileProvider <- new PhysicalFileProvider(builder.Environment.WebRootPath)
 
     builder.Host.UseSerilog(logger)
+
     |> ignore
 
     builder.Services
