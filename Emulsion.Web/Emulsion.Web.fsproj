@@ -8,7 +8,6 @@
     <Compile Include="ContentController.fs" />
     <Compile Include="HistoryController.fs" />
     <Compile Include="WebServer.fs" />
-    <Content Include="..\Emulsion.MessageArchive.Frontend\bin\**\*" LinkBase="wwwroot" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
   <ItemGroup>
