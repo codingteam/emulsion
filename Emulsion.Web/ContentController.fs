@@ -13,7 +13,7 @@ open Emulsion.Settings
 open Emulsion.Telegram
 
 [<ApiController>]
-[<Route("api/content")>]
+[<Route("content")>]
 type ContentController(logger: ILogger<ContentController>,
                        configuration: HostingSettings,
                        telegram: ITelegramClient,
