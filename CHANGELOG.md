@@ -4,6 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2023-07-06
+### Fixed
+- Restore old content URL on `/content` instead of new `/api/content`
+- Fix the frontend content search procedure for the message archive
+
 ## [2.4.0] - 2023-07-06
 ### Changed
 - Runtime: upgrade to .NET 7
@@ -163,4 +168,5 @@ runtime 2.2.
 [2.3.0]: https://github.com/codingteam/emulsion/compare/v2.2.0...v2.3.0
 [2.3.1]: https://github.com/codingteam/emulsion/compare/v2.3.0...v2.3.1
 [2.4.0]: https://github.com/codingteam/emulsion/compare/v2.3.1...v2.4.0
-[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.4.0...HEAD
+[2.4.1]: https://github.com/codingteam/emulsion/compare/v2.4.0...v2.4.1
+[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.4.1...HEAD
