@@ -2,6 +2,7 @@ module Emulsion.Web.WebServer
 
 open System
 open System.IO
+open System.Reflection
 open System.Threading.Tasks
 
 open Microsoft.AspNetCore.Builder
@@ -23,7 +24,10 @@ let run (logger: ILogger)
         : Task =
     let builder = WebApplication.CreateBuilder(WebApplicationOptions())
     if messageArchiveSettings.IsEnabled then
-        builder.Environment.WebRootPath <- Path.Combine(Path.GetDirectoryName Environment.ProcessPath, "wwwroot")
+        builder.Environment.WebRootPath <-
+            let assemblyPath = Assembly.GetEntryAssembly().Location
+            let appDirectory = Path.GetDirectoryName assemblyPath
+            Path.Combine(appDirectory, "wwwroot")
         builder.Environment.WebRootFileProvider <- new PhysicalFileProvider(builder.Environment.WebRootPath)
 
     builder.Host.UseSerilog(logger)
