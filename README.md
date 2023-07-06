@@ -31,7 +31,7 @@ Copy `emulsion.example.json` to `emulsion.json` and set the settings. For some s
         "totalCacheSizeLimitBytes": 20971520
     },
     "messageArchive": {
-        "isEnabled": true
+        "isEnabled": false
     }
 }
 ```
