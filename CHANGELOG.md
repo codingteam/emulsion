@@ -8,6 +8,7 @@ Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 - Restore old content URL on `/content` instead of new `/api/content`
 - Fix the frontend content search procedure for the message archive
+- Add the frontend content to the Docker image
 
 ## [2.4.0] - 2023-07-06
 ### Changed
