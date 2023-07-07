@@ -3,6 +3,7 @@ import {render} from 'react-dom';
 
 class LoadedPage {
     constructor(
+        public readonly limit: number,
         public readonly statistics: Statistics,
         public readonly pageIndex: number,
         public readonly messages: Message[]
@@ -31,31 +32,42 @@ const getMessages = async (offset: number, limit: number): Promise<Message[]> =>
     return await response.json();
 }
 
-const DefaultLimit = 10;
-
-const getPage = async (pageIndex: number): Promise<LoadedPage> => {
-    const offset = pageIndex * DefaultLimit;
+const getPage = async (pageIndex: number, limit: number): Promise<LoadedPage> => {
+    const offset = pageIndex * limit;
     const statistics = await getStatistics();
-    const messages = await getMessages(offset, DefaultLimit);
-    return new LoadedPage(statistics, pageIndex, messages);
+    const messages = await getMessages(offset, limit);
+    return new LoadedPage(limit, statistics, pageIndex, messages);
 }
 
-const loadPage = (index: number, setState: (state: State) => void) => {
-    getPage(index)
+const loadPage = (index: number, limit: number, setState: (state: State) => void) => {
+    getPage(index, limit)
         .then(page => setState(page))
         .catch(error => setState(new ErrorState(error.message)));
 }
 
+const LimitControl = ({limit, onChange}: {limit: number, onChange: (limit: number) => void}) => {
+    const values = [
+        25,
+        50,
+        100,
+        500
+    ]
+    return <select defaultValue={limit} onChange={e => onChange(parseInt(e.target.value))}>
+        {values.map(v => <option value={v}>{v}</option>)}
+    </select>
+};
+
 const PageControls = ({page, setState}: {page: LoadedPage, setState: (state: State) => void}) => {
-    const lastPageNumber= Math.ceil(page.statistics.messageCount / DefaultLimit);
+    const lastPageNumber= Math.ceil(page.statistics.messageCount / page.limit);
     const lastPageIndex= lastPageNumber - 1;
     return <>
         Count: {page.statistics.messageCount}<br/>
-        Page: {page.pageIndex + 1} of {Math.ceil(page.statistics.messageCount / DefaultLimit)}<br/>
-        <button onClick={() => loadPage(0, setState)}>⇐</button>
-        <button onClick={() => loadPage(page.pageIndex - 1, setState)}>←</button>
-        <button onClick={() => loadPage(page.pageIndex + 1, setState)}>→</button>
-        <button onClick={() => loadPage(lastPageIndex, setState)}>⇒</button>
+        Page: {page.pageIndex + 1} of {Math.ceil(page.statistics.messageCount / page.limit)}<br/>
+        Show messages per page: <LimitControl limit={page.limit} onChange={(limit) => loadPage(0, limit, setState)}/><br/>
+        <button onClick={() => loadPage(0, page.limit, setState)}>⇐</button>
+        <button onClick={() => loadPage(page.pageIndex - 1, page.limit, setState)}>←</button>
+        <button onClick={() => loadPage(page.pageIndex + 1, page.limit, setState)}>→</button>
+        <button onClick={() => loadPage(lastPageIndex, page.limit, setState)}>⇒</button>
     </>;
 }
 
@@ -82,7 +94,7 @@ const MessageList = ({list}: {list: Message[]}) => <div className="message-list"
 const App = () => {
     const [state, setState] = useState<State>('Loading');
     if (state === 'Loading') {
-        loadPage(0, setState)
+        loadPage(0, 100, setState)
     }
 
     if (state === 'Loading') {

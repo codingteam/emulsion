@@ -6,7 +6,9 @@ Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] (2.4.2)
 ### Fixed
-- Message archive entries are stored by id in a stable way.
+- Message archive entries are stored by id in a stable way
+### Added
+- Message archive: it's now possible to select the message amount shown per page.
 
 ## [2.4.1] - 2023-07-06
 ### Fixed
