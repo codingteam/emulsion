@@ -4,7 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] (2.4.2)
+## [2.4.2] - 2023-07-07
 ### Fixed
 - Message archive entries are stored by id in a stable way
 ### Added
@@ -176,4 +176,5 @@ runtime 2.2.
 [2.3.1]: https://github.com/codingteam/emulsion/compare/v2.3.0...v2.3.1
 [2.4.0]: https://github.com/codingteam/emulsion/compare/v2.3.1...v2.4.0
 [2.4.1]: https://github.com/codingteam/emulsion/compare/v2.4.0...v2.4.1
-[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.4.1...HEAD
+[2.4.2]: https://github.com/codingteam/emulsion/compare/v2.4.1...v2.4.2
+[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.4.2...HEAD
