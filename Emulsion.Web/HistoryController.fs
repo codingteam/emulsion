@@ -45,6 +45,12 @@ type HistoryController(context: EmulsionDbContext) =
 
     [<HttpGet("messages")>]
     member this.GetMessages(offset: int, limit: int): Task<IEnumerable<Message>> = task {
-        let! messages = context.ArchiveEntries.Skip(offset).Take(limit).ToListAsync()
+        let! messages =
+            (query {
+                for entry in context.ArchiveEntries do
+                sortBy entry.Id
+                skip offset
+                take limit
+            }).ToListAsync()
         return messages |> Seq.map convertMessage
     }
