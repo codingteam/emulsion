@@ -54,7 +54,11 @@ let private createReplyMessage from text replyTo : Funogram.Telegram.Types.Messa
 let private createForwardedMessage from (forwarded: Funogram.Telegram.Types.Message) =
     { defaultMessage with
         From = Some from
-        ForwardFrom = forwarded.From
+        ForwardOrigin =
+            forwarded.From
+            |> Option.map (
+                fun u -> User(MessageOriginUser.Create(``type`` = "user", date = forwarded.Date, senderUser = u))
+            )
         Text = forwarded.Text }
 
 let private createStickerMessage from (emoji: string option) =
@@ -83,17 +87,13 @@ let private createPhoto() = [|
     }
 |]
 
-let private createAnimation(): Animation = {
-    FileId = ""
-    FileUniqueId = ""
-    Width = 0
-    Height = 0
-    Duration = 0
-    Thumb = None
-    FileName = None
-    MimeType = None
-    FileSize = None
-}
+let private createAnimation() = Animation.Create(
+    fileId = "",
+    fileUniqueId = "",
+    width = 0L,
+    height = 0L,
+    duration = 0L
+)
 
 let private createMessageWithCaption from caption =
     { defaultMessage with
@@ -356,7 +356,15 @@ module ReadMessageTests =
     [<Fact>]
     let forwardFromHiddenUser(): unit =
         let message = { createEmptyMessage forwardingUser with
-                            ForwardSenderName = Some "Hidden user"
+                            ForwardOrigin = Some(
+                                HiddenUser(
+                                    MessageOriginHiddenUser.Create(
+                                        ``type`` = "hidden_user",
+                                        date = DateTime.MinValue,
+                                        senderUserName = "Hidden user"
+                                    )
+                                )
+                            )
                             Text = Some "test" }
 
         Assert.Equal(
@@ -367,7 +375,15 @@ module ReadMessageTests =
     [<Fact>]
     let forwardFromChat(): unit =
         let message = { createEmptyMessage forwardingUser with
-                            ForwardFromChat = Some currentChat
+                            ForwardOrigin = Some(
+                                MessageOrigin.Chat(
+                                    MessageOriginChat.Create(
+                                        ``type`` = "chat",
+                                        date = DateTime.MinValue,
+                                        senderChat = currentChat
+                                    )
+                                )
+                            )
                             Text = Some "test" }
 
         Assert.Equal(

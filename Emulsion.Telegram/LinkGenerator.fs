@@ -40,9 +40,9 @@ type private WithId<'T when 'T: (member FileId: string)> = 'T
 type private WithFileName<'T when 'T: (member FileName: string option)> = 'T
 type private WithMimeType<'T when 'T: (member MimeType: string option)> = 'T
 
-let inline private extractFileInfo<'T 
-                        when WithId<'T> 
-                        and WithFileName<'T> 
+let inline private extractFileInfo<'T
+                        when WithId<'T>
+                        and WithFileName<'T>
                         and WithMimeType<'T>>
                         : 'T option -> FileInfo option =
     Option.map(fun file -> {
@@ -51,10 +51,10 @@ let inline private extractFileInfo<'T
         MimeType = file.MimeType
     })
 
-let inline private extractFileInfoWithName<'T 
-                                when WithId<'T> 
-                                and WithMimeType<'T>> 
-                                (fileName: string) 
+let inline private extractFileInfoWithName<'T
+                                when WithId<'T>
+                                and WithMimeType<'T>>
+                                (fileName: string)
                                 : 'T option -> FileInfo option =
     Option.map(fun file -> {
         FileId = file.FileId
@@ -62,8 +62,8 @@ let inline private extractFileInfoWithName<'T
         MimeType = file.MimeType
     })
 
-let inline private extractFileInfoWithNameAndMimeType<'T when WithId<'T>> 
-                                        (fileName: string) 
+let inline private extractFileInfoWithNameAndMimeType<'T when WithId<'T>>
+                                        (fileName: string)
                                         (mimeType: string)
                                         : 'T option -> FileInfo option =
     Option.map(fun file -> {
@@ -89,14 +89,14 @@ let private extractStickerFileInfo: Sticker option -> FileInfo option =
     Option.bind(fun sticker ->
         if sticker.IsAnimated then
             // We cannot to preview Telegram's .tgs stickers in browser, so return thumbnail
-            extractFileInfoWithNameAndMimeType "sticker.webp" "image/webp" sticker.Thumb
+            extractFileInfoWithNameAndMimeType "sticker.webp" "image/webp" sticker.Thumbnail
         elif sticker.IsVideo then
             extractFileInfoWithNameAndMimeType "sticker.webm" "video/webm" (Some sticker)
         else
             extractFileInfoWithNameAndMimeType "sticker.webp" "image/webp" (Some sticker)
     )
 
-let private getFileInfos(message: FunogramMessage): FileInfo seq = 
+let private getFileInfos(message: FunogramMessage): FileInfo seq =
     Seq.choose id <| seq {
         extractFileInfo message.Document
         extractFileInfo message.Audio

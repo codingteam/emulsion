@@ -4,12 +4,10 @@ open System
 
 open Emulsion.ContentProxy
 open Funogram.Telegram.Types
-open Serilog.Core
 open Xunit
 
 open Emulsion.Database
 open Emulsion.Settings
-open Emulsion.Telegram
 open Emulsion.TestFramework
 
 let private hostingSettings = {
@@ -46,7 +44,7 @@ let private messageWithDocument =
         Document = Some {
             FileId = fileId1
             FileUniqueId = fileId1
-            Thumb = None
+            Thumbnail = None
             FileName = None
             MimeType = None
             FileSize = None
@@ -64,23 +62,19 @@ let private messageWithAudio =
             Title = None
             MimeType = None
             FileSize = None
-            Thumb = None
+            Thumbnail = None
         }
     }
 
 let private messageWithAnimation =
     { messageTemplate with
-        Animation = Some {
-            FileId = fileId1
-            FileUniqueId = fileId1
-            Width = 0
-            Height = 0
-            Duration = 0
-            Thumb = None
-            FileName = None
-            MimeType = None
-            FileSize = None
-        }
+        Animation = Some <| Animation.Create(
+            fileId = fileId1,
+            fileUniqueId = fileId1,
+            width = 0L,
+            height = 0L,
+            duration = 0L
+        )
     }
 
 let private messageWithPhoto =
@@ -135,7 +129,7 @@ let private messageWithAnimatedSticker =
             height = 0,
             isAnimated = true,
             isVideo = false,
-            thumb = photo
+            thumbnail = photo
         )
     }
 
@@ -148,7 +142,7 @@ let private messageWithVideo =
             Width = 0
             Height = 0
             Duration = 0
-            Thumb = None
+            Thumbnail = None
             MimeType = None
             FileSize = None
         }
@@ -172,7 +166,7 @@ let private messageWithVideoNote =
             FileUniqueId = fileId1
             Length = 0
             Duration = 0
-            Thumb = None
+            Thumbnail = None
             FileSize = None
         }
     }
