@@ -2,12 +2,14 @@
 
 open System
 
-open Emulsion.ContentProxy
 open Funogram.Telegram.Types
+open Serilog.Core
 open Xunit
 
+open Emulsion.ContentProxy
 open Emulsion.Database
 open Emulsion.Settings
+open Emulsion.Telegram
 open Emulsion.TestFramework
 
 let private hostingSettings = {
