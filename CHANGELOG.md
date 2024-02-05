@@ -4,6 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.3] - 2024-02-06
+### Fixed
+- [#190](https://github.com/codingteam/emulsion/issues/190): a quotation message caused the bot to fail the parsing.
+
 ## [2.4.2] - 2023-07-07
 ### Fixed
 - Message archive entries are stored by id in a stable way
@@ -177,4 +181,5 @@ runtime 2.2.
 [2.4.0]: https://github.com/codingteam/emulsion/compare/v2.3.1...v2.4.0
 [2.4.1]: https://github.com/codingteam/emulsion/compare/v2.4.0...v2.4.1
 [2.4.2]: https://github.com/codingteam/emulsion/compare/v2.4.1...v2.4.2
-[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.4.2...HEAD
+[2.4.3]: https://github.com/codingteam/emulsion/compare/v2.4.2...v2.4.3
+[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.4.3...HEAD
