@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		NuGet.Config = NuGet.Config
 		Dockerfile = Dockerfile
 		MAINTAINERSHIP.md = MAINTAINERSHIP.md
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Tests", "Emulsion.Tests\Emulsion.Tests.fsproj", "{1B3B65DD-FD58-45FA-B6FF-8532B513A7D9}"
