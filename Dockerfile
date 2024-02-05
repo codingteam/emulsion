@@ -7,6 +7,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
 
 WORKDIR /app
 
+COPY ./Directory.Build.props ./
 COPY ./Emulsion/Emulsion.fsproj ./Emulsion/
 COPY ./Emulsion.ContentProxy/Emulsion.ContentProxy.fsproj ./Emulsion.ContentProxy/
 COPY ./Emulsion.Database/Emulsion.Database.fsproj ./Emulsion.Database/
