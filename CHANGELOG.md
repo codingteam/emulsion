@@ -5,6 +5,9 @@ and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
 ## [2.4.3] - 2024-02-06
+### Changed
+- **(Requirement update!)** Update to .NET 8.
+
 ### Fixed
 - [#190](https://github.com/codingteam/emulsion/issues/190): a quotation message caused the bot to fail the parsing.
 

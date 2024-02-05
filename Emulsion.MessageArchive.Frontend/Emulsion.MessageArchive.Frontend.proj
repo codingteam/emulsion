@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.Build.NoTargets/3.7.0">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,7 +19,7 @@
         <Exec Command="npm install" />
         <Touch Files="$(IntermediateOutputPath)\npm-build.timestamp" AlwaysCreate="true" />
     </Target>
-    
+
     <Target Name="NpmBuild" BeforeTargets="Build"
             Inputs="@(Content)"
             Outputs="bin\index.html">
