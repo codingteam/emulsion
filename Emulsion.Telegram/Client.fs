@@ -22,7 +22,11 @@ type Client(ctx: ServiceContext,
             hostingSettings: HostingSettings option) =
     inherit MessageSystemBase(ctx, cancellationToken)
 
-    let botConfig = { Funogram.Telegram.Bot.Config.defaultConfig with Token = telegramSettings.Token }
+    let botConfig = {
+        Funogram.Telegram.Bot.Config.defaultConfig with
+            Token = telegramSettings.Token
+            OnError = fun e -> ctx.Logger.Error(e, "Exception in Telegram message processing")
+    }
 
     interface ITelegramClient with
         member this.GetFileInfo(fileId) = async {
