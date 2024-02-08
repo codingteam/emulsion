@@ -26,6 +26,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 ProjectSection(SolutionItems) = preProject
 	.github\workflows\main.yml = .github\workflows\main.yml
 	.github\workflows\docker.yml = .github\workflows\docker.yml
+	.github\workflows\release.yml = .github\workflows\release.yml
 EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Database", "Emulsion.Database\Emulsion.Database.fsproj", "{0111F688-1AE2-4B5D-BF46-D60B64078788}"

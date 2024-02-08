@@ -1,0 +1,44 @@
+name: Release
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: '0 0 * * 6' # every Saturday
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Read version from Git ref
+        id: version
+        shell: pwsh
+        run: echo "version=$(if ($env:GITHUB_REF.StartsWith('refs/tags/v')) { $env:GITHUB_REF -replace '^refs/tags/v', '' } else { 'next' })" >> $env:GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read the changelog
+        uses: ForNeVeR/ChangelogAutomation.action@v1
+        with:
+          input: ./CHANGELOG.md
+          output: ./changelog-section.md
+
+      - name: Upload the changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-section.md
+          path: ./changelog-section.md
+
+      - name: Create a release
+        if: startsWith(github.ref, 'refs/tags/v')
+        # noinspection SpellCheckingInspection
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Emulsion v${{ steps.version.outputs.version }}
+          body_path: ./changelog-section.md
