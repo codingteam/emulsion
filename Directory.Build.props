@@ -7,6 +7,6 @@
         <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
     </PropertyGroup>
     <ItemGroup Condition="$(MSBuildPRojectExtension) == '.fsproj'">
-        <PackageReference Include="FSharp.Core" Version="8.0.101" />
+        <PackageReference Include="FSharp.Core" Version="8.0.300" />
     </ItemGroup>
 </Project>
