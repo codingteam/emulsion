@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="EntityFrameworkCore.FSharp" Version="5.0.3" />
+      <PackageReference Include="EntityFrameworkCore.FSharp" Version="6.0.7" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.17">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
