@@ -11,11 +11,9 @@ open Serilog
 type MessagingCore(
     lifetime: Lifetime,
     logger: ILogger,
-    archive: MessageArchive option,
-    telegram: IMessageSystem,
-    xmpp: IMessageSystem
+    archive: MessageArchive option
 ) =
-    let processMessage message ct =
+    let processMessage telegram xmpp message ct =
         task {
             match archive with
             | Some a -> do! Async.StartAsTask(a.Archive message, cancellationToken = ct)
@@ -29,14 +27,14 @@ type MessagingCore(
     let messages = Channel.CreateUnbounded()
     do lifetime.OnTermination(fun () -> messages.Writer.Complete()) |> ignore
 
-    let processLoop(): Task = task {
+    let processLoop telegram xmpp: Task = task {
         logger.Information("Core workflow starting.")
 
         let ct = lifetime.ToCancellationToken()
         while lifetime.IsAlive do
             try
                 let! m = messages.Reader.ReadAsync ct
-                do! lifetime.ExecuteAsync(fun() -> processMessage m ct)
+                do! lifetime.ExecuteAsync(fun() -> processMessage telegram xmpp m ct)
             with
             | :? OperationCanceledException -> ()
             | error -> logger.Error(error, "Core workflow exception.")
@@ -44,7 +42,8 @@ type MessagingCore(
         logger.Information("Core workflow terminating.")
     }
 
-    do Task.Run(processLoop) |> ignore
+    member _.Start(telegram: IMessageSystem, xmpp: IMessageSystem) =
+        Task.Run(fun() -> processLoop telegram xmpp) |> ignore
 
     member _.ReceiveMessage(message: IncomingMessage): unit =
         let result = messages.Writer.TryWrite message
