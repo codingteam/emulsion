@@ -5,10 +5,10 @@ open System.IO
 open System.Security.Cryptography
 
 open Akka.Actor
+open JetBrains.Lifetimes
 open Microsoft.Extensions.Configuration
 open Serilog
 
-open Emulsion.Actors
 open Emulsion.ContentProxy
 open Emulsion.Database
 open Emulsion.Messaging.MessageSystem
@@ -82,17 +82,18 @@ let private startApp config =
                 use system = ActorSystem.Create("emulsion")
                 logger.Information "Clients preparation…"
 
-                let factories = { xmppFactory = Xmpp.spawn xmppLogger xmpp
-                                  telegramFactory = Telegram.spawn telegramLogger telegram }
                 logger.Information "Core preparation…"
                 let archive =
                     match config.Database, config.MessageArchive.IsEnabled with
                     | Some database, true -> Some <| MessageArchive database
                     | _ -> None
-                let core = Core.spawn logger factories system archive "core"
+                use lt = Lifetime.Define "app"
+                let core = MessagingCore(lt.Lifetime, logger, archive)
                 logger.Information "Message systems preparation…"
-                let! telegramSystem = startMessageSystem logger telegram core.Tell
-                let! xmppSystem = startMessageSystem logger xmpp core.Tell
+                let! telegramSystem = startMessageSystem logger telegram core.ReceiveMessage
+                let! xmppSystem = startMessageSystem logger xmpp core.ReceiveMessage
+                logger.Information "Starting the core…"
+                core.Start(telegram, xmpp)
                 logger.Information "System ready"
 
                 logger.Information "Waiting for the systems to terminate…"

@@ -20,8 +20,8 @@
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/Telegram.fs" />
     <Compile Include="Actors/Xmpp.fs" />
-    <Compile Include="Program.fs" />
     <Compile Include="MessagingCore.fs" />
+    <Compile Include="Program.fs" />
 
     <Content Include="..\Emulsion.MessageArchive.Frontend\bin\**\*" LinkBase="wwwroot"
              CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
