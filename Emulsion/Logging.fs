@@ -2,8 +2,10 @@ module Emulsion.Logging
 
 open System.IO
 
+open JetBrains.Diagnostics
 open Serilog
 open Serilog.Core
+open Serilog.Events
 open Serilog.Filters
 
 open Emulsion.Settings
@@ -47,3 +49,34 @@ let createRootLogger (settings: LogSettings) =
             |> addFileLogger (Some Xmpp) "xmpp.log"
             |> addFileLogger None "system.log"
     config.CreateLogger()
+
+let private toSerilog(level: LoggingLevel): LogEventLevel voption =
+    match level with
+    | LoggingLevel.OFF -> ValueNone
+    | LoggingLevel.FATAL -> ValueSome LogEventLevel.Fatal
+    | LoggingLevel.ERROR -> ValueSome LogEventLevel.Error
+    | LoggingLevel.WARN -> ValueSome LogEventLevel.Warning
+    | LoggingLevel.INFO -> ValueSome LogEventLevel.Information
+    | LoggingLevel.VERBOSE -> ValueSome LogEventLevel.Verbose
+    | LoggingLevel.TRACE -> ValueSome LogEventLevel.Debug
+    | _ -> ValueSome LogEventLevel.Error // convert any unknown ones to error
+
+let attachToRdLogSystem(serilog: ILogger) =
+    Log.UsingLogFactory({
+        new ILogFactory with
+            override this.GetLog(category) =
+                let serilogLogger = serilog.ForContext(Constants.SourceContextPropertyName, category)
+                {
+                    new ILog with
+                        override this.IsEnabled(level) =
+                            toSerilog level
+                            |> ValueOption.map serilogLogger.IsEnabled
+                            |> ValueOption.defaultValue false
+                        override this.Log(level, message, ``exception``) =
+                            toSerilog level
+                            |> ValueOption.iter(fun level ->
+                                serilogLogger.Write(level, ``exception``, message)
+                            )
+                        override this.Category = category
+                }
+    })

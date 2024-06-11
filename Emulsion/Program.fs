@@ -48,6 +48,7 @@ let private startMessageSystem (logger: ILogger) (system: IMessageSystem) receiv
 let private startApp config =
     async {
         let logger = Logging.createRootLogger config.Log
+        use _ = Logging.attachToRdLogSystem logger
         try
             let xmppLogger = Logging.xmppLogger logger
             let telegramLogger = Logging.telegramLogger logger
