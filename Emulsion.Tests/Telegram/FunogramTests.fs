@@ -654,7 +654,7 @@ module ProcessSendResultTests =
     [<Fact>]
     let processResultShouldThrowOnError(): unit =
         let result = Error({ ErrorCode = 502; Description = "Error" })
-        Assert.ThrowsAny<Exception>(fun () -> processSendResult result) |> ignore
+        Assert.ThrowsAny<Exception>(Action(fun () -> processSendResult result)) |> ignore
 
 module FlattenMessageTests =
     let private flattenMessage = MessageConverter.flatten MessageConverter.DefaultQuoteSettings

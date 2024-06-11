@@ -74,7 +74,7 @@ type MessageSenderTests(testOutput: ITestOutputHelper) =
                 |> Seq.filter (fun event -> event.Level = LogEventLevel.Error)
 
             SpinWait.SpinUntil((fun () -> Seq.length(getErrors()) > 0), shortTimeout) |> ignore
-            Assert.Empty <| getErrors()
+            Assert.Empty(getErrors())
         )
 
     [<Fact>]
