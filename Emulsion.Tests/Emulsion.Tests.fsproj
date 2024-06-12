@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="ExceptionUtilsTests.fs" />
     <Compile Include="LifetimesTests.fs" />
+    <Compile Include="LoggingTests.fs" />
     <Compile Include="MessageSenderTests.fs" />
     <Compile Include="SettingsTests.fs" />
     <Compile Include="Actors/Core.fs" />
