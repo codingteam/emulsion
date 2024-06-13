@@ -26,7 +26,7 @@ type MessagingCoreTests(output: ITestOutputHelper) =
 
     let newMessageSystem (receivedMessages: ResizeArray<_>) = {
         new IMessageSystem with
-            override this.PutMessage m = receivedMessages.Add m
+            override this.PutMessage m = lock receivedMessages (fun() -> receivedMessages.Add m)
             override this.RunSynchronously _ = ()
     }
 
@@ -38,7 +38,7 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         let archive = {
             new IMessageArchive with
                 override this.Archive(message) =
-                    messages.Add message
+                    lock messages (fun() -> messages.Add message)
                     async.Return()
         }
 
@@ -79,7 +79,9 @@ type MessagingCoreTests(output: ITestOutputHelper) =
             let incoming = incomingMessage message
             core.ReceiveMessage incoming
             do! awaitMessage
-            Assert.Equal([|OutgoingMessage message|], received)
+            lock received (fun() ->
+                Assert.Equal([|OutgoingMessage message|], received)
+            )
         }
 
         do! sendMessageAndAssertReceival XmppMessage "text1" telegramReceived
