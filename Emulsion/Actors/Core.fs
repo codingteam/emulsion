@@ -28,7 +28,7 @@ type CoreActor(logger: ILogger, factories: ActorFactories, archive: MessageArchi
         let self = this.Self
         task {
             match archive with
-            | Some a -> do! a.Archive message
+            | Some a -> do! (a :> IMessageArchive).Archive message
             | None -> ()
 
             match message with

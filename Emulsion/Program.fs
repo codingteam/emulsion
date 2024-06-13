@@ -86,7 +86,7 @@ let private startApp config =
                 logger.Information "Core preparation…"
                 let archive =
                     match config.Database, config.MessageArchive.IsEnabled with
-                    | Some database, true -> Some <| MessageArchive database
+                    | Some database, true -> Some(MessageArchive database :> IMessageArchive)
                     | _ -> None
                 use lt = Lifetime.Define "app"
                 let core = MessagingCore(lt.Lifetime, logger, archive)

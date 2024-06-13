@@ -8,6 +8,7 @@
     <Compile Include="LifetimesTests.fs" />
     <Compile Include="LoggingTests.fs" />
     <Compile Include="MessageSenderTests.fs" />
+    <Compile Include="MessagingCoreTests.fs" />
     <Compile Include="SettingsTests.fs" />
     <Compile Include="Actors/Core.fs" />
     <Compile Include="Actors/Telegram.fs" />
