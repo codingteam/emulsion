@@ -20,9 +20,15 @@ type MessagingCoreTests(output: ITestOutputHelper) =
     }
 
     let waitForSignal (lt: Lifetime) (signal: ISource<_>) =
-        let tcs = lt.CreateTaskCompletionSource()
+        let tcs = lt.CreateTaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
         signal.AdviseOnce(lt, fun() -> tcs.SetResult())
         tcs.Task
+
+    let newMessageSystem (receivedMessages: ResizeArray<_>) = {
+        new IMessageSystem with
+            override this.PutMessage m = receivedMessages.Add m
+            override this.RunSynchronously _ = ()
+    }
 
     [<Fact>]
     member _.``MessagingCore calls archive if it's present``(): Task = task {
@@ -40,7 +46,7 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         let awaitMessage = waitForSignal lt core.MessageProcessed
         core.Start(dummyMessageSystem, dummyMessageSystem)
 
-        let message = IncomingMessage.TelegramMessage(Authored{
+        let message = IncomingMessage.TelegramMessage(Authored {
             author = "cthulhu"
             text = "fhtagn"
         })
@@ -48,4 +54,34 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         do! awaitMessage
 
         Assert.Equal([|message|], messages)
+    }
+
+    [<Fact>]
+    member _.``MessagingCore sends XMPP message to Telegram and vise-versa``(): Task = task {
+        let telegramReceived = ResizeArray()
+        let xmppReceived = ResizeArray()
+
+        let xmpp = newMessageSystem xmppReceived
+        let telegram = newMessageSystem telegramReceived
+
+        use ld = new LifetimeDefinition()
+        let lt = ld.Lifetime
+        let core = MessagingCore(lt, logger, None)
+        core.Start(telegram, xmpp)
+
+        let sendMessageAndAssertReceival incomingMessage text (received: _ seq) = task {
+            let awaitMessage = waitForSignal lt core.MessageProcessed
+            let message = Authored {
+                author = "cthulhu"
+                text = text
+            }
+
+            let incoming = incomingMessage message
+            core.ReceiveMessage incoming
+            do! awaitMessage
+            Assert.Equal([|OutgoingMessage message|], received)
+        }
+
+        do! sendMessageAndAssertReceival XmppMessage "text1" telegramReceived
+        do! sendMessageAndAssertReceival TelegramMessage "text2" xmppReceived
     }
