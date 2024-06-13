@@ -6,6 +6,9 @@ open Emulsion.Database
 open Emulsion.Database.Entities
 open Emulsion.Messaging
 
+type IMessageArchive =
+    abstract member Archive: IncomingMessage -> Async<unit>
+
 type MessageArchive(database: DatabaseSettings) =
 
     let convert message =
@@ -26,8 +29,9 @@ type MessageArchive(database: DatabaseSettings) =
             Text = text
         }
 
-    member _.Archive(message: IncomingMessage): Async<unit> =
-        let message = convert message
-        DataStorage.transaction database (fun context ->
-            DataStorage.addAsync context.ArchiveEntries message
-        )
+    interface IMessageArchive with
+        member _.Archive(message: IncomingMessage): Async<unit> =
+            let message = convert message
+            DataStorage.transaction database (fun context ->
+                DataStorage.addAsync context.ArchiveEntries message
+            )

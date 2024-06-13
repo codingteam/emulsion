@@ -5,14 +5,17 @@ open System.Threading.Channels
 open System.Threading.Tasks
 open Emulsion.Messaging
 open Emulsion.Messaging.MessageSystem
+open JetBrains.Collections.Viewable
 open JetBrains.Lifetimes
+open Microsoft.FSharp.Core
 open Serilog
 
 type MessagingCore(
     lifetime: Lifetime,
     logger: ILogger,
-    archive: MessageArchive option
+    archive: IMessageArchive option
 ) =
+    let messageProcessed = Signal<Unit>()
     let processMessage telegram xmpp message ct =
         task {
             match archive with
@@ -22,6 +25,8 @@ type MessagingCore(
             match message with
             | TelegramMessage msg -> putMessage xmpp (OutgoingMessage msg)
             | XmppMessage msg -> putMessage telegram (OutgoingMessage msg)
+
+            messageProcessed.Fire(())
         }
 
     let messages = Channel.CreateUnbounded()
@@ -41,6 +46,9 @@ type MessagingCore(
 
         logger.Information("Core workflow terminating.")
     }
+
+
+    member _.MessageProcessed: ISource<Unit> = messageProcessed
 
     member _.Start(telegram: IMessageSystem, xmpp: IMessageSystem) =
         Task.Run(fun() -> processLoop telegram xmpp) |> ignore
