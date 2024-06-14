@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Serilog.Sinks.XUnit" Version="1.0.21" />
+    <PackageReference Include="Serilog.Sinks.XUnit" Version="3.0.5" />
     <ProjectReference Include="..\Emulsion.Database\Emulsion.Database.fsproj" />
     <ProjectReference Include="..\Emulsion.Telegram\Emulsion.Telegram.fsproj" />
   </ItemGroup>
