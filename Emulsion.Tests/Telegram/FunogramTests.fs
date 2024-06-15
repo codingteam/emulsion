@@ -106,6 +106,7 @@ let private createPoll from (question: string) (options: string[]) =
         |> Array.map (fun opt -> {
             Text = opt
             VoterCount = 0
+            TextEntities = Some [| |]
         })
 
     let poll= Poll.Create(
