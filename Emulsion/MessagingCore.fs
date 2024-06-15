@@ -15,7 +15,7 @@ type MessagingCore(
     logger: ILogger,
     archive: IMessageArchive option
 ) =
-    let messageProcessed = Signal<Unit>()
+    let messageProcessedSuccessfully = Signal<Unit>()
     let processMessage telegram xmpp message ct =
         task {
             match archive with
@@ -26,12 +26,13 @@ type MessagingCore(
             | TelegramMessage msg -> putMessage xmpp (OutgoingMessage msg)
             | XmppMessage msg -> putMessage telegram (OutgoingMessage msg)
 
-            messageProcessed.Fire(())
+            messageProcessedSuccessfully.Fire(())
         }
 
     let messages = Channel.CreateUnbounded()
     do lifetime.OnTermination(fun () -> messages.Writer.Complete()) |> ignore
 
+    let messageProcessingError = Signal<Unit>()
     let processLoop telegram xmpp: Task = task {
         logger.Information("Core workflow starting.")
 
@@ -42,12 +43,17 @@ type MessagingCore(
                 do! lifetime.ExecuteAsync(fun() -> processMessage telegram xmpp m ct)
             with
             | :? OperationCanceledException -> ()
-            | error -> logger.Error(error, "Core workflow exception.")
+            | error ->
+                logger.Error(error, "Core workflow exception.")
+                messageProcessingError.Fire(())
 
         logger.Information("Core workflow terminating.")
     }
 
-    member _.MessageProcessed: ISource<Unit> = messageProcessed
+    let messageCannotBeReceived = Signal<Unit>()
+    member _.MessageProcessedSuccessfully: ISource<Unit> = messageProcessedSuccessfully
+    member _.MessageCannotBeReceived: ISource<Unit> = messageCannotBeReceived
+    member _.MessageProcessingError: ISource<Unit> = messageProcessingError
     member val ProcessingTask = None with get, set
 
     member this.Start(telegram: IMessageSystem, xmpp: IMessageSystem) =
@@ -57,3 +63,4 @@ type MessagingCore(
         let result = messages.Writer.TryWrite message
         if not result then
             logger.Error("Write status to core channel should always be true, but it is {Status}.", result)
+            messageCannotBeReceived.Fire(())
