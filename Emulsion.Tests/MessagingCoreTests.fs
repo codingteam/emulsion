@@ -87,3 +87,26 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         do! sendMessageAndAssertReceival XmppMessage "text1" telegramReceived
         do! sendMessageAndAssertReceival TelegramMessage "text2" xmppReceived
     }
+
+    [<Fact>]
+    member _.``MessagingCore buffers the message received before start``(): Task = task {
+        let telegramReceived = ResizeArray()
+        let telegram = newMessageSystem telegramReceived
+
+        use ld = new LifetimeDefinition()
+        let lt = ld.Lifetime
+        let core = MessagingCore(lt, logger, None)
+
+        let message = Authored {
+            author = "cthulhu"
+            text = "fhtagn"
+        }
+        core.ReceiveMessage(XmppMessage message)
+        Assert.Empty(lock telegramReceived (fun() -> telegramReceived))
+
+        core.Start(telegram, dummyMessageSystem)
+        do! waitForSignal lt core.MessageProcessed
+
+        let receivedMessage = Assert.Single(lock telegramReceived (fun() -> telegramReceived))
+        Assert.Equal(OutgoingMessage message, receivedMessage)
+    }
