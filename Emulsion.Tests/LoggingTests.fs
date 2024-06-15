@@ -12,7 +12,9 @@ let ``attachToRdLogSystem should proxy the logged messages``(): unit =
     let events = ResizeArray()
     let serilogLogger = {
         new ILogger with
-            override this.Write(logEvent) = lock events (fun() -> events.Add logEvent)
+            override this.Write(logEvent) =
+                if logEvent.Properties[Constants.SourceContextPropertyName].ToString() = "\"LoggingTests\"" then
+                    lock events (fun() -> events.Add logEvent)
     }
     let rdLogger = Log.GetLog "LoggingTests"
     use _ = Logging.attachToRdLogSystem serilogLogger
