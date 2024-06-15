@@ -32,6 +32,11 @@ type MessagingCoreTests(output: ITestOutputHelper) =
             override this.RunSynchronously _ = ()
     }
 
+    let testMessage = Authored {
+        author = "cthulhu"
+        text = "fhtagn"
+    }
+
     [<Fact>]
     member _.``MessagingCore calls archive if it's present``(): Task = task {
         use ld = new LifetimeDefinition()
@@ -45,13 +50,10 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         }
 
         let core = MessagingCore(lt, logger, Some archive)
-        let awaitMessage = waitForSignal lt core.MessageProcessed
+        let awaitMessage = waitForSignal lt core.MessageProcessedSuccessfully
         core.Start(dummyMessageSystem, dummyMessageSystem)
 
-        let message = IncomingMessage.TelegramMessage(Authored {
-            author = "cthulhu"
-            text = "fhtagn"
-        })
+        let message = IncomingMessage.TelegramMessage(testMessage)
         core.ReceiveMessage message
         do! awaitMessage
 
@@ -72,7 +74,7 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         core.Start(telegram, xmpp)
 
         let sendMessageAndAssertReceival incomingMessage text (received: _ seq) = task {
-            let awaitMessage = waitForSignal lt core.MessageProcessed
+            let awaitMessage = waitForSignal lt core.MessageProcessedSuccessfully
             let message = Authored {
                 author = "cthulhu"
                 text = text
@@ -99,18 +101,14 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         let lt = ld.Lifetime
         let core = MessagingCore(lt, logger, None)
 
-        let message = Authored {
-            author = "cthulhu"
-            text = "fhtagn"
-        }
-        core.ReceiveMessage(XmppMessage message)
+        core.ReceiveMessage(XmppMessage testMessage)
         Assert.Empty(lock telegramReceived (fun() -> telegramReceived))
 
         core.Start(telegram, dummyMessageSystem)
-        do! waitForSignal lt core.MessageProcessed
+        do! waitForSignal lt core.MessageProcessedSuccessfully
 
         let receivedMessage = Assert.Single(lock telegramReceived (fun() -> telegramReceived))
-        Assert.Equal(OutgoingMessage message, receivedMessage)
+        Assert.Equal(OutgoingMessage testMessage, receivedMessage)
     }
 
     [<Fact>]
@@ -133,4 +131,57 @@ type MessagingCoreTests(output: ITestOutputHelper) =
             SpinWait.SpinUntil((fun() -> core.ProcessingTask.Value.IsCompleted), TimeSpan.FromSeconds 1.0),
             "Task should be completed in time"
         )
+    }
+
+    [<Fact>]
+    member _.``MessagingCore should log an error if receiving a message after termination``(): Task = task {
+        use ld = new LifetimeDefinition()
+        let lt = ld.Lifetime
+        let core = MessagingCore(lt, logger, None)
+        core.Start(dummyMessageSystem, dummyMessageSystem)
+        ld.Terminate()
+
+        Lifetime.Using(fun lt ->
+            let mutable signaled = false
+            core.MessageCannotBeReceived.Advise(lt, fun() -> signaled <- true)
+            core.ReceiveMessage(TelegramMessage testMessage)
+            Assert.True(signaled, "Error on message after termination should be reported.")
+        )
+    }
+
+    [<Fact>]
+    member _.``MessagingCore should log an error during processing``(): Task = task {
+        use ld = new LifetimeDefinition()
+        let lt = ld.Lifetime
+        let core = MessagingCore(lt, logger, None)
+
+        let mutable shouldThrow = true
+        let received = ResizeArray()
+        let throwingSystem = {
+            new IMessageSystem with
+                member this.PutMessage m =
+                    if Volatile.Read(&shouldThrow)
+                    then failwith "Error."
+                    else lock received (fun() -> received.Add m)
+                member this.RunSynchronously _ = ()
+        }
+
+        core.Start(telegram = throwingSystem, xmpp = dummyMessageSystem)
+        let awaitMessage = waitForSignal lt core.MessageProcessedSuccessfully
+        let awaitError = waitForSignal lt core.MessageProcessingError
+        do! Lifetime.UsingAsync(fun lt -> task {
+            let mutable signaled = false
+            core.MessageProcessingError.Advise(lt, fun() -> Volatile.Write(&signaled, true))
+            core.ReceiveMessage(XmppMessage testMessage)
+            do! awaitError
+            Assert.True(Volatile.Read(&signaled), "Error on message processing should be reported.")
+        })
+        Volatile.Write(&shouldThrow, false)
+        do! Lifetime.UsingAsync(fun lt -> task {
+            let mutable signaled = false
+            core.MessageProcessingError.Advise(lt, fun() -> Volatile.Write(&signaled, true))
+            core.ReceiveMessage(XmppMessage testMessage)
+            do! awaitMessage
+            Assert.False(Volatile.Read(&signaled), "There should be no error.")
+        })
     }
