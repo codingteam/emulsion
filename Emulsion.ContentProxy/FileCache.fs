@@ -32,7 +32,7 @@ module FileCache =
 
     let TryDecodeFileNameToSha256Hash(fileName: string): byte[] option =
         try
-            Some <| (Base58.M4N71KR.Decode fileName).ToArray()
+            Some <| Base58.M4N71KR.Decode fileName
         with
         | :? ArgumentException -> None
 
