@@ -47,11 +47,11 @@ type MessagingCore(
         logger.Information("Core workflow terminating.")
     }
 
-
     member _.MessageProcessed: ISource<Unit> = messageProcessed
+    member val ProcessingTask = None with get, set
 
-    member _.Start(telegram: IMessageSystem, xmpp: IMessageSystem) =
-        Task.Run(fun() -> processLoop telegram xmpp) |> ignore
+    member this.Start(telegram: IMessageSystem, xmpp: IMessageSystem) =
+        this.ProcessingTask <- Some(Task.Run(fun() -> processLoop telegram xmpp))
 
     member _.ReceiveMessage(message: IncomingMessage): unit =
         let result = messages.Writer.TryWrite message
