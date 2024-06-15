@@ -4,7 +4,6 @@ open System
 open System.IO
 open System.Security.Cryptography
 
-open Akka.Actor
 open JetBrains.Lifetimes
 open Microsoft.Extensions.Configuration
 open Serilog
@@ -79,8 +78,6 @@ let private startApp config =
                         Some <| WebServer.run logger hosting database config.MessageArchive telegram fileCacheOption
                     | _ -> None
 
-                logger.Information "Actor system preparation…"
-                use system = ActorSystem.Create("emulsion")
                 logger.Information "Clients preparation…"
 
                 logger.Information "Core preparation…"
@@ -99,7 +96,6 @@ let private startApp config =
 
                 logger.Information "Waiting for the systems to terminate…"
                 do! Async.Ignore <| Async.Parallel(seq {
-                    yield Async.AwaitTask system.WhenTerminated
                     yield telegramSystem
                     yield xmppSystem
 
