@@ -15,11 +15,11 @@
 
     <ItemGroup>
       <PackageReference Include="EntityFrameworkCore.FSharp" Version="5.0.3" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.17">
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.17" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.6" />
     </ItemGroup>
 
 </Project>
