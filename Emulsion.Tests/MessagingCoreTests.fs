@@ -1,5 +1,7 @@
 ﻿namespace Emulsion.Tests
 
+open System
+open System.Threading
 open System.Threading.Tasks
 open Emulsion
 open Emulsion.Messaging
@@ -109,4 +111,26 @@ type MessagingCoreTests(output: ITestOutputHelper) =
 
         let receivedMessage = Assert.Single(lock telegramReceived (fun() -> telegramReceived))
         Assert.Equal(OutgoingMessage message, receivedMessage)
+    }
+
+    [<Fact>]
+    member _.``MessagingCore terminates its processing``(): Task = task {
+        use ld = new LifetimeDefinition()
+        let lt = ld.Lifetime
+        let core = MessagingCore(lt, logger, None)
+
+        let message = Authored {
+            author = "cthulhu"
+            text = "fhtagn"
+        }
+        for _ in 1..100 do
+            core.ReceiveMessage(XmppMessage message)
+
+        core.Start(dummyMessageSystem, dummyMessageSystem)
+        ld.Terminate()
+
+        Assert.True(
+            SpinWait.SpinUntil((fun() -> core.ProcessingTask.Value.IsCompleted), TimeSpan.FromSeconds 1.0),
+            "Task should be completed in time"
+        )
     }
