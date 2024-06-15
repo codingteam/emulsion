@@ -168,14 +168,11 @@ type MessagingCoreTests(output: ITestOutputHelper) =
 
         core.Start(telegram = throwingSystem, xmpp = dummyMessageSystem)
         let awaitMessage = waitForSignal lt core.MessageProcessedSuccessfully
+
         let awaitError = waitForSignal lt core.MessageProcessingError
-        do! Lifetime.UsingAsync(fun lt -> task {
-            let mutable signaled = false
-            core.MessageProcessingError.Advise(lt, fun() -> Volatile.Write(&signaled, true))
-            core.ReceiveMessage(XmppMessage testMessage)
-            do! awaitError
-            Assert.True(Volatile.Read(&signaled), "Error on message processing should be reported.")
-        })
+        core.ReceiveMessage(XmppMessage testMessage)
+        do! awaitError // error signalled correctly
+
         Volatile.Write(&shouldThrow, false)
         do! Lifetime.UsingAsync(fun lt -> task {
             let mutable signaled = false
