@@ -16,10 +16,6 @@
     <Compile Include="Xmpp\SharpXmppClient.fs" />
     <Compile Include="Xmpp\EmulsionXmpp.fs" />
     <Compile Include="Xmpp\XmppMessageSystem.fs" />
-    <Compile Include="Actors/Factories.fs" />
-    <Compile Include="Actors/Core.fs" />
-    <Compile Include="Actors/Telegram.fs" />
-    <Compile Include="Actors/Xmpp.fs" />
     <Compile Include="MessagingCore.fs" />
     <Compile Include="Program.fs" />
 

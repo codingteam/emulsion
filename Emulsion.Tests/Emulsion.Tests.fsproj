@@ -10,9 +10,6 @@
     <Compile Include="MessageSenderTests.fs" />
     <Compile Include="MessagingCoreTests.fs" />
     <Compile Include="SettingsTests.fs" />
-    <Compile Include="Actors/Core.fs" />
-    <Compile Include="Actors/Telegram.fs" />
-    <Compile Include="Actors/Xmpp.fs" />
     <Compile Include="MessageSystemTests\WrapRunTests.fs" />
     <Compile Include="MessageSystemTests\MessageSystemBaseTests.fs" />
     <Compile Include="Telegram\Html.fs" />
