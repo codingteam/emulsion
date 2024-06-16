@@ -89,7 +89,10 @@ type RunTests(outputHelper: ITestOutputHelper) =
         let sw = Stopwatch.StartNew()
         Assert.Throws<TimeoutException>(fun () -> runClientSynchronously settings logger client ignore)
         |> ignore
-        Assert.True(sw.Elapsed < timeout * 2.0)
+        Assert.True(
+            sw.Elapsed < timeout * 2.0,
+            $"Elapsed time {sw.ElapsedMilliseconds} ms should be less than {(timeout * 2.0).TotalMilliseconds} ms."
+        )
 
     [<Fact>]
     member _.``EmulsionXmpp forcibly terminates the connection after timeout * 3``(): unit =
