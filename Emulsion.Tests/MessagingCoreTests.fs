@@ -104,8 +104,9 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         core.ReceiveMessage(XmppMessage testMessage)
         Assert.Empty(lock telegramReceived (fun() -> telegramReceived))
 
+        let waitForProcessing = waitSuccessfulProcessing lt core
         core.Start(telegram, dummyMessageSystem)
-        do! waitSuccessfulProcessing lt core
+        do! waitForProcessing
 
         let receivedMessage = Assert.Single(lock telegramReceived (fun() -> telegramReceived))
         Assert.Equal(OutgoingMessage testMessage, receivedMessage)
