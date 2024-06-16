@@ -4,6 +4,8 @@ open System
 open System.Threading.Tasks
 open System.Xml.Linq
 
+open Emulsion.TestFramework
+open JetBrains.Collections.Viewable
 open JetBrains.Lifetimes
 open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.Elements
@@ -79,6 +81,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
         ), presenceHandlers
 
     let pingWaitTime = TimeSpan.FromMilliseconds 100.0
+    let iqWaitTimeout = TimeSpan.FromSeconds 10.0
     let assertNoPingSent(iqMessages: ResizeArray<XMPPIq>) = async {
         do! Async.Sleep(int pingWaitTime.TotalMilliseconds)
         lock iqMessages (fun() ->
@@ -86,8 +89,9 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
         )
     }
 
-    let assertPingSent(iqMessages: ResizeArray<XMPPIq>) = async {
-        do! Async.Sleep(int pingWaitTime.TotalMilliseconds)
+    let waitForIqSent lt signal = Signals.WaitWithTimeout lt signal iqWaitTimeout "IQ sent"
+    let assertPingSent (waitForIqSent: Task) (iqMessages: ResizeArray<XMPPIq>) = task {
+        do! waitForIqSent
         lock iqMessages (fun() ->
             let iq = Seq.exactlyOne iqMessages
             let ping = iq.Element Ping
@@ -152,18 +156,22 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
     member _.``Client sends a ping after room connection``(): Task =
         let presenceHandlers = ResizeArray()
         let iqMessages = ResizeArray()
+        let iqSent = Signal<Unit>()
         let client =
             XmppClientFactory.create(
                 addPresenceHandler = (fun _ -> presenceHandlers.Add),
                 joinMultiUserChat = (fun roomJid nickname _ ->
                     sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers),
-                sendIqQuery = fun _ iq _ -> lock iqMessages (fun() -> iqMessages.Add iq)
+                sendIqQuery = fun _ iq _ ->
+                    lock iqMessages (fun() -> iqMessages.Add iq)
+                    iqSent.Fire(())
             )
 
         Lifetime.UsingAsync(fun lt ->
             task {
+                let waiter = waitForIqSent lt iqSent
                 let! _ = XmppClient.enterRoom logger client lt roomInfoWithPing
-                do! assertPingSent iqMessages
+                do! assertPingSent waiter iqMessages
             }
         )
 
@@ -172,6 +180,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
         let presenceHandlers = ResizeArray()
         let iqMessages = ResizeArray()
         let mutable join = ref Unchecked.defaultof<_>
+        let iqSent = Signal<_>()
         let client =
             XmppClientFactory.create(
                 addPresenceHandler = (fun _ h -> lock presenceHandlers (fun() -> presenceHandlers.Add h)),
@@ -181,15 +190,18 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                             sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers)
                         )
                     ),
-                sendIqQuery = fun _ iq _ -> lock iqMessages (fun() -> iqMessages.Add iq)
+                sendIqQuery = fun _ iq _ ->
+                    lock iqMessages (fun() -> iqMessages.Add iq)
+                    iqSent.Fire(())
             )
         Lifetime.UsingAsync(fun lt ->
             task {
+                let waiter = waitForIqSent lt iqSent
                 let! connection = Async.StartChild <| XmppClient.enterRoom logger client lt roomInfoWithPing
                 do! assertNoPingSent iqMessages
                 lock join !join // ha-ha
                 let! _ = connection
-                do! assertPingSent iqMessages
+                do! assertPingSent waiter iqMessages
             }
         )
 

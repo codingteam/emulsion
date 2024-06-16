@@ -7,7 +7,6 @@ open Emulsion
 open Emulsion.Messaging
 open Emulsion.Messaging.MessageSystem
 open Emulsion.TestFramework
-open JetBrains.Collections.Viewable
 open JetBrains.Lifetimes
 open Xunit
 open Xunit.Abstractions
@@ -21,10 +20,11 @@ type MessagingCoreTests(output: ITestOutputHelper) =
             override this.RunSynchronously _ = ()
     }
 
-    let waitForSignal (lt: Lifetime) (signal: ISource<_>) =
-        let tcs = lt.CreateTaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
-        signal.AdviseOnce(lt, fun() -> tcs.SetResult())
-        tcs.Task
+    let waitTimeout = TimeSpan.FromSeconds 10.0
+    let waitSuccessfulProcessing lt (core: MessagingCore) =
+        Signals.WaitWithTimeout lt core.MessageProcessedSuccessfully waitTimeout "message processed successfully"
+    let waitProcessingError lt (core: MessagingCore) =
+        Signals.WaitWithTimeout lt core.MessageProcessingError waitTimeout "message processed with error"
 
     let newMessageSystem (receivedMessages: ResizeArray<_>) = {
         new IMessageSystem with
@@ -50,7 +50,7 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         }
 
         let core = MessagingCore(lt, logger, Some archive)
-        let awaitMessage = waitForSignal lt core.MessageProcessedSuccessfully
+        let awaitMessage = waitSuccessfulProcessing lt core
         core.Start(dummyMessageSystem, dummyMessageSystem)
 
         let message = IncomingMessage.TelegramMessage(testMessage)
@@ -68,13 +68,13 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         let xmpp = newMessageSystem xmppReceived
         let telegram = newMessageSystem telegramReceived
 
-        use ld = new LifetimeDefinition()
+        use ld = new LifetimeDefinition(Id = "Test core lifetime")
         let lt = ld.Lifetime
         let core = MessagingCore(lt, logger, None)
         core.Start(telegram, xmpp)
 
         let sendMessageAndAssertReceival incomingMessage text (received: _ seq) = task {
-            let awaitMessage = waitForSignal lt core.MessageProcessedSuccessfully
+            let awaitMessage = waitSuccessfulProcessing lt core
             let message = Authored {
                 author = "cthulhu"
                 text = text
@@ -105,7 +105,7 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         Assert.Empty(lock telegramReceived (fun() -> telegramReceived))
 
         core.Start(telegram, dummyMessageSystem)
-        do! waitForSignal lt core.MessageProcessedSuccessfully
+        do! waitSuccessfulProcessing lt core
 
         let receivedMessage = Assert.Single(lock telegramReceived (fun() -> telegramReceived))
         Assert.Equal(OutgoingMessage testMessage, receivedMessage)
@@ -167,9 +167,9 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         }
 
         core.Start(telegram = throwingSystem, xmpp = dummyMessageSystem)
-        let awaitMessage = waitForSignal lt core.MessageProcessedSuccessfully
+        let awaitMessage = waitSuccessfulProcessing lt core
 
-        let awaitError = waitForSignal lt core.MessageProcessingError
+        let awaitError = waitProcessingError lt core
         core.ReceiveMessage(XmppMessage testMessage)
         do! awaitError // error signalled correctly
 

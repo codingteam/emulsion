@@ -16,6 +16,7 @@
     <Compile Include="WebFileStorage.fs" />
     <Compile Include="FileCacheUtil.fs" />
     <Compile Include="StreamUtils.fs" />
+    <Compile Include="Signals.fs" />
   </ItemGroup>
 
   <ItemGroup>
