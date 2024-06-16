@@ -199,7 +199,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                 let waiter = waitForIqSent lt iqSent
                 let! connection = Async.StartChild <| XmppClient.enterRoom logger client lt roomInfoWithPing
                 do! assertNoPingSent iqMessages
-                lock join !join // ha-ha
+                lock join (fun() -> (!join)())
                 let! _ = connection
                 do! assertPingSent waiter iqMessages
             }
