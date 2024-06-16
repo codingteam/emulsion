@@ -23,7 +23,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
 
     let testRoomInfo = {
         RoomJid = JID("room@conference.example.org")
-        Nickname = "testuser"
+        Nickname = "test-user"
         Password = None
         Ping = {| Interval = None
                   Timeout = Settings.defaultPingTimeout |}
@@ -134,7 +134,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
 
     [<Fact>]
     member _.``Lifetime returned from enterRoom terminates by a room leave presence``(): unit =
-        let (client, presenceHandlers) = createPresenceHandlingClient()
+        let client, presenceHandlers = createPresenceHandlingClient()
         Lifetime.Using(fun lt ->
             let roomLt = Async.RunSynchronously <| XmppClient.enterRoom logger client lt testRoomInfo
             Assert.True roomLt.IsAlive
@@ -144,7 +144,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
 
     [<Fact>]
     member _.``Lifetime returned from enterRoom terminates by an external lifetime termination``(): unit =
-        let (client, _) = createPresenceHandlingClient()
+        let client, _ = createPresenceHandlingClient()
         use ld = Lifetime.Define()
         let lt = ld.Lifetime
         let roomLt = Async.RunSynchronously <| XmppClient.enterRoom logger client lt testRoomInfo
@@ -186,7 +186,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                 addPresenceHandler = (fun _ h -> lock presenceHandlers (fun() -> presenceHandlers.Add h)),
                 joinMultiUserChat = (fun roomJid nickname _ ->
                     lock join (fun() ->
-                        join := fun () -> lock presenceHandlers (fun() ->
+                        join.Value <- fun () -> lock presenceHandlers (fun() ->
                             sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers)
                         )
                     ),
@@ -199,7 +199,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                 let waiter = waitForIqSent lt iqSent
                 let! connection = Async.StartChild <| XmppClient.enterRoom logger client lt roomInfoWithPing
                 do! assertNoPingSent iqMessages
-                lock join (fun() -> (!join)())
+                lock join (fun() -> join.Value())
                 let! _ = connection
                 do! assertPingSent waiter iqMessages
             }
@@ -210,7 +210,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
         let timeout = TimeSpan.FromMilliseconds 500.0
         let roomInfo = { roomInfoWithPing with Ping = {| roomInfoWithPing.Ping with Timeout = timeout |} }
 
-        let (client, _) = createPresenceHandlingClient()
+        let client, _ = createPresenceHandlingClient()
         Lifetime.UsingAsync(fun lt ->
             task {
                 let! lt = XmppClient.enterRoom logger client lt roomInfo
@@ -255,7 +255,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
                           Timeout = timeout |}
             }
 
-        let (client, _) = createPresenceHandlingClient()
+        let client, _ = createPresenceHandlingClient()
         task {
             let! ex = Assert.ThrowsAnyAsync(fun() ->
                 Lifetime.UsingAsync(fun lt ->
