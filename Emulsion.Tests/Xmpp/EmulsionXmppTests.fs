@@ -11,7 +11,6 @@ open SharpXMPP.XMPP.Client.Elements
 open Xunit
 open Xunit.Abstractions
 
-open Emulsion
 open Emulsion.Messaging
 open Emulsion.Settings
 open Emulsion.TestFramework
@@ -195,7 +194,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
         task {
             use ld = Lifetime.Define()
             let lt = ld.Lifetime
-            let messageId = lt.CreateTaskCompletionSource()
+            let messageId = lt.CreateTaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
             let messageHandlers = ResizeArray()
             let onMessage msg = messageHandlers |> Seq.iter (fun h -> h msg)
 
@@ -213,7 +212,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
             let! messageId = Async.AwaitTask messageId.Task // the send has been completed
 
             // Wait for 100 ms to check that the receival is not completed yet:
-            Assert.False(receivalTask.Wait(TimeSpan.FromMilliseconds 100.0))
+            Assert.False(receivalTask.Wait(TimeSpan.FromSeconds 10.0))
 
             let deliveryMessage = SharpXmppHelper.message messageId "" ""
             onMessage deliveryMessage
