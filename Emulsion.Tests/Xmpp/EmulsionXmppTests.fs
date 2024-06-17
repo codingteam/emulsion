@@ -89,9 +89,11 @@ type RunTests(outputHelper: ITestOutputHelper) =
         let sw = Stopwatch.StartNew()
         Assert.Throws<TimeoutException>(fun () -> runClientSynchronously settings logger client ignore)
         |> ignore
+
+        let waitForTimeout = timeout * 4.0 // more than 2x observed in practice on a busy CI server
         Assert.True(
-            sw.Elapsed < timeout * 2.0,
-            $"Elapsed time {sw.ElapsedMilliseconds} ms should be less than {(timeout * 2.0).TotalMilliseconds} ms."
+            sw.Elapsed < waitForTimeout,
+            $"Elapsed time {sw.ElapsedMilliseconds} ms should be less than {waitForTimeout.TotalMilliseconds} ms."
         )
 
     [<Fact>]
