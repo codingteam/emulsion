@@ -2,11 +2,4 @@
     <PropertyGroup>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
-
-    <PropertyGroup Condition="$(MSBuildPRojectExtension) == '.fsproj'">
-        <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
-    </PropertyGroup>
-    <ItemGroup Condition="$(MSBuildPRojectExtension) == '.fsproj'">
-        <PackageReference Include="FSharp.Core" Version="8.0.300" />
-    </ItemGroup>
 </Project>
