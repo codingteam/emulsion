@@ -4,7 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] (2.4.5)
+## [Unreleased] (3.0.0)
+### Changed
+- **(Requirement update!)** Update to .NET 8.
+
 ### Fixed
 - The second part of [#190](https://github.com/codingteam/emulsion/issues/190): now the Telegram errors will be logged to the log file, not to the stdout.
 

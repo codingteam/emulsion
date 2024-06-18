@@ -6,7 +6,7 @@ emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
 Build
 -----
 
-Install [.NET SDK][dotnet] 7.0 and Node.js 18 or newer for your platform, then run:
+Install [.NET SDK][dotnet] 8.0 and Node.js 18 or newer for your platform, then run:
 
 ```console
 $ dotnet build
@@ -98,7 +98,7 @@ $ dotnet test
 Run
 ---
 
-Requires [.NET Runtime][dotnet] version 7.0 or newer.
+Requires [.NET Runtime][dotnet] version 8.0 or newer.
 
 ```console
 $ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
