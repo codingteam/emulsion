@@ -1,11 +1,11 @@
 ﻿namespace Emulsion.Tests.Xmpp
 
 open System
+open System.Threading
+open System.Threading.Channels
 open System.Threading.Tasks
 open System.Xml.Linq
 
-open Emulsion.TestFramework
-open JetBrains.Collections.Viewable
 open JetBrains.Lifetimes
 open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.Elements
@@ -82,22 +82,23 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
 
     let pingWaitTime = TimeSpan.FromMilliseconds 100.0
     let iqWaitTimeout = TimeSpan.FromSeconds 10.0
-    let assertNoPingSent(iqMessages: ResizeArray<XMPPIq>) = async {
+    let assertNoPingSent(iqMessages: Channel<XMPPIq>) = async {
         do! Async.Sleep(int pingWaitTime.TotalMilliseconds)
-        lock iqMessages (fun() ->
-            Assert.Empty iqMessages
-        )
+        let hasMessages, _ = iqMessages.Reader.TryRead()
+        Assert.False(hasMessages, "No iq messages should be sent before room enter.")
     }
 
-    let waitForIqSent lt signal = Signals.WaitWithTimeout lt signal iqWaitTimeout "IQ sent"
-    let assertPingSent (waitForIqSent: Task) (iqMessages: ResizeArray<XMPPIq>) = task {
-        do! waitForIqSent
-        lock iqMessages (fun() ->
-            let iq = Seq.exactlyOne iqMessages
-            let ping = iq.Element Ping
-            Assert.NotNull ping
-        )
+    let assertPingSent(iqMessages: Channel<XMPPIq>) = task {
+        use cts = new CancellationTokenSource()
+        cts.CancelAfter(int iqWaitTimeout.TotalMilliseconds)
+
+        let! iq = iqMessages.Reader.ReadAsync(cts.Token)
+        let ping = iq.Element Ping
+        Assert.NotNull ping
     }
+
+    let writeChannel (channel: Channel<_>) data =
+        channel.Writer.TryWrite data |> Assert.True
 
     [<Fact>]
     member _.``enterRoom function calls JoinMultiUserChat``(): unit =
@@ -155,53 +156,49 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
     [<Fact>]
     member _.``Client sends a ping after room connection``(): Task =
         let presenceHandlers = ResizeArray()
-        let iqMessages = ResizeArray()
-        let iqSent = Signal<Unit>()
+        let iqMessages = Channel.CreateUnbounded()
         let client =
             XmppClientFactory.create(
                 addPresenceHandler = (fun _ -> presenceHandlers.Add),
                 joinMultiUserChat = (fun roomJid nickname _ ->
                     sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers),
                 sendIqQuery = fun _ iq _ ->
-                    lock iqMessages (fun() -> iqMessages.Add iq)
-                    iqSent.Fire(())
+                    writeChannel iqMessages iq
             )
 
         Lifetime.UsingAsync(fun lt ->
             task {
-                let waiter = waitForIqSent lt iqSent
                 let! _ = XmppClient.enterRoom logger client lt roomInfoWithPing
-                do! assertPingSent waiter iqMessages
+                do! assertPingSent iqMessages
             }
         )
 
     [<Fact>]
     member _.``Client doesn't send ping before finishing joining the room``(): Task =
         let presenceHandlers = ResizeArray()
-        let iqMessages = ResizeArray()
-        let mutable join = ref Unchecked.defaultof<_>
-        let iqSent = Signal<_>()
+        let iqMessages = Channel.CreateUnbounded()
+        let joinRequests = Channel.CreateUnbounded()
         let client =
             XmppClientFactory.create(
                 addPresenceHandler = (fun _ h -> lock presenceHandlers (fun() -> presenceHandlers.Add h)),
                 joinMultiUserChat = (fun roomJid nickname _ ->
-                    lock join (fun() ->
-                        join.Value <- fun () -> lock presenceHandlers (fun() ->
-                            sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers)
-                        )
-                    ),
+                    writeChannel joinRequests (roomJid, nickname)
+                ),
                 sendIqQuery = fun _ iq _ ->
-                    lock iqMessages (fun() -> iqMessages.Add iq)
-                    iqSent.Fire(())
+                    writeChannel iqMessages iq
             )
         Lifetime.UsingAsync(fun lt ->
             task {
-                let waiter = waitForIqSent lt iqSent
                 let! connection = Async.StartChild <| XmppClient.enterRoom logger client lt roomInfoWithPing
                 do! assertNoPingSent iqMessages
-                lock join (fun() -> join.Value())
+
+                let! roomJid, nickname = joinRequests.Reader.ReadAsync()
+                lock presenceHandlers (fun() ->
+                    sendPresence (createSelfPresence roomJid nickname 110) presenceHandlers
+                )
+
                 let! _ = connection
-                do! assertPingSent waiter iqMessages
+                do! assertPingSent iqMessages
             }
         )
 
