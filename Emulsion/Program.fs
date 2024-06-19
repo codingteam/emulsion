@@ -78,8 +78,6 @@ let private startApp config =
                         Some <| WebServer.run logger hosting database config.MessageArchive telegram fileCacheOption
                     | _ -> None
 
-                logger.Information "Clients preparation…"
-
                 logger.Information "Core preparation…"
                 let archive =
                     match config.Database, config.MessageArchive.IsEnabled with
