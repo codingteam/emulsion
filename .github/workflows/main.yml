@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.NUGET_PACKAGES }}
-          key: ${{ runner.os }}.nuget.${{ hashFiles('**/*.fsproj') }}
+          key: ${{ runner.os }}.nuget.${{ hashFiles('**/*.*proj') }}
       - name: Build
         run: dotnet build
       - name: Test

@@ -45,7 +45,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.NUGET_PACKAGES }}
-          key: ${{ runner.os }}.nuget.${{ hashFiles('**/*.fsproj') }}
+          key: ${{ runner.os }}.nuget.${{ hashFiles('**/*.*proj') }}
       - name: Publish
         run: dotnet publish Emulsion --output publish -p:UseAppHost=false
       - name: Pack
