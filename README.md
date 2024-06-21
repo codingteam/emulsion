@@ -3,6 +3,50 @@ emulsion [![Docker Image][badge.docker]][docker-hub] [![Status Aquana][status-aq
 
 emulsion is a bridge between [Telegram][telegram] and [XMPP][xmpp].
 
+Installation
+------------
+There are two supported Emulsion distributions: as a framework-dependent .NET application, or as a Docker image.
+
+### .NET Application
+To run Emulsion as [a framework-dependent .NET application][docs.dotnet.framework-dependent], you'll need to [install .NET runtime][dotnet.install] version 8.0 or later.
+
+Then, download the required version in the [Releases][releases] section.
+
+After that, configure the application, and start it using the following shell command:
+
+```console
+$ dotnet Emulsion.dll
+```
+
+### Docker
+It is recommended to use Docker to deploy this application. To install the application from Docker, you may use the following Bash script:
+
+```bash
+NAME=emulsion
+EMULSION_VERSION=latest
+CONFIG=/opt/codingteam/emulsion/emulsion.json
+DATA=/opt/codingteam/emulsion/data # optional
+WEB_PORT=5051 # optional
+docker pull codingteam/emulsion:$EMULSION_VERSION
+docker rm -f $NAME
+docker run --name $NAME \
+    -v $CONFIG:/app/emulsion.json:ro \
+    -v $DATA:/data \
+    -p 127.0.0.1:$WEB_PORT:5000 \
+    --restart unless-stopped \
+    -d \
+    codingteam/emulsion:$EMULSION_VERSION
+```
+
+where
+
+- `$NAME` is the container name
+- `$EMULSION_VERSION` is the image version you want to deploy, or `latest` for
+  the latest available one
+- `$CONFIG` is the **absolute** path to the configuration file
+- `$DATA` is the absolute path to the data directory (used by the configuration)
+- `$WEB_PORT` is the port on the host system which will be used to access the content proxy
+
 Build
 -----
 
@@ -104,37 +148,8 @@ Requires [.NET Runtime][dotnet] version 8.0 or newer.
 $ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
 ```
 
-Docker
-------
-It is recommended to use Docker to deploy this project. To install the
-application from Docker, you may use the following Bash script:
-
-```bash
-NAME=emulsion
-EMULSION_VERSION=latest
-CONFIG=/opt/codingteam/emulsion/emulsion.json
-DATA=/opt/codingteam/emulsion/data # optional
-WEB_PORT=5051 # optional
-docker pull codingteam/emulsion:$EMULSION_VERSION
-docker rm -f $NAME
-docker run --name $NAME \
-    -v $CONFIG:/app/emulsion.json:ro \
-    -v $DATA:/data \
-    -p 127.0.0.1:$WEB_PORT:5000 \
-    --restart unless-stopped \
-    -d \
-    codingteam/emulsion:$EMULSION_VERSION
-```
-
-where
-
-- `$NAME` is the container name
-- `$EMULSION_VERSION` is the image version you want to deploy, or `latest` for
-  the latest available one
-- `$CONFIG` is the **absolute** path to the configuration file
-- `$DATA` is the absolute path to the data directory (used by the configuration)
-- `$WEB_PORT` is the port on the host system which will be used to access the content proxy
-
+Docker Publish
+--------------
 To build and push the container to Docker Hub, use the following commands:
 
 ```console
@@ -162,15 +177,17 @@ Developer documentation:
 - [Maintainership][docs.maintainership]
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-aquana-
+[badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
 [docker-hub]: https://hub.docker.com/r/codingteam/emulsion
 [docs.changelog]: ./CHANGELOG.md
 [docs.create-migration]: ./docs/create-migration.md
+[docs.dotnet.framework-dependent]: https://learn.microsoft.com/en-us/dotnet/core/deploying/#publish-framework-dependent
 [docs.license]: ./LICENSE.md
 [docs.maintainership]: MAINTAINERSHIP.md
+[dotnet.install]: https://dot.net
 [dotnet]: https://dotnet.microsoft.com/download
 [hashids.net]: https://github.com/ullmark/hashids.net
+[releases]: https://github.com/codingteam/emulsion/releases
+[status-aquana]: https://img.shields.io/badge/status-aquana-yellowgreen.svg
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
-
-[badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
-[status-aquana]: https://img.shields.io/badge/status-aquana-yellowgreen.svg
