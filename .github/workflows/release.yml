@@ -55,6 +55,7 @@ jobs:
       - name: Upload the pack result
         uses: actions/upload-artifact@v4
         with:
+          name: emulsion-${{ steps.version.outputs.version }}.zip
           path: emulsion-${{ steps.version.outputs.version }}.zip
 
       - name: Create a release
