@@ -157,7 +157,7 @@ module MessageConverter =
         |> addAuthorIfAvailable
         |> markAsQuote quoteSettings.linePrefix
 
-    let private getAuthoredMessageBodyText (message: FunogramMessage) links =
+    let private getAuthoredMessageBodyText (message: FunogramMessage) (quote: TextQuote option) links =
         let (|Text|_|) (message: FunogramMessage) = message.Text
         let (|Poll|_|) (message: FunogramMessage) = message.Poll
         let (|Content|_|) (message: FunogramMessage) =
@@ -190,22 +190,25 @@ module MessageConverter =
             | _ -> $"{text}: {addedLinks}"
 
         let text =
-            match message with
-            | Text text -> applyEntities message.Entities text
-            | Content (contentType, caption) ->
-                let contentInfo =
-                    match caption with
-                    | Some caption ->
-                        let text = applyEntities message.CaptionEntities caption
-                        $"[{contentType} with caption \"{text}\"]"
-                    | None ->
-                        $"[{contentType}]"
-                appendLinkTo contentInfo
-            | Poll poll ->
-                let text = getPollText poll
-                $"[Poll] {text}"
-            | _ ->
-                appendLinkTo "[DATA UNRECOGNIZED]"
+            match quote with
+            | Some quote -> quote.Text
+            | None ->
+                match message with
+                | Text text -> applyEntities message.Entities text
+                | Content (contentType, caption) ->
+                    let contentInfo =
+                        match caption with
+                        | Some caption ->
+                            let text = applyEntities message.CaptionEntities caption
+                            $"[{contentType} with caption \"{text}\"]"
+                        | None ->
+                            $"[{contentType}]"
+                    appendLinkTo contentInfo
+                | Poll poll ->
+                    let text = getPollText poll
+                    $"[Poll] {text}"
+                | _ ->
+                    appendLinkTo "[DATA UNRECOGNIZED]"
 
         match message with
         | ForwardFrom author ->
@@ -253,7 +256,7 @@ module MessageConverter =
             Authored { author = author; text = text }
         | Event _ as msg -> msg
 
-    let private isSelfMessage selfUserId (message: FunogramMessage) =
+    let private isBotOwnMessage selfUserId (message: FunogramMessage) =
         match message.From with
         | Some user -> user.Id = selfUserId
         | None -> false
@@ -263,7 +266,7 @@ module MessageConverter =
         then Some message
         else None
 
-    let private extractMessageContent(message: FunogramMessage) links: Message =
+    let private extractMessageContent(message: FunogramMessage) quote links: Message =
         match message with
         | EventFunogramMessage msg ->
             Event { text = getEventMessageBodyText msg }
@@ -272,25 +275,49 @@ module MessageConverter =
                 message.From
                 |> Option.map getUserDisplayName
                 |> Option.defaultValue "[UNKNOWN USER]"
-            let mainBody = getAuthoredMessageBodyText message links
+            let mainBody = getAuthoredMessageBodyText message quote links
             Authored { author = mainAuthor; text = mainBody }
 
     /// For messages from the bot, the first bold section of the message will contain the nickname of the author.
     /// Everything else is the message text.
-    let private extractSelfMessageContent(message: FunogramMessage) link: Message =
+    let private extractBotOwnMessageContent(message: FunogramMessage) (quote: TextQuote option) link: Message =
+        let splitMessageText (boldEntity: MessageEntity) (text: string) =
+            let authorNameOffset = Math.Clamp(int32 boldEntity.Offset, 0, text.Length)
+            let authorNameLength = Math.Clamp(int32 boldEntity.Length, 0, text.Length - authorNameOffset)
+            let authorName = text.Substring(authorNameOffset, authorNameLength)
+
+            let messageTextOffset = Math.Clamp(
+                authorNameOffset + authorNameLength + 1,  // +1 for \n
+                0,
+                text.Length
+            )
+            let messageText = text.Substring messageTextOffset
+            authorName, messageText
+
         match (message.Entities, message.Text) with
-        | None, _ | _, None -> extractMessageContent message link
+        | None, _ | _, None -> extractMessageContent message quote link
         | Some entities, Some text ->
-            let boldEntity = Seq.tryFind (fun (e: MessageEntity) -> e.Type = "bold") entities
+            let boldEntity = Array.tryFind (fun (e: MessageEntity) -> e.Type = "bold") entities
             match boldEntity with
-            | None -> extractMessageContent message link
+            | None -> extractMessageContent message quote link
             | Some section ->
-                let authorNameOffset = Math.Clamp(int32 section.Offset, 0, text.Length)
-                let authorNameLength = Math.Clamp(int32 section.Length, 0, text.Length - authorNameOffset)
-                let authorName = text.Substring(authorNameOffset, authorNameLength)
-                let messageTextOffset = Math.Clamp(authorNameOffset + authorNameLength + 1, 0, text.Length) // +1 for \n
-                let messageText = text.Substring messageTextOffset
-                Authored { author = authorName; text = messageText }
+                // Always read the author message from the original text, not the quoted part (in case it's inaccurate).
+                let authorName, messageText = splitMessageText section text
+                match quote with
+                | None -> // No quote: read the rest of the text from the main message.
+                    Authored { author = authorName; text = messageText }
+                | Some quote ->
+                    // In case the quote has a prt of the author name, then drop that part and use the full name
+                    // instead.
+                    let entities = quote.Entities |> Option.defaultValue Array.empty
+                    let boldPartOfTheQuote = Array.tryFind (fun (e: MessageEntity) -> e.Type = "bold") entities
+                    let fullQuoteText = quote.Text
+                    match boldPartOfTheQuote with
+                    | None -> // The quote doesn't include the original author name.
+                        Authored { author = authorName; text = fullQuoteText }
+                    | Some section -> // The quote includes (a part of) the original author name; ignore it.
+                        let _, quotedText = splitMessageText section fullQuoteText
+                        Authored { author = authorName; text = quotedText }
 
     let (|ForumTopicCreatedMessage|_|) (m: FunogramMessage option) =
         match m with
@@ -298,14 +325,14 @@ module MessageConverter =
         | _ -> None
 
     let internal read (selfUserId: int64) (message: FunogramMessage, links: TelegramThreadLinks): ThreadMessage =
-        let mainMessage = extractMessageContent message links.ContentLinks
+        let mainMessage = extractMessageContent message None links.ContentLinks
         match message.ReplyToMessage with
         | None | ForumTopicCreatedMessage _ -> { main = mainMessage; replyTo = None }
         | Some replyTo ->
             let replyToMessage =
-                if isSelfMessage selfUserId replyTo
-                then extractSelfMessageContent replyTo links.ReplyToContentLinks
-                else extractMessageContent replyTo links.ReplyToContentLinks
+                if isBotOwnMessage selfUserId replyTo
+                then extractBotOwnMessageContent replyTo message.Quote links.ReplyToContentLinks
+                else extractMessageContent replyTo message.Quote links.ReplyToContentLinks
             { main = mainMessage; replyTo = Some replyToMessage }
 
 let internal processSendResult(result: Result<'a, ApiResponseError>): 'a =

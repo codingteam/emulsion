@@ -580,6 +580,62 @@ module ReadMessageTests =
             readMessage replyMessage
         )
 
+    [<Fact>]
+    let ``Partial quote is properly preserved``() =
+        let originalMessage = {
+            defaultMessage with
+                From = Some originalUser
+                Text = Some "foo bar baz"
+        }
+        let replyMessage = {
+            defaultMessage with
+                From = Some replyingUser
+                ReplyToMessage = Some originalMessage
+                Quote = Some {
+                    Entities = None
+                    Position = 3
+                    Text = "bar"
+                    IsManual = None
+                }
+                Text = Some "Reply text"
+        }
+
+        Assert.Equal(
+            authoredTelegramReplyMessage "@replyingUser" "Reply text"
+                (authoredTelegramMessage "@originalUser" "bar").main,
+            readMessage replyMessage
+        )
+
+    [<Fact>]
+    let ``Partial quote in own message is properly preserved``() =
+        let replyMessage = {
+            defaultMessage with
+                From = Some replyingUser
+                ReplyToMessage = Some {
+                    defaultMessage with
+                        From = Some <| User.Create(selfUserId, isBot = true, firstName = "")
+                        Text = Some "xmppUser\nfoo bar"
+                        Entities = Some [|
+                            createEntity "bold" 0 "xmppUser".Length ""
+                        |]
+                }
+                Quote = Some {
+                    Entities = Some [|
+                        createEntity "bold" 0 "ppUser".Length ""
+                    |]
+                    Position = 2
+                    Text = "ppUser\nfoo"
+                    IsManual = Some true
+                }
+                Text = Some "Reply text"
+        }
+
+        Assert.Equal(
+            authoredTelegramReplyMessage "@replyingUser" "Reply text"
+                (authoredTelegramMessage "xmppUser" "foo").main,
+            readMessage replyMessage
+        )
+
 module ProcessMessageTests =
     let private processMessageOpt o =
         processMessage Logger.None None None o
