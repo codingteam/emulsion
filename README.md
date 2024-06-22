@@ -8,15 +8,17 @@ Installation
 There are two supported Emulsion distributions: as a framework-dependent .NET application, or as a Docker image.
 
 ### .NET Application
-To run Emulsion as [a framework-dependent .NET application][docs.dotnet.framework-dependent], you'll need to [install .NET runtime][dotnet.install] version 8.0 or later.
+To run Emulsion as [a framework-dependent .NET application][docs.dotnet.framework-dependent], you'll need to [install .NET runtime][dotnet] version 8.0 or later.
 
 Then, download the required version in the [Releases][releases] section.
 
-After that, configure the application, and start it using the following shell command:
+After that, configure the application (see the following section), and start it using the following shell command:
 
 ```console
-$ dotnet Emulsion.dll
+$ dotnet Emulsion.dll [optional-path-to-json-config-file]
 ```
+
+If `optional-path-to-json-config-file` is not provided, Emulsion will use the `emulsion.json` file from the current directory.
 
 ### Docker
 It is recommended to use Docker to deploy this application. To install the application from Docker, you may use the following Bash script:
@@ -47,18 +49,8 @@ where
 - `$DATA` is the absolute path to the data directory (used by the configuration)
 - `$WEB_PORT` is the port on the host system which will be used to access the content proxy
 
-Build
------
-
-Install [.NET SDK][dotnet] 8.0 and Node.js 18 or newer for your platform, then run:
-
-```console
-$ dotnet build
-```
-
-Configure
----------
-
+Configuration
+-------------
 Copy `emulsion.example.json` to `emulsion.json` and set the settings. For some settings, there are defaults:
 
 ```json
@@ -130,62 +122,22 @@ Current configuration system allows the following:
 2. When receiving a piece of Telegram content (a file, a photo, an audio message), the bot will send a link to `https://example.com/telegram/content/<some_id>` to the XMPP chat.
 3. When anyone visits the link, the reverse proxy will send a request to `http://localhost/content/<some_id>`, which will take a corresponding content from the database.
 
-Test
-----
-
-To execute the tests:
-
-```console
-$ dotnet test
-```
-
-Run
----
-
-Requires [.NET Runtime][dotnet] version 8.0 or newer.
-
-```console
-$ dotnet run --project ./Emulsion [optional-path-to-json-config-file]
-```
-
-Docker Publish
---------------
-To build and push the container to Docker Hub, use the following commands:
-
-```console
-$ docker build -t codingteam/emulsion:$EMULSION_VERSION \
-    -t codingteam/emulsion:latest .
-
-$ docker login # if necessary
-$ docker push codingteam/emulsion:$EMULSION_VERSION
-$ docker push codingteam/emulsion:latest
-```
-
-where `$EMULSION_VERSION` is the version of the image to publish.
-
 Documentation
 -------------
-
-Common documentation:
-
 - [Changelog][docs.changelog]
+- [Contributor Guide][docs.contributing]
 - [License (MIT)][docs.license]
-
-Developer documentation:
-
-- [How to Create a Database Migration][docs.create-migration]
 - [Maintainership][docs.maintainership]
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-aquana-
 [badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
 [docker-hub]: https://hub.docker.com/r/codingteam/emulsion
 [docs.changelog]: ./CHANGELOG.md
-[docs.create-migration]: ./docs/create-migration.md
+[docs.contributing]: CONTRIBUTING.md
 [docs.dotnet.framework-dependent]: https://learn.microsoft.com/en-us/dotnet/core/deploying/#publish-framework-dependent
 [docs.license]: ./LICENSE.md
 [docs.maintainership]: MAINTAINERSHIP.md
-[dotnet.install]: https://dot.net
-[dotnet]: https://dotnet.microsoft.com/download
+[dotnet]: https://dot.net/
 [hashids.net]: https://github.com/ullmark/hashids.net
 [releases]: https://github.com/codingteam/emulsion/releases
 [status-aquana]: https://img.shields.io/badge/status-aquana-yellowgreen.svg
