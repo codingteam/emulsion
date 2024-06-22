@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+
+SPDX-License-Identifier: MIT
+-->
+
 emulsion [![Docker Image][badge.docker]][docker-hub] [![Status Aquana][status-aquana]][andivionian-status-classifier]
 ========
 
@@ -126,8 +132,13 @@ Documentation
 -------------
 - [Changelog][docs.changelog]
 - [Contributor Guide][docs.contributing]
-- [License (MIT)][docs.license]
 - [Maintainership][docs.maintainership]
+
+License
+-------
+The project is distributed under the terms of [the MIT license][docs.license].
+
+The license indication in the project's sources is compliant with the [REUSE specification v3.0][reuse.spec].
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-aquana-
 [badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
@@ -140,6 +151,7 @@ Documentation
 [dotnet]: https://dot.net/
 [hashids.net]: https://github.com/ullmark/hashids.net
 [releases]: https://github.com/codingteam/emulsion/releases
+[reuse.spec]: https://reuse.software/spec/
 [status-aquana]: https://img.shields.io/badge/status-aquana-yellowgreen.svg
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/

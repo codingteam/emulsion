@@ -1,4 +1,8 @@
-﻿module Emulsion.TestFramework.FileCacheUtil
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+module Emulsion.TestFramework.FileCacheUtil
 
 open System.IO
 

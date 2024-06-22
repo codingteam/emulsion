@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
 /// Helper functions to deal with SharpXMPP low-level details (such as XML stuff).
 module Emulsion.Xmpp.SharpXmppHelper
 

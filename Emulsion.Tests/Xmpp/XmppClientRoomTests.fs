@@ -1,4 +1,8 @@
-﻿namespace Emulsion.Tests.Xmpp
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+namespace Emulsion.Tests.Xmpp
 
 open System
 open System.Threading

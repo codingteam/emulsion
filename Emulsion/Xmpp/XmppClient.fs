@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
 /// A general abstraction around an XMPP client and common functions.
 module Emulsion.Xmpp.XmppClient
 

@@ -1,4 +1,8 @@
-﻿module Emulsion.ContentProxy.ContentStorage
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+module Emulsion.ContentProxy.ContentStorage
 
 open Emulsion.Database
 open Emulsion.Database.DataStorage

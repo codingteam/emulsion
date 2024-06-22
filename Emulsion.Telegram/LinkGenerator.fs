@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
 /// A module that generates links to various content from Telegram.
 module Emulsion.Telegram.LinkGenerator
 

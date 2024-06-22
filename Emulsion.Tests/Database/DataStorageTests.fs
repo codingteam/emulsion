@@ -1,4 +1,8 @@
-﻿module Emulsion.Tests.Database.InitializerTests
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+module Emulsion.Tests.Database.InitializerTests
 
 open System.IO
 

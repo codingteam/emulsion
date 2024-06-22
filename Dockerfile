@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+#
+# SPDX-License-Identifier: MIT
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 
 # Install Node.js 18

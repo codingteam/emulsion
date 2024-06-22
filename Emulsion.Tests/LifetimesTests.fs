@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
 module Emulsion.Tests.LifetimesTests
 
 open JetBrains.Lifetimes
 
 open Xunit
 
-open System.Threading.Tasks
 open Emulsion.Lifetimes
 
 [<Fact>]

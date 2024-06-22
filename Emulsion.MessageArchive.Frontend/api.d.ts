@@ -1,4 +1,8 @@
-﻿type Statistics = {
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+type Statistics = {
     messageCount: number;
 }
 

@@ -1,4 +1,8 @@
-﻿module Emulsion.Tests.Xmpp.SharpXmppPingHandlerTests
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+module Emulsion.Tests.Xmpp.SharpXmppPingHandlerTests
 
 open System.IO
 open System.Xml

@@ -1,4 +1,8 @@
-﻿namespace Emulsion.Tests.ContentProxy
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+namespace Emulsion.Tests.ContentProxy
 
 open System
 open System.Collections.Generic

@@ -1,4 +1,8 @@
-﻿module Emulsion.TestFramework.TestDataStorage
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+module Emulsion.TestFramework.TestDataStorage
 
 open System.IO
 

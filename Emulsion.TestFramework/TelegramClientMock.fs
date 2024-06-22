@@ -1,4 +1,8 @@
-﻿namespace Emulsion.TestFramework
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+namespace Emulsion.TestFramework
 
 open System.Collections.Generic
 

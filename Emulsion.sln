@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
@@ -17,6 +17,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		MAINTAINERSHIP.md = MAINTAINERSHIP.md
 		Directory.Build.props = Directory.Build.props
 		CONTRIBUTING.md = CONTRIBUTING.md
+		emulsion.example.json.license = emulsion.example.json.license
+		Emulsion.sln.license = Emulsion.sln.license
+		renovate.json.license = renovate.json.license
+		.dockerignore = .dockerignore
+		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.Tests", "Emulsion.Tests\Emulsion.Tests.fsproj", "{1B3B65DD-FD58-45FA-B6FF-8532B513A7D9}"
@@ -35,6 +40,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".config", ".config", "{D03C4F4A-9806-46AA-8654-14363DFB3FBE}"
 ProjectSection(SolutionItems) = preProject
 	.config\dotnet-tools.json = .config\dotnet-tools.json
+	.config\dotnet-tools.json.license = .config\dotnet-tools.json.license
 EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.ContentProxy", "Emulsion.ContentProxy\Emulsion.ContentProxy.fsproj", "{A520FD41-A1CB-4062-AFBC-62A8BED12E81}"
@@ -53,6 +59,21 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulsion.TestFramework", "Emulsion.TestFramework\Emulsion.TestFramework.fsproj", "{381D687B-6520-48F1-8AA0-3EDB45654AAC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emulsion.MessageArchive.Frontend", "Emulsion.MessageArchive.Frontend\Emulsion.MessageArchive.Frontend.proj", "{A0FA9B40-4FD3-4EF9-AFCF-2CB7445A677E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".reuse", ".reuse", "{E23EFD2B-A80C-4F15-B965-27416EE1CF09}"
+	ProjectSection(SolutionItems) = preProject
+		.reuse\dep5 = .reuse\dep5
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{E3091B22-752A-4260-B4F3-903B9043479F}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\Test-Encoding.ps1 = scripts\Test-Encoding.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LICENSES", "LICENSES", "{BBA60ACE-9FB4-4F3B-89EC-16A5BB9F5686}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSES\MIT.txt = LICENSES\MIT.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

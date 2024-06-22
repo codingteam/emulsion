@@ -1,4 +1,8 @@
-﻿namespace Emulsion.Database.Entities
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+namespace Emulsion.Database.Entities
 
 open System
 open System.ComponentModel.DataAnnotations

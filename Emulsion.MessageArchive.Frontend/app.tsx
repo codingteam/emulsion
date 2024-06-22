@@ -1,4 +1,8 @@
-﻿import React, {useState} from 'react';
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+import React, {useState} from 'react';
 import {render} from 'react-dom';
 
 class LoadedPage {

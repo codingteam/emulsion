@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
 /// Main business logic for an XMPP part of the Emulsion application.
 module Emulsion.Xmpp.EmulsionXmpp
 

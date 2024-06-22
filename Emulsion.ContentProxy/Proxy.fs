@@ -1,7 +1,10 @@
-﻿module Emulsion.ContentProxy.Proxy
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+module Emulsion.ContentProxy.Proxy
 
 open System
-open System.Collections
 open HashidsNet
 
 let encodeHashId (salt: string) (id: int64): string =

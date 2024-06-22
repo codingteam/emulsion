@@ -1,8 +1,11 @@
-﻿namespace Emulsion.Web
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+namespace Emulsion.Web
 
 open System
 open System.Collections.Generic
-open System.Linq
 open System.Threading.Tasks
 
 open Microsoft.AspNetCore.Mvc

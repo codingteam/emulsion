@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+#
+# SPDX-License-Identifier: MIT
+
 name: Main
 on:
   push:
@@ -38,3 +42,17 @@ jobs:
       - name: Test
         run: dotnet test
         timeout-minutes: 10
+  encoding:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify encoding
+        shell: pwsh
+        run: scripts/Test-Encoding.ps1
+  licenses:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out the sources
+        uses: actions/checkout@v4
+      - name: REUSE license check
+        uses: fsfe/reuse-action@v3

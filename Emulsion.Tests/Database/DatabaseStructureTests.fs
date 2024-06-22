@@ -1,4 +1,8 @@
-﻿module Emulsion.Tests.Database.DatabaseStructureTests
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+module Emulsion.Tests.Database.DatabaseStructureTests
 
 open Microsoft.Data.Sqlite
 open Xunit

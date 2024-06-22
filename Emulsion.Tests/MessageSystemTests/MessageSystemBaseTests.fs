@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
 namespace Emulsion.Tests.MessageSystemTests
 
 open System
@@ -7,7 +11,6 @@ open System.Threading.Tasks
 open Xunit
 open Xunit.Abstractions
 
-open Emulsion
 open Emulsion.Messaging
 open Emulsion.Messaging.MessageSystem
 open Emulsion.TestFramework

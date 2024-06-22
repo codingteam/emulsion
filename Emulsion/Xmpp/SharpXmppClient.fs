@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
 /// An implementation of an IXmppClient based on SharpXMPP library.
 module Emulsion.Xmpp.SharpXmppClient
 

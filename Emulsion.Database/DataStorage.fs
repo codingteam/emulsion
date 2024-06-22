@@ -1,4 +1,8 @@
-﻿module Emulsion.Database.DataStorage
+// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+//
+// SPDX-License-Identifier: MIT
+
+module Emulsion.Database.DataStorage
 
 open System.Data
 
