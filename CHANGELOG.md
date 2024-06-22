@@ -16,6 +16,9 @@ When considering the public API, we take into account the tool configuration and
 ### Changed
 - **(Requirement update!)** Update to .NET 8.
 
+### Added
+- [#188: Telegram: support new quotes](https://github.com/codingteam/emulsion/issues/188).
+
 ### Fixed
 - The second part of [#190](https://github.com/codingteam/emulsion/issues/190): now the Telegram errors will be logged to the log file, not to the stdout.
 
