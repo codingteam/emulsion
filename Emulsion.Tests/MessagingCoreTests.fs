@@ -6,6 +6,7 @@ namespace Emulsion.Tests
 
 open System
 open System.Threading
+open System.Threading.Channels
 open System.Threading.Tasks
 open Emulsion
 open Emulsion.Messaging
@@ -30,9 +31,11 @@ type MessagingCoreTests(output: ITestOutputHelper) =
     let waitProcessingError lt (core: MessagingCore) =
         Signals.WaitWithTimeout lt core.MessageProcessingError waitTimeout "message processed with error"
 
-    let newMessageSystem (receivedMessages: ResizeArray<_>) = {
+    let newMessageSystem (receivedMessages: Channel<_>) = {
         new IMessageSystem with
-            override this.PutMessage m = lock receivedMessages (fun() -> receivedMessages.Add m)
+            override this.PutMessage m =
+                let result = receivedMessages.Writer.TryWrite m
+                Assert.True(result, "Channel should accept an incoming message")
             override this.RunSynchronously _ = ()
     }
 
@@ -45,29 +48,28 @@ type MessagingCoreTests(output: ITestOutputHelper) =
     member _.``MessagingCore calls archive if it's present``(): Task = task {
         use ld = new LifetimeDefinition()
         let lt = ld.Lifetime
-        let messages = ResizeArray()
+        let messages = Channel.CreateUnbounded()
         let archive = {
             new IMessageArchive with
                 override this.Archive(message) =
-                    lock messages (fun() -> messages.Add message)
-                    async.Return()
+                    messages.Writer.WriteAsync(message).AsTask()
+                    |> Async.AwaitTask
         }
 
         let core = MessagingCore(lt, logger, Some archive)
-        let awaitMessage = waitSuccessfulProcessing lt core
         core.Start(dummyMessageSystem, dummyMessageSystem)
 
-        let message = IncomingMessage.TelegramMessage(testMessage)
-        core.ReceiveMessage message
-        do! awaitMessage
+        let expected = IncomingMessage.TelegramMessage(testMessage)
+        core.ReceiveMessage expected
+        let! actual = messages.Reader.ReadAsync()
 
-        Assert.Equal([|message|], messages)
+        Assert.Equal(expected, actual)
     }
 
     [<Fact>]
     member _.``MessagingCore sends XMPP message to Telegram and vise-versa``(): Task = task {
-        let telegramReceived = ResizeArray()
-        let xmppReceived = ResizeArray()
+        let telegramReceived = Channel.CreateUnbounded()
+        let xmppReceived = Channel.CreateUnbounded()
 
         let xmpp = newMessageSystem xmppReceived
         let telegram = newMessageSystem telegramReceived
@@ -77,8 +79,7 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         let core = MessagingCore(lt, logger, None)
         core.Start(telegram, xmpp)
 
-        let sendMessageAndAssertReceival incomingMessage text (received: _ seq) = task {
-            let awaitMessage = waitSuccessfulProcessing lt core
+        let sendMessageAndAssertReceival incomingMessage text (received: Channel<_>) = task {
             let message = Authored {
                 author = "cthulhu"
                 text = text
@@ -86,10 +87,8 @@ type MessagingCoreTests(output: ITestOutputHelper) =
 
             let incoming = incomingMessage message
             core.ReceiveMessage incoming
-            do! awaitMessage
-            lock received (fun() ->
-                Assert.Equal([|OutgoingMessage message|], received)
-            )
+            let! outgoing = received.Reader.ReadAsync()
+            Assert.Equal(OutgoingMessage message, outgoing)
         }
 
         do! sendMessageAndAssertReceival XmppMessage "text1" telegramReceived
@@ -98,7 +97,7 @@ type MessagingCoreTests(output: ITestOutputHelper) =
 
     [<Fact>]
     member _.``MessagingCore buffers the message received before start``(): Task = task {
-        let telegramReceived = ResizeArray()
+        let telegramReceived = Channel.CreateUnbounded()
         let telegram = newMessageSystem telegramReceived
 
         use ld = new LifetimeDefinition()
@@ -106,13 +105,11 @@ type MessagingCoreTests(output: ITestOutputHelper) =
         let core = MessagingCore(lt, logger, None)
 
         core.ReceiveMessage(XmppMessage testMessage)
-        Assert.Empty(lock telegramReceived (fun() -> telegramReceived))
+        let hasMessages, _ = telegramReceived.Reader.TryPeek()
+        Assert.False(hasMessages, "No message is expected to be available.")
 
-        let waitForProcessing = waitSuccessfulProcessing lt core
         core.Start(telegram, dummyMessageSystem)
-        do! waitForProcessing
-
-        let receivedMessage = Assert.Single(lock telegramReceived (fun() -> telegramReceived))
+        let! receivedMessage = telegramReceived.Reader.ReadAsync()
         Assert.Equal(OutgoingMessage testMessage, receivedMessage)
     }
 
