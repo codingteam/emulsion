@@ -12,12 +12,15 @@ Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
 When considering the public API, we take into account the tool configuration and external requirements of the framework-dependent binary. Meaning that basically, breaking changes in configuration files, command-line syntax, or in the runtime requirements should be causing a major version increment.
 
-## [Unreleased] (3.0.0)
+## [3.0.0] - 2024-06-23
 ### Changed
 - **(Requirement update!)** Update to .NET 8.
+- Update all the used libraries.
+- Migrate the internal architecture away from using Akka.NET to channels.
 
 ### Added
 - [#188: Telegram: support new quotes](https://github.com/codingteam/emulsion/issues/188).
+- Release artifacts as a framework-dependent .NET application (not exclusively a Docker image now).
 
 ### Fixed
 - The second part of [#190](https://github.com/codingteam/emulsion/issues/190): now the Telegram errors will be logged to the log file, not to the stdout.
