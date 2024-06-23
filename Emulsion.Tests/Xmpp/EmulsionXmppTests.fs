@@ -221,7 +221,7 @@ type SendTests(outputHelper: ITestOutputHelper) =
             let! messageId = Async.AwaitTask messageId.Task // the send has been completed
 
             // Wait for 100 ms to check that the receival is not completed yet:
-            Assert.False(receivalTask.Wait(TimeSpan.FromSeconds 10.0))
+            Assert.False(receivalTask.Wait(TimeSpan.FromMilliseconds 100.0))
 
             let deliveryMessage = SharpXmppHelper.message messageId "" ""
             onMessage deliveryMessage
