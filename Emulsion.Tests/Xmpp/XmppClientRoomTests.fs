@@ -20,6 +20,7 @@ open Emulsion
 open Emulsion.Xmpp
 open Emulsion.Xmpp.SharpXmppHelper.Attributes
 open Emulsion.Xmpp.SharpXmppHelper.Elements
+open Emulsion.TestFramework
 open Emulsion.TestFramework.Logging
 
 type XmppClientRoomTests(output: ITestOutputHelper) =
@@ -216,7 +217,7 @@ type XmppClientRoomTests(output: ITestOutputHelper) =
             task {
                 let! lt = XmppClient.enterRoom logger client lt roomInfo
                 Assert.True lt.IsAlive
-                do! Async.Sleep(int (timeout * 2.0).TotalMilliseconds) // wait for two timeouts for test stability
+                do! Lifetimes.WaitForTermination lt (timeout * 50.0) "Room lifetime should be terminated by timeout."
                 Assert.False lt.IsAlive
             }
         )

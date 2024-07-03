@@ -23,6 +23,7 @@ SPDX-License-Identifier: MIT
     <Compile Include="FileCacheUtil.fs" />
     <Compile Include="StreamUtils.fs" />
     <Compile Include="Signals.fs" />
+    <Compile Include="Lifetimes.fs" />
   </ItemGroup>
 
   <ItemGroup>
