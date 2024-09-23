@@ -38,7 +38,7 @@ SPDX-License-Identifier: MIT
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="Serilog.Sinks.TestCorrelator" Version="4.0.0" />
-    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="xunit" Version="2.9.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <ProjectReference Include="../Emulsion/Emulsion.fsproj" />
     <ProjectReference Include="..\Emulsion.Database\Emulsion.Database.fsproj" />
