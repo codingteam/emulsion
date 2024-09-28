@@ -26,7 +26,7 @@ SPDX-License-Identifier: MIT
     <PackageReference Include="Hashids.net" Version="1.7.0" />
     <PackageReference Include="JetBrains.Lifetimes" Version="2024.3.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageReference Include="Serilog" Version="4.0.1" />
+    <PackageReference Include="Serilog" Version="4.0.2" />
     <PackageReference Include="SimpleBase" Version="4.0.2" />
   </ItemGroup>
 
