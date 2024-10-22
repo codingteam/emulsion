@@ -17,6 +17,6 @@ SPDX-License-Identifier: MIT
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharpx.Collections" Version="3.1.0" />
-    <PackageReference Include="Serilog" Version="4.0.2" />
+    <PackageReference Include="Serilog" Version="4.1.0" />
   </ItemGroup>
 </Project>
