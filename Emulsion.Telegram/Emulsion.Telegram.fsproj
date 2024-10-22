@@ -18,7 +18,7 @@ SPDX-License-Identifier: MIT
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Funogram" Version="3.0.1" />
-    <PackageReference Include="Funogram.Telegram" Version="7.3.0.1" />
+    <PackageReference Include="Funogram.Telegram" Version="7.10.0" />
     <PackageReference Include="Serilog" Version="4.1.0" />
   </ItemGroup>
   <ItemGroup>
