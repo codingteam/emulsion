@@ -174,7 +174,7 @@ module MessageConverter =
 
         let (|ForwardFrom|_|) (message: FunogramMessage) =
             match message.ForwardOrigin with
-            | Some(User { SenderUser = user }) -> Some (getUserDisplayName user)
+            | Some(MessageOrigin.User { SenderUser = user }) -> Some (getUserDisplayName user)
             | Some(HiddenUser { SenderUserName = name }) -> Some name
             | Some(MessageOrigin.Chat { SenderChat = chat }) -> Some (getChatDisplayName chat)
             | Some(MessageOrigin.Channel { Chat = chat }) -> Some (getChatDisplayName chat)
