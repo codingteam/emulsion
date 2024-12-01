@@ -61,7 +61,9 @@ let private createForwardedMessage from (forwarded: Funogram.Telegram.Types.Mess
         ForwardOrigin =
             forwarded.From
             |> Option.map (
-                fun u -> User(MessageOriginUser.Create(``type`` = "user", date = forwarded.Date, senderUser = u))
+                fun u -> MessageOrigin.User(
+                    MessageOriginUser.Create(``type`` = "user", date = forwarded.Date, senderUser = u)
+                )
             )
         Text = forwarded.Text }
 
