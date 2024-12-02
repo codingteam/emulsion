@@ -68,6 +68,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{E3091B22-752A-4260-B4F3-903B9043479F}"
 	ProjectSection(SolutionItems) = preProject
 		scripts\Test-Encoding.ps1 = scripts\Test-Encoding.ps1
+		scripts\Get-Version.ps1 = scripts\Get-Version.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LICENSES", "LICENSES", "{BBA60ACE-9FB4-4F3B-89EC-16A5BB9F5686}"
