@@ -138,7 +138,7 @@ License
 -------
 The project is distributed under the terms of [the MIT license][docs.license].
 
-The license indication in the project's sources is compliant with the [REUSE specification v3.0][reuse.spec].
+The license indication in the project's sources is compliant with the [REUSE specification v3.3][reuse.spec].
 
 [andivionian-status-classifier]: https://github.com/ForNeVeR/andivionian-status-classifier#status-aquana-
 [badge.docker]: https://img.shields.io/docker/v/codingteam/emulsion?sort=semver
@@ -151,7 +151,7 @@ The license indication in the project's sources is compliant with the [REUSE spe
 [dotnet]: https://dot.net/
 [hashids.net]: https://github.com/ullmark/hashids.net
 [releases]: https://github.com/codingteam/emulsion/releases
-[reuse.spec]: https://reuse.software/spec/
+[reuse.spec]: https://reuse.software/spec-3.3/
 [status-aquana]: https://img.shields.io/badge/status-aquana-yellowgreen.svg
 [telegram]: https://telegram.org/
 [xmpp]: https://xmpp.org/
