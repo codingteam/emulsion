@@ -33,7 +33,7 @@ SPDX-License-Identifier: MIT
     <PackageReference Include="JetBrains.Lifetimes" Version="2024.3.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
-    <PackageReference Include="Serilog" Version="4.1.0" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
     <PackageReference Include="SharpXMPP" Version="0.5.1" />
