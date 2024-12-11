@@ -27,7 +27,7 @@ SPDX-License-Identifier: MIT
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Serilog.Sinks.XUnit" Version="3.0.5" />
+    <PackageReference Include="Serilog.Sinks.XUnit" Version="3.0.19" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <ProjectReference Include="..\Emulsion.Database\Emulsion.Database.fsproj" />
     <ProjectReference Include="..\Emulsion.Telegram\Emulsion.Telegram.fsproj" />
