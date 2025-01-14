@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+// SPDX-FileCopyrightText: 2025 Emulsion contributors <https://github.com/codingteam/emulsion>
 //
 // SPDX-License-Identifier: MIT
 
@@ -15,6 +15,22 @@ open Emulsion.Tests.Xmpp
 open Emulsion.Xmpp
 open Emulsion.Xmpp.SharpXmppHelper.Attributes
 open Emulsion.Xmpp.SharpXmppHelper.Elements
+
+[<Fact>]
+let ``SanitizeXmlText processes emoji as-is``(): unit =
+    Assert.Equal("🐙", SharpXmppHelper.SanitizeXmlText "🐙")
+    Assert.Equal("test🐙", SharpXmppHelper.SanitizeXmlText "test🐙")
+
+[<Fact>]
+let ``SanitizeXmlText replaces parts of UTF-16 surrogate pair with the replacement char``(): unit =
+    let octopus = "🐙"
+    Assert.Equal(2, octopus.Length)
+    let firstHalf = string(octopus[0])
+    let secondHalf = string(octopus[1])
+    Assert.Equal("🐙", firstHalf + secondHalf)
+    Assert.Equal("�", SharpXmppHelper.SanitizeXmlText firstHalf)
+    Assert.Equal("�", SharpXmppHelper.SanitizeXmlText secondHalf)
+    Assert.Equal("test�", SharpXmppHelper.SanitizeXmlText $"test{secondHalf}")
 
 [<Fact>]
 let ``Message body has a proper namespace``() =

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+// SPDX-FileCopyrightText: 2025 Emulsion contributors <https://github.com/codingteam/emulsion>
 //
 // SPDX-License-Identifier: MIT
 
@@ -6,8 +6,11 @@
 module Emulsion.Xmpp.SharpXmppHelper
 
 open System
+open System.Buffers
+open System.Text
 open System.Xml.Linq
 
+open Microsoft.FSharp.NativeInterop
 open SharpXMPP
 open SharpXMPP.XMPP
 open SharpXMPP.XMPP.Client.Elements
@@ -49,6 +52,28 @@ let private bookmark (roomJid: string) (nickname: string) (password: string opti
     room.Add(nickElement)
     room
 
+#nowarn "9" // for NativePtr
+let SanitizeXmlText(text: string): string =
+    let mutable hasError = false
+    let mutable span = text.AsSpan()
+    while not hasError && not span.IsEmpty do
+        let mutable rune = Rune()
+        let mutable consumed = 0
+        if Rune.DecodeFromUtf16(span, &rune, &consumed) = OperationStatus.Done
+        then span <- span.Slice consumed
+        else hasError <- true
+
+    if hasError then
+        let builder = StringBuilder()
+        for r in text.EnumerateRunes() do
+            let length = r.Utf16SequenceLength
+            let buf = Span(NativePtr.stackalloc<char> length |> NativePtr.toVoidPtr, length)
+            r.EncodeToUtf16 buf |> ignore
+            builder.Append(buf) |> ignore
+        builder.ToString()
+    else
+        text
+
 let joinRoom (client: XmppClient) (roomJid: string) (nickname: string) (password: string option): unit =
     let room = bookmark roomJid nickname password
     client.BookmarkManager.Join room
@@ -59,7 +84,7 @@ let message (id: string) (toAddr: string) (text: string): XMPPMessage =
     m.SetAttributeValue(Type, "groupchat")
     m.SetAttributeValue(To, toAddr)
     let body = XElement(Body)
-    body.Value <- text
+    body.Value <- SanitizeXmlText text
     m.Add(body)
     m
 
