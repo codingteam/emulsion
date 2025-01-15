@@ -12,9 +12,13 @@ Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
 When considering the public API, we take into account the tool configuration and external requirements of the framework-dependent binary. Meaning that basically, breaking changes in configuration files, command-line syntax, or in the runtime requirements should be causing a major version increment.
 
-## [Unreleased] (4.0.0)
+## [4.0.0] - 2025-01-15
 ### Changed
 - **(Requirement update!)** Update to .NET 9.
+- Update all the used libraries.
+
+### Fixed
+- [#322: Broken Unicode message destroys the XMPP connection](https://github.com/codingteam/emulsion/issues/322).
 
 ## [3.0.0] - 2024-06-23
 ### Changed
@@ -215,4 +219,6 @@ runtime 2.2.
 [2.4.2]: https://github.com/codingteam/emulsion/compare/v2.4.1...v2.4.2
 [2.4.3]: https://github.com/codingteam/emulsion/compare/v2.4.2...v2.4.3
 [2.4.4]: https://github.com/codingteam/emulsion/compare/v2.4.3...v2.4.4
-[Unreleased]: https://github.com/codingteam/emulsion/compare/v2.4.4...HEAD
+[3.0.0]: https://github.com/codingteam/emulsion/compare/v2.4.4...v3.0.0
+[4.0.0]: https://github.com/codingteam/emulsion/compare/v3.0.0...v4.0.0
+[Unreleased]: https://github.com/codingteam/emulsion/compare/v4.0.0...HEAD
