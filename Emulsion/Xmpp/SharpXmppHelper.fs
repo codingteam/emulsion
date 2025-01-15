@@ -52,7 +52,7 @@ let private bookmark (roomJid: string) (nickname: string) (password: string opti
     room.Add(nickElement)
     room
 
-#nowarn "9" // for NativePtr
+#nowarn 9 // for NativePtr
 let SanitizeXmlText(text: string): string =
     let mutable hasError = false
     let mutable span = text.AsSpan()
