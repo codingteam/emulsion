@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+// SPDX-FileCopyrightText: 2025 Emulsion contributors <https://github.com/codingteam/emulsion>
 //
 // SPDX-License-Identifier: MIT
 
@@ -105,16 +105,30 @@ module MessageConverter =
                 pos <- linkEndOffset
             result.Append(text.Substring(pos, text.Length - pos)).ToString()
 
-    let private applyLimits limits text =
+    let private applyLimits limits (text: string) =
         let applyMessageLengthLimit (original: {| text: string; wasLimited: bool |}) =
             match limits.messageLengthLimit with
             | None -> original
             | Some limit when original.text.Length <= limit -> original
             | Some limit ->
-                let newText = original.text.Substring(0,
-                                                      Math.Clamp(limit - limits.dataRedactedMessage.Length,
-                                                                 0,
-                                                                 original.text.Length))
+                assert (limit >= limits.dataRedactedMessage.Length)
+
+                let mutable newTextLength = Math.Clamp(
+                    limit - limits.dataRedactedMessage.Length,
+                    0,
+                    original.text.Length
+                )
+
+                // We should never split surrogate pairs present in the initial message. So, if the message ends with a
+                // high part of such a pair, cut it more, to remove the part of the pair.
+                //
+                // Technically, this will also strip a part of an invalid Unicode sequence if the message originally
+                // contained such an orphan part of the pair without even following it by a high surrogate. But we don't
+                // care.
+                if newTextLength > 0 && Char.IsHighSurrogate(text[newTextLength - 1]) then
+                    newTextLength <- newTextLength - 1
+
+                let newText = original.text.Substring(0, newTextLength)
                 {| text = newText; wasLimited = true |}
 
         let applyLineLimit (original: {| text: string; wasLimited: bool |}) =

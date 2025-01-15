@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+// SPDX-FileCopyrightText: 2025 Emulsion contributors <https://github.com/codingteam/emulsion>
 //
 // SPDX-License-Identifier: MIT
 
@@ -734,6 +734,21 @@ module FlattenMessageTests =
         Assert.Equal(
             Authored { author = "@replyingUser"; text = ">> <@originalUser> Original text\n\nReply text" },
             flattenMessage replyMessage
+        )
+
+    [<Fact>]
+    let ``Flattening should not split surrogate pairs``() =
+        let originalMessage = authoredTelegramMessage "@originalUser" "🐙🐙🐙🐙"
+        let limit = 6
+        let replyMessage = authoredTelegramReplyMessage "@replyingUser" "Reply text" originalMessage.main
+        let flattener = MessageConverter.flatten {
+            MessageConverter.DefaultQuoteSettings with
+                limits.messageLengthLimit = Some limit
+        }
+        let flattened = flattener replyMessage
+        Assert.Equal(
+            Authored { author = "@replyingUser"; text = ">> <@originalUser> 🐙[…]\n\nReply text" },
+            flattened
         )
 
     [<Fact>]
