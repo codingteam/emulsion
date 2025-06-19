@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
              CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="JetBrains.Lifetimes" Version="2025.2.1" />
+    <PackageReference Include="JetBrains.Lifetimes" Version="2025.2.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.3" />
     <PackageReference Include="Serilog" Version="4.3.0" />
