@@ -32,7 +32,9 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 9.0.x
-      - name: NuGet cache
+      - if: runner.os != 'macOS' # TODO: Re-enable this back after https://github.com/actions/runner-images/issues/13341
+                                 #       is resolved.
+        name: NuGet cache
         uses: actions/cache@v4
         with:
           path: ${{ env.NUGET_PACKAGES }}
