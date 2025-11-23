@@ -10,7 +10,7 @@ Contributor Guide
 Prerequisites
 -------------
 To develop Emulsion, make sure you've installed the following tools:
-- [.NET SDK][dotnet] 9.0 or later,
+- [.NET SDK][dotnet] 10.0 or later,
 - [Node.js][node.js] 18:
   - if you use [nvm][] or [nvm-windows][], then run `nvm use 18`.
 
