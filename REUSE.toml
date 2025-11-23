@@ -1,0 +1,16 @@
+version = 1
+SPDX-PackageName = "Emulsion"
+SPDX-PackageSupplier = "Friedrich von Never <friedrich@fornever.me>"
+SPDX-PackageDownloadLocation = "https://github.com/codingteam/emulsion"
+
+[[annotations]]
+path = ".idea/**/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2023-2024 Emulsion contributors <https://github.com/codingteam/emulsion>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "**.DotSettings"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2019-2022 Emulsion contributors <https://github.com/codingteam/emulsion>"
+SPDX-License-Identifier = "MIT"
