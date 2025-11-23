@@ -142,15 +142,17 @@ let private messageWithAnimatedSticker =
 let private messageWithVideo =
     { messageTemplate with
         Video = Some {
-            FileId = fileId1
-            FileUniqueId = fileId1
-            FileName = None
-            Width = 0
-            Height = 0
+            Cover = None
             Duration = 0
-            Thumbnail = None
-            MimeType = None
+            FileId = fileId1
+            FileName = None
             FileSize = None
+            FileUniqueId = fileId1
+            Height = 0
+            MimeType = None
+            StartTimestamp = None
+            Thumbnail = None
+            Width = 0
         }
     }
 
