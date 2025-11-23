@@ -16,7 +16,7 @@ on:
     - cron: '0 0 * * 6' # every Saturday
 
 jobs:
-  publish:
+  release-publish:
     runs-on: ubuntu-24.04
     env:
       NUGET_PACKAGES: ${{ github.workspace }}/.github/nuget-packages
