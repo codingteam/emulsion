@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-env
 
 # Install Node.js 18
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
@@ -27,7 +27,7 @@ COPY . ./
 RUN dotnet build Emulsion.MessageArchive.Frontend # required to publish the frontend resources
 RUN dotnet publish Emulsion -c Release -o /app/out
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build-env /app/out .
 ENTRYPOINT ["dotnet", "Emulsion.dll"]
