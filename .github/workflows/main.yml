@@ -19,7 +19,7 @@ jobs:
       matrix:
         environment:
           - name: macos
-            image: macos-14
+            image: macos-15
           - name: linux
             image: ubuntu-24.04
           - name: windows
