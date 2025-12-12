@@ -38,7 +38,7 @@ jobs:
       - if: runner.os != 'macOS' # TODO[#430]: Re-enable this back after https://github.com/actions/runner-images/issues/13341
                                  #             is resolved.
         name: NuGet cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.NUGET_PACKAGES }}
           key: ${{ runner.os }}.nuget.${{ hashFiles('**/*.*proj') }}
