@@ -36,7 +36,7 @@ jobs:
           output: ./changelog-section.md
 
       - name: Upload the changelog
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: changelog-section.md
           path: ./changelog-section.md
@@ -56,7 +56,7 @@ jobs:
         run: Compress-Archive -Path publish -DestinationPath emulsion-${{ steps.version.outputs.version }}.zip
 
       - name: Upload the pack result
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: emulsion-${{ steps.version.outputs.version }}.zip
           path: emulsion-${{ steps.version.outputs.version }}.zip
