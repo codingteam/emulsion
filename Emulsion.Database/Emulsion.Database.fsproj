@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2025 Emulsion contributors <https://github.com/codingteam/emulsion>
+SPDX-FileCopyrightText: 2025-2026 Emulsion contributors <https://github.com/codingteam/emulsion>
 
 SPDX-License-Identifier: MIT
 -->
@@ -26,6 +26,7 @@ SPDX-License-Identifier: MIT
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
+      <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
     </ItemGroup>
 
 </Project>
