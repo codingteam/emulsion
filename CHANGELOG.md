@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2025 Emulsion contributors <https://github.com/codingteam/emulsion>
+SPDX-FileCopyrightText: 2025-2026 Emulsion contributors <https://github.com/codingteam/emulsion>
 
 SPDX-License-Identifier: MIT
 -->
@@ -11,6 +11,11 @@ and this project adheres to [Semantic
 Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
 When considering the public API, we take into account the tool configuration and external requirements of the framework-dependent binary. Meaning that basically, breaking changes in configuration files, command-line syntax, or in the runtime requirements should be causing a major version increment.
+
+## [5.0.0] - 2026-06-26
+### Changed
+- **(Requirement update!)** Update to .NET 10.
+- Update dependencies.
 
 ## [4.0.0] - 2025-01-15
 ### Changed
@@ -221,4 +226,5 @@ runtime 2.2.
 [2.4.4]: https://github.com/codingteam/emulsion/compare/v2.4.3...v2.4.4
 [3.0.0]: https://github.com/codingteam/emulsion/compare/v2.4.4...v3.0.0
 [4.0.0]: https://github.com/codingteam/emulsion/compare/v3.0.0...v4.0.0
-[Unreleased]: https://github.com/codingteam/emulsion/compare/v4.0.0...HEAD
+[5.0.0]: https://github.com/codingteam/emulsion/compare/v4.0.0...v5.0.0
+[Unreleased]: https://github.com/codingteam/emulsion/compare/v5.0.0...HEAD

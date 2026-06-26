@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Emulsion contributors <https://github.com/codingteam/emulsion>
+// SPDX-FileCopyrightText: 2025-2026 Emulsion contributors <https://github.com/codingteam/emulsion>
 //
 // SPDX-License-Identifier: MIT
 
