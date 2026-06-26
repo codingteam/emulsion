@@ -112,18 +112,25 @@ let private createPoll from (question: string) (options: string[]) =
         |> Array.map (fun opt -> {
             Text = opt
             VoterCount = 0
+            PersistentId = ""
+            Media = None
+            AddedByUser = None
+            AddedByChat = None
+            AdditionDate = None
             TextEntities = Some [| |]
         })
 
     let poll= Poll.Create(
         id = "",
-        question = question,
-        options = options,
-        totalVoterCount = 0L,
-        isClosed = false,
-        isAnonymous = false,
+        allowsRevoting = false,
+        allowsMultipleAnswers = false,
         ``type`` = "",
-        allowsMultipleAnswers = false
+        isAnonymous = false,
+        membersOnly = false,
+        totalVoterCount = 0L,
+        options = options,
+        question = question,
+        isClosed = false
     )
 
     { defaultMessage with
