@@ -151,6 +151,7 @@ let private messageWithVideo =
             Height = 0
             MimeType = None
             StartTimestamp = None
+            Qualities = None
             Thumbnail = None
             Width = 0
         }
