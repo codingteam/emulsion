@@ -1,7 +1,7 @@
 {
     "scripts": {
         "typecheck": "tsc --noEmit",
-        "build": "tsc --noEmit && parcel build --public-url ./ --cache-dir obj/.parcel-cache --dist-dir bin"
+        "build": "npm run typecheck && parcel build --public-url ./ --cache-dir obj/.parcel-cache --dist-dir bin"
     },
     "source": "index.html",
     "type": "module",
