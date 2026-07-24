@@ -12,6 +12,10 @@ Versioning v2.0.0](https://semver.org/spec/v2.0.0.html).
 
 When considering the public API, we take into account the tool configuration and external requirements of the framework-dependent binary. Meaning that basically, breaking changes in configuration files, command-line syntax, or in the runtime requirements should be causing a major version increment.
 
+## [5.0.1] - 2026-07-24
+### Fixed
+- Error when calling `render()` in log rendering frontend.
+
 ## [5.0.0] - 2026-06-26
 ### Changed
 - **(Requirement update!)** Update to .NET 10.
@@ -227,4 +231,5 @@ runtime 2.2.
 [3.0.0]: https://github.com/codingteam/emulsion/compare/v2.4.4...v3.0.0
 [4.0.0]: https://github.com/codingteam/emulsion/compare/v3.0.0...v4.0.0
 [5.0.0]: https://github.com/codingteam/emulsion/compare/v4.0.0...v5.0.0
-[Unreleased]: https://github.com/codingteam/emulsion/compare/v5.0.0...HEAD
+[5.0.1]: https://github.com/codingteam/emulsion/compare/v5.0.0...v5.0.1
+[Unreleased]: https://github.com/codingteam/emulsion/compare/v5.0.1...HEAD
