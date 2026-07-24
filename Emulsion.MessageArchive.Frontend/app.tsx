@@ -1,9 +1,9 @@
-// SPDX-FileCopyrightText: 2024 Emulsion contributors <https://github.com/codingteam/emulsion>
+// SPDX-FileCopyrightText: 2024-2026 Emulsion contributors <https://github.com/codingteam/emulsion>
 //
 // SPDX-License-Identifier: MIT
 
 import React, {useState} from 'react';
-import {render} from 'react-dom';
+import {createRoot} from 'react-dom/client';
 
 class LoadedPage {
     constructor(
@@ -113,4 +113,8 @@ const App = () => {
     }
 };
 
-render(<App/>, document.getElementById('app'));
+const container = document.getElementById('app');
+if (!container) {
+    throw new Error('Root container #app not found');
+}
+createRoot(container).render(<App/>);
