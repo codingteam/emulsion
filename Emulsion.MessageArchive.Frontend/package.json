@@ -1,6 +1,7 @@
 {
     "scripts": {
-        "build": "parcel build --public-url ./ --cache-dir obj/.parcel-cache --dist-dir bin"
+        "typecheck": "tsc --noEmit",
+        "build": "tsc --noEmit && parcel build --public-url ./ --cache-dir obj/.parcel-cache --dist-dir bin"
     },
     "source": "index.html",
     "type": "module",
@@ -10,8 +11,8 @@
         "@types/react-dom": "^19.0.0",
         "parcel": "^2.9.3",
         "process": "^0.11.10",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
+        "react": "19.2.8",
+        "react-dom": "19.2.8",
         "typescript": "^7.0.0"
     }
 }
