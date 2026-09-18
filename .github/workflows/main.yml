@@ -22,7 +22,7 @@ jobs:
           - name: macos
             image: macos-26
           - name: linux
-            image: ubuntu-24.04
+            image: ubuntu-26.04
           - name: windows
             image: windows-2025
     name: main.${{ matrix.environment.name }}
@@ -49,14 +49,14 @@ jobs:
         run: dotnet test
         timeout-minutes: 10
   encoding:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - name: Verify encoding
         shell: pwsh
         run: scripts/Test-Encoding.ps1
   licenses:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Check out the sources
         uses: actions/checkout@v7
